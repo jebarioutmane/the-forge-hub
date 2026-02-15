@@ -1,0 +1,110 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { StatCard } from "@/components/StatCard";
+import { CurrencyToggle, Currency, convertCurrency, formatCurrency } from "@/components/CurrencyToggle";
+import { Wallet, TrendingDown, PiggyBank, AlertTriangle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
+import { Badge } from "@/components/ui/badge";
+
+export default function OperationsDashboard() {
+  const [currency, setCurrency] = useState<Currency>("MAD");
+
+  const { data: budgets = [] } = useQuery({
+    queryKey: ["budgets"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("budgets").select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: expenses = [] } = useQuery({
+    queryKey: ["expenses"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("expenses").select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const totalBudget = budgets.reduce((sum, b) => sum + Number(b.total_amount), 0);
+  const totalSpent = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+  const remaining = totalBudget - totalSpent;
+
+  // Chart data: group by budget category
+  const chartData = budgets.map((b) => {
+    const catExpenses = expenses
+      .filter((e) => e.budget_id === b.id)
+      .reduce((sum, e) => sum + Number(e.amount), 0);
+    return {
+      category: b.category,
+      budget: convertCurrency(Number(b.total_amount), currency),
+      spent: convertCurrency(catExpenses, currency),
+    };
+  });
+
+  const chartConfig = {
+    budget: { label: "Budget", color: "hsl(35 90% 55%)" },
+    spent: { label: "Spent", color: "hsl(215 16% 47%)" },
+  };
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Budget Dashboard</h1>
+        <CurrencyToggle value={currency} onChange={setCurrency} />
+      </div>
+
+      {remaining <= 0 && (
+        <Badge variant="destructive" className="gap-1">
+          <AlertTriangle className="h-3 w-3" />
+          Budget depleted — no remaining funds
+        </Badge>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <StatCard
+          title="Total Budget"
+          value={formatCurrency(convertCurrency(totalBudget, currency), currency)}
+          icon={PiggyBank}
+        />
+        <StatCard
+          title="Total Spent"
+          value={formatCurrency(convertCurrency(totalSpent, currency), currency)}
+          icon={TrendingDown}
+        />
+        <StatCard
+          title="Remaining"
+          value={formatCurrency(convertCurrency(remaining, currency), currency)}
+          icon={Wallet}
+          warning={remaining <= 0}
+        />
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Budget vs Expenses by Category</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {chartData.length > 0 ? (
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <XAxis dataKey="category" className="text-xs" />
+                <YAxis className="text-xs" />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="budget" fill="var(--color-budget)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="spent" fill="var(--color-spent)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ChartContainer>
+          ) : (
+            <p className="text-muted-foreground text-sm text-center py-8">No budget data yet.</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
