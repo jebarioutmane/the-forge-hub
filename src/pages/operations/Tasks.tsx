@@ -183,7 +183,7 @@ export default function OperationsTasks() {
       setForm((f) => ({ ...f, description: f.description + "\n\n" + checklist }));
       toast.success("AI checklist generated");
     } catch (e: any) {
-      toast.error(e.message || "AI generation failed");
+      toast.error("AI is busy, please try again in a minute.");
     } finally {
       setAiLoading(false);
     }

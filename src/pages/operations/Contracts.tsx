@@ -147,7 +147,7 @@ export default function OperationsContracts() {
       const email = await draftFollowUpEmail(c.title, c.stakeholder_name, c.status || "Unknown");
       setEmailContent(email);
     } catch (e: any) {
-      toast.error(e.message || "AI generation failed");
+      toast.error("AI is busy, please try again in a minute.");
       setEmailDialog(false);
     } finally {
       setEmailLoading(false);

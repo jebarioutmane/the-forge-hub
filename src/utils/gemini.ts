@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || "");
 
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 export async function generateChecklist(taskDescription: string): Promise<string> {
   const prompt = `Convert the following task description into a clear, actionable Markdown checklist with bullet points. Only return the checklist, no extra commentary.\n\nTask: ${taskDescription}`;
