@@ -4,12 +4,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "./components/Layout";
-import Index from "./pages/Index";
+import { OperationsLayout } from "./components/OperationsLayout";
+import Home from "./pages/Home";
 import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import Finance from "./pages/Finance";
-import Tasks from "./pages/Tasks";
-import Contracts from "./pages/Contracts";
+import OperationsDashboard from "./pages/operations/Dashboard";
+import Stipends from "./pages/operations/Stipends";
+import OperationsContracts from "./pages/operations/Contracts";
+import OperationsTasks from "./pages/operations/Tasks";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -23,12 +24,12 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={<Layout><Index /></Layout>} />
-          <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
-          <Route path="/finance" element={<Layout><Finance /></Layout>} />
-          <Route path="/tasks" element={<Layout><Tasks /></Layout>} />
-          <Route path="/contracts" element={<Layout><Contracts /></Layout>} />
+          <Route path="/" element={<Layout><Home /></Layout>} />
           <Route path="/settings" element={<Layout><Settings /></Layout>} />
+          <Route path="/operations" element={<OperationsLayout><OperationsDashboard /></OperationsLayout>} />
+          <Route path="/operations/stipends" element={<OperationsLayout><Stipends /></OperationsLayout>} />
+          <Route path="/operations/contracts" element={<OperationsLayout><OperationsContracts /></OperationsLayout>} />
+          <Route path="/operations/tasks" element={<OperationsLayout><OperationsTasks /></OperationsLayout>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
