@@ -127,6 +127,36 @@ export type Database = {
           },
         ]
       }
+      stipends: {
+        Row: {
+          base_amount: number
+          created_at: string
+          deductions: number
+          final_payout: number | null
+          founder_name: string
+          id: string
+          status: string
+        }
+        Insert: {
+          base_amount: number
+          created_at?: string
+          deductions?: number
+          final_payout?: number | null
+          founder_name: string
+          id?: string
+          status?: string
+        }
+        Update: {
+          base_amount?: number
+          created_at?: string
+          deductions?: number
+          final_payout?: number | null
+          founder_name?: string
+          id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           assigned_to: string | null

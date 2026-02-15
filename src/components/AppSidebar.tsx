@@ -1,5 +1,6 @@
-import { Home, Hammer, Settings, Users, LayoutDashboard } from "lucide-react";
+import { Home, LayoutDashboard, DollarSign, ListTodo, FileText, Settings, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Sidebar,
   SidebarContent,
@@ -9,17 +10,22 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 
 const items = [
   { title: "Home", url: "/", icon: Home },
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Projects", url: "/projects", icon: Hammer },
-  { title: "Team", url: "/team", icon: Users },
+  { title: "Finance", url: "/finance", icon: DollarSign },
+  { title: "Tasks", url: "/tasks", icon: ListTodo },
+  { title: "Contracts", url: "/contracts", icon: FileText },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
+  const { signOut, user } = useAuth();
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -34,7 +40,7 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink to={item.url} end className="hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-primary font-medium">
+                    <NavLink to={item.url} end={item.url === "/"} className="hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-primary font-medium">
                       <item.icon className="mr-2 h-4 w-4" />
                       <span>{item.title}</span>
                     </NavLink>
@@ -45,6 +51,17 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter className="p-4">
+        {user && (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-destructive" onClick={signOut}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
+        )}
+      </SidebarFooter>
     </Sidebar>
   );
 }
