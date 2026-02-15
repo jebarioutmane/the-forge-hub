@@ -11,10 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Settings, Users, Sparkles, Loader2, X } from "lucide-react";
+import { Plus, Settings, Users, X } from "lucide-react";
 import TaskCard from "@/components/TaskCard";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
-import { generateChecklist } from "@/utils/gemini";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Task = Tables<"tasks">;
@@ -50,7 +49,6 @@ export default function OperationsTasks() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [delegateOpen, setDelegateOpen] = useState(false);
   const [delegateName, setDelegateName] = useState("");
-  const [aiLoading, setAiLoading] = useState(false);
 
   // Form
   const [form, setForm] = useState({ title: "", description: "", priority: "Medium", due_date: "" });
@@ -175,20 +173,6 @@ export default function OperationsTasks() {
     });
   }
 
-  async function handleAiChecklist() {
-    if (!form.description) { toast.error("Add a description first"); return; }
-    setAiLoading(true);
-    try {
-      const checklist = await generateChecklist(form.description);
-      setForm((f) => ({ ...f, description: f.description + "\n\n" + checklist }));
-      toast.success("AI checklist generated");
-    } catch (e: any) {
-      toast.error("AI is busy, please try again in a minute.");
-    } finally {
-      setAiLoading(false);
-    }
-  }
-
   const taskFormContent = (
     <div className="space-y-4 py-2">
       <div className="space-y-2">
@@ -196,13 +180,7 @@ export default function OperationsTasks() {
         <Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
       </div>
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label>Description</Label>
-          <Button size="sm" variant="outline" onClick={handleAiChecklist} disabled={aiLoading}>
-            {aiLoading ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Sparkles className="mr-1 h-3 w-3" />}
-            AI Checklist
-          </Button>
-        </div>
+        <Label>Description</Label>
         <Textarea rows={5} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
       </div>
       <div className="grid grid-cols-2 gap-4">

@@ -11,10 +11,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { Plus, Settings, MoreHorizontal, Mail, Pencil, Trash2, Loader2, Copy, X } from "lucide-react";
+import { Plus, Settings, MoreHorizontal, Pencil, Trash2, X } from "lucide-react";
 import StatusPipeline from "@/components/StatusPipeline";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
-import { draftFollowUpEmail } from "@/utils/gemini";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Contract = Tables<"contracts">;
@@ -139,21 +138,6 @@ export default function OperationsContracts() {
     setEditingContract(c);
   }
 
-  async function handleDraftEmail(c: Contract) {
-    setEmailLoading(true);
-    setEmailDialog(true);
-    setEmailContent("");
-    try {
-      const email = await draftFollowUpEmail(c.title, c.stakeholder_name, c.status || "Unknown");
-      setEmailContent(email);
-    } catch (e: any) {
-      toast.error("AI is busy, please try again in a minute.");
-      setEmailDialog(false);
-    } finally {
-      setEmailLoading(false);
-    }
-  }
-
   const contractFormContent = (
     <div className="space-y-4 py-2">
       <div className="grid grid-cols-2 gap-4">
@@ -245,7 +229,6 @@ export default function OperationsContracts() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => openEdit(c)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDraftEmail(c)}><Mail className="mr-2 h-3 w-3" /> Draft Email</DropdownMenuItem>
                           <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(c.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -282,23 +265,6 @@ export default function OperationsContracts() {
 
       {/* Delete Confirm */}
       <ConfirmDeleteDialog open={!!deleteId} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
-
-      {/* AI Email Dialog */}
-      <Dialog open={emailDialog} onOpenChange={setEmailDialog}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>AI-Generated Follow-Up Email</DialogTitle></DialogHeader>
-          {emailLoading ? (
-            <div className="flex items-center justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
-          ) : (
-            <div className="space-y-3">
-              <pre className="whitespace-pre-wrap text-sm bg-muted p-4 rounded-md max-h-64 overflow-auto">{emailContent}</pre>
-              <Button variant="outline" className="w-full" onClick={() => { navigator.clipboard.writeText(emailContent); toast.success("Copied to clipboard"); }}>
-                <Copy className="mr-2 h-4 w-4" /> Copy to Clipboard
-              </Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Settings Dialog */}
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
