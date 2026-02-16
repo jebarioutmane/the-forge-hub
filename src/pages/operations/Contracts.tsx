@@ -15,6 +15,8 @@ import { Plus, Settings, MoreHorizontal, Pencil, Trash2, X } from "lucide-react"
 import StatusPipeline from "@/components/StatusPipeline";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import type { Tables } from "@/integrations/supabase/types";
+import { TagPicker } from "@/components/TagPicker";
+import { TagBadges } from "@/components/TagBadges";
 
 type Contract = Tables<"contracts">;
 
@@ -40,7 +42,7 @@ export default function OperationsContracts() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
-  const [form, setForm] = useState({ title: "", stakeholder_name: "", value: "", type: "External", start_date: "", end_date: "" });
+  const [form, setForm] = useState({ title: "", stakeholder_name: "", value: "", type: "External", start_date: "", end_date: "", tag_ids: [] as string[] });
 
   useEffect(() => { localStorage.setItem("forge_contract_stages", JSON.stringify(stages)); }, [stages]);
 
@@ -63,6 +65,7 @@ export default function OperationsContracts() {
         start_date: form.start_date || null,
         end_date: form.end_date || null,
         status: stages[0],
+        tag_ids: form.tag_ids,
       });
       if (error) throw error;
     },
@@ -85,6 +88,7 @@ export default function OperationsContracts() {
         type: form.type,
         start_date: form.start_date || null,
         end_date: form.end_date || null,
+        tag_ids: form.tag_ids,
       }).eq("id", editingContract.id);
       if (error) throw error;
     },
@@ -135,7 +139,7 @@ export default function OperationsContracts() {
   });
 
   function resetForm() {
-    setForm({ title: "", stakeholder_name: "", value: "", type: "External", start_date: "", end_date: "" });
+    setForm({ title: "", stakeholder_name: "", value: "", type: "External", start_date: "", end_date: "", tag_ids: [] });
   }
 
   function openEdit(c: Contract) {
@@ -146,6 +150,7 @@ export default function OperationsContracts() {
       type: c.type || "External",
       start_date: c.start_date || "",
       end_date: c.end_date || "",
+      tag_ids: (c.tag_ids as string[]) || [],
     });
     setEditingContract(c);
   }
@@ -198,6 +203,10 @@ export default function OperationsContracts() {
           <Input type="date" value={form.end_date} onChange={(e) => setForm((f) => ({ ...f, end_date: e.target.value }))} />
         </div>
       </div>
+      <div className="space-y-2">
+        <Label>Tags</Label>
+        <TagPicker value={form.tag_ids} onChange={(ids) => setForm((f) => ({ ...f, tag_ids: ids }))} />
+      </div>
     </div>
   );
 
@@ -236,6 +245,7 @@ export default function OperationsContracts() {
                 <TableHead>Stakeholder</TableHead>
                 <TableHead className="text-right">Value (MAD)</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Tags</TableHead>
                 <TableHead>Start</TableHead>
                 <TableHead>End</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -243,9 +253,9 @@ export default function OperationsContracts() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
               ) : contracts.length === 0 ? (
-                <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No contracts yet</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">No contracts yet</TableCell></TableRow>
               ) : (
                 contracts.map((c) => (
                   <TableRow key={c.id} className={selected.has(c.id) ? "bg-muted/50" : ""}>
@@ -256,6 +266,7 @@ export default function OperationsContracts() {
                     <TableCell>
                       <StatusPipeline stages={stages} currentStage={c.status || stages[0]} onStageClick={(s) => statusMutation.mutate({ id: c.id, status: s })} />
                     </TableCell>
+                    <TableCell><TagBadges tagIds={c.tag_ids as string[] | null} /></TableCell>
                     <TableCell className="text-muted-foreground text-sm">{c.start_date || "—"}</TableCell>
                     <TableCell className="text-muted-foreground text-sm">{c.end_date || "—"}</TableCell>
                     <TableCell className="text-right">

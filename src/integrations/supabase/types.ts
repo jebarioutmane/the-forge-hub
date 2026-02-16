@@ -49,6 +49,7 @@ export type Database = {
           stakeholder_name: string
           start_date: string | null
           status: string | null
+          tag_ids: string[] | null
           title: string
           type: string | null
           value: number | null
@@ -60,6 +61,7 @@ export type Database = {
           stakeholder_name: string
           start_date?: string | null
           status?: string | null
+          tag_ids?: string[] | null
           title: string
           type?: string | null
           value?: number | null
@@ -71,6 +73,7 @@ export type Database = {
           stakeholder_name?: string
           start_date?: string | null
           status?: string | null
+          tag_ids?: string[] | null
           title?: string
           type?: string | null
           value?: number | null
@@ -130,6 +133,7 @@ export type Database = {
           needs: Json | null
           start_date: string | null
           status: string | null
+          tag_ids: string[] | null
         }
         Insert: {
           checklist?: Json | null
@@ -141,6 +145,7 @@ export type Database = {
           needs?: Json | null
           start_date?: string | null
           status?: string | null
+          tag_ids?: string[] | null
         }
         Update: {
           checklist?: Json | null
@@ -152,6 +157,7 @@ export type Database = {
           needs?: Json | null
           start_date?: string | null
           status?: string | null
+          tag_ids?: string[] | null
         }
         Relationships: []
       }
@@ -167,6 +173,7 @@ export type Database = {
           id: string
           proof_document_url: string | null
           status: string | null
+          tag_ids: string[] | null
           type: string | null
         }
         Insert: {
@@ -180,6 +187,7 @@ export type Database = {
           id?: string
           proof_document_url?: string | null
           status?: string | null
+          tag_ids?: string[] | null
           type?: string | null
         }
         Update: {
@@ -193,6 +201,7 @@ export type Database = {
           id?: string
           proof_document_url?: string | null
           status?: string | null
+          tag_ids?: string[] | null
           type?: string | null
         }
         Relationships: [
@@ -217,6 +226,7 @@ export type Database = {
           market_update: string | null
           product_score: number | null
           product_update: string | null
+          tag_ids: string[] | null
           team_score: number | null
           team_update: string | null
           traction_score: number | null
@@ -234,6 +244,7 @@ export type Database = {
           market_update?: string | null
           product_score?: number | null
           product_update?: string | null
+          tag_ids?: string[] | null
           team_score?: number | null
           team_update?: string | null
           traction_score?: number | null
@@ -251,6 +262,7 @@ export type Database = {
           market_update?: string | null
           product_score?: number | null
           product_update?: string | null
+          tag_ids?: string[] | null
           team_score?: number | null
           team_update?: string | null
           traction_score?: number | null
@@ -468,6 +480,27 @@ export type Database = {
           founder_name?: string
           id?: string
           status?: string
+        }
+        Relationships: []
+      }
+      tags: {
+        Row: {
+          color: string
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }

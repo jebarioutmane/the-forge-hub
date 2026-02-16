@@ -16,6 +16,8 @@ import { toast } from "sonner";
 import { Plus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import type { Tables, Json } from "@/integrations/supabase/types";
+import { TagPicker } from "@/components/TagPicker";
+import { TagBadges } from "@/components/TagBadges";
 
 type Event = Tables<"events">;
 type ChecklistItem = { id: string; text: string; done: boolean };
@@ -56,7 +58,7 @@ export default function Planning() {
   const [editing, setEditing] = useState<Event | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [newItem, setNewItem] = useState("");
-  const [form, setForm] = useState({ name: "", start_date: "", end_date: "", status: "Planning", needs: [] as string[], checklist: [] as ChecklistItem[] });
+  const [form, setForm] = useState({ name: "", start_date: "", end_date: "", status: "Planning", needs: [] as string[], checklist: [] as ChecklistItem[], tag_ids: [] as string[] });
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["events"],
@@ -76,6 +78,7 @@ export default function Planning() {
         status: form.status,
         needs: form.needs as unknown as Json,
         checklist: form.checklist as unknown as Json,
+        tag_ids: form.tag_ids,
       };
       if (editing) {
         const { error } = await supabase.from("events").update(payload).eq("id", editing.id);
@@ -114,7 +117,7 @@ export default function Planning() {
   });
 
   function resetForm() {
-    setForm({ name: "", start_date: "", end_date: "", status: "Planning", needs: [], checklist: [] });
+    setForm({ name: "", start_date: "", end_date: "", status: "Planning", needs: [], checklist: [], tag_ids: [] });
     setNewItem("");
   }
 
@@ -127,6 +130,7 @@ export default function Planning() {
       status: ev.status || "Planning",
       needs,
       checklist: parseChecklist(ev.checklist),
+      tag_ids: (ev.tag_ids as string[]) || [],
     });
     setEditing(ev);
     setDialogOpen(true);
@@ -169,15 +173,16 @@ export default function Planning() {
                 <TableHead>Start</TableHead>
                 <TableHead>End</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Tags</TableHead>
                 <TableHead>Logistics</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
               ) : events.length === 0 ? (
-                <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No events yet</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No events yet</TableCell></TableRow>
               ) : (
                 events.map((ev) => {
                   const needs = Array.isArray(ev.needs) ? (ev.needs as string[]) : [];
@@ -186,9 +191,10 @@ export default function Planning() {
                       <TableCell className="font-medium">{ev.name}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{ev.start_date || "—"}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{ev.end_date || "—"}</TableCell>
-                      <TableCell><Badge className={statusBadge(ev.status || "Planning")}>{ev.status || "Planning"}</Badge></TableCell>
-                      <TableCell>
-                        {needs.length > 0 ? needs.map((n) => <Badge key={n} variant="outline" className="mr-1 text-xs">{n}</Badge>) : <span className="text-muted-foreground text-sm">—</span>}
+                    <TableCell><Badge className={statusBadge(ev.status || "Planning")}>{ev.status || "Planning"}</Badge></TableCell>
+                    <TableCell><TagBadges tagIds={ev.tag_ids as string[] | null} /></TableCell>
+                    <TableCell>
+                      {needs.length > 0 ? needs.map((n) => <Badge key={n} variant="outline" className="mr-1 text-xs">{n}</Badge>) : <span className="text-muted-foreground text-sm">—</span>}
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
@@ -266,6 +272,10 @@ export default function Planning() {
                 <Input placeholder="Add item..." value={newItem} onChange={(e) => setNewItem(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addChecklistItem()} className="h-8 text-sm" />
                 <Button size="sm" onClick={addChecklistItem} disabled={!newItem.trim()}><Plus className="h-3 w-3" /></Button>
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Tags</Label>
+              <TagPicker value={form.tag_ids} onChange={(ids) => setForm((f) => ({ ...f, tag_ids: ids }))} />
             </div>
           </div>
           <DialogFooter>
