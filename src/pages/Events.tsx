@@ -15,6 +15,8 @@ import { Plus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { addDays, differenceInDays, format, parseISO, min, max } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
+import { TagPicker } from "@/components/TagPicker";
+import { TagBadges } from "@/components/TagBadges";
 
 type Event = Tables<"events">;
 
@@ -26,7 +28,7 @@ export default function Events() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Event | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: "", start_date: "", end_date: "", status: "Planning", needs: [] as string[] });
+  const [form, setForm] = useState({ name: "", start_date: "", end_date: "", status: "Planning", needs: [] as string[], tag_ids: [] as string[] });
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["events"],
@@ -58,6 +60,7 @@ export default function Events() {
         end_date: form.end_date || null,
         status: form.status,
         needs: form.needs,
+        tag_ids: form.tag_ids,
       };
       if (editing) {
         const { error } = await supabase.from("events").update(payload).eq("id", editing.id);
@@ -96,7 +99,7 @@ export default function Events() {
   });
 
   function resetForm() {
-    setForm({ name: "", start_date: "", end_date: "", status: "Planning", needs: [] });
+    setForm({ name: "", start_date: "", end_date: "", status: "Planning", needs: [], tag_ids: [] });
   }
 
   function openEdit(ev: Event) {
@@ -107,6 +110,7 @@ export default function Events() {
       end_date: ev.end_date || "",
       status: ev.status || "Planning",
       needs,
+      tag_ids: (ev.tag_ids as string[]) || [],
     });
     setEditing(ev);
     setDialogOpen(true);
@@ -172,6 +176,7 @@ export default function Events() {
                   <div key={ev.id} className="grid gap-px items-center min-h-[32px]" style={{ gridTemplateColumns: `160px repeat(${gantt.cols}, minmax(28px, 1fr))` }}>
                     <div className="text-sm font-medium truncate px-1 flex items-center gap-2">
                       <span className="truncate">{ev.name}</span>
+                      <TagBadges tagIds={ev.tag_ids as string[] | null} />
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0"><MoreHorizontal className="h-3 w-3" /></Button>
@@ -238,6 +243,10 @@ export default function Events() {
                   </div>
                 ))}
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Tags</Label>
+              <TagPicker value={form.tag_ids} onChange={(ids) => setForm((f) => ({ ...f, tag_ids: ids }))} />
             </div>
           </div>
           <DialogFooter>
