@@ -1,4 +1,4 @@
-import { Briefcase, Users, CalendarDays, Target, Lock } from "lucide-react";
+import { Briefcase, Users, CalendarDays, Target, Lock, GraduationCap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 
@@ -22,6 +22,13 @@ const modules = [
     description: "Pair mentors with founders for sessions.",
     icon: Users,
     route: "/mentoring",
+    active: true,
+  },
+  {
+    title: "Founders",
+    description: "Track founder progress and venture associates.",
+    icon: GraduationCap,
+    route: "/founders",
     active: true,
   },
   {
