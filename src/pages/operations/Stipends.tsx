@@ -127,7 +127,7 @@ export default function Stipends() {
     else setSelected(new Set(stipends.map((s) => s.id)));
   }
 
-  const statusColor = (s: string) => s === "Paid" ? "default" as const : "secondary" as const;
+  const statusColor = (s: string) => s === "Paid" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border-0" : "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 border-0";
 
   const stipendFormContent = (
     <div className="space-y-4 py-2">
@@ -143,9 +143,12 @@ export default function Stipends() {
   );
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Stipend Manager</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Stipend Manager</h1>
+          <p className="text-sm text-muted-foreground">Track founder payments and payouts</p>
+        </div>
         <Button onClick={() => { resetForm(); setAddOpen(true); }}><Plus className="mr-2 h-4 w-4" /> Add Stipend</Button>
       </div>
 
@@ -187,7 +190,7 @@ export default function Stipends() {
                     <TableCell className="font-medium">{s.founder_name}</TableCell>
                     <TableCell className="text-right">{Number(s.base_amount).toLocaleString()} MAD</TableCell>
                     <TableCell className="text-muted-foreground text-sm">{new Date(s.created_at).toLocaleDateString()}</TableCell>
-                    <TableCell><Badge variant={statusColor(s.status)}>{s.status}</Badge></TableCell>
+                    <TableCell><Badge className={statusColor(s.status)}>{s.status}</Badge></TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

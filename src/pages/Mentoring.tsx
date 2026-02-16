@@ -111,9 +111,12 @@ export default function Mentoring() {
   );
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Mentoring</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Mentoring</h1>
+          <p className="text-sm text-muted-foreground">Pair mentors with founders for sessions</p>
+        </div>
         <Button onClick={() => { resetForm(); setEditing(null); setDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" /> Add Session</Button>
       </div>
 

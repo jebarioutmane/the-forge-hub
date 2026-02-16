@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Plus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
@@ -33,23 +33,10 @@ function parseChecklist(raw: Json | null): ChecklistItem[] {
   );
 }
 
-async function syncTasks(eventId: string, eventName: string, needs: string[]) {
-  await supabase.from("tasks").delete().eq("source_module", "Events").eq("source_id", eventId);
-  if (needs.length > 0) {
-    const tasks = needs.map((need) => ({
-      title: `Arrange ${need} for ${eventName}`,
-      source_module: "Events",
-      source_id: eventId,
-      status: "To Do",
-    }));
-    await supabase.from("tasks").insert(tasks);
-  }
-}
-
-const statusBadge = (s: string) => {
-  if (s === "Active") return "bg-green-500/20 text-green-400";
+const statusBadgeClass = (s: string) => {
+  if (s === "Active") return "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400";
   if (s === "Completed") return "bg-muted text-muted-foreground";
-  return "bg-blue-500/20 text-blue-400";
+  return "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400";
 };
 
 export default function Planning() {
@@ -83,16 +70,13 @@ export default function Planning() {
       if (editing) {
         const { error } = await supabase.from("events").update(payload).eq("id", editing.id);
         if (error) throw error;
-        await syncTasks(editing.id, form.name, form.needs);
       } else {
-        const { data, error } = await supabase.from("events").insert(payload).select().single();
+        const { error } = await supabase.from("events").insert(payload);
         if (error) throw error;
-        await syncTasks(data.id, form.name, form.needs);
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setDialogOpen(false);
       setEditing(null);
       resetForm();
@@ -103,13 +87,11 @@ export default function Planning() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await supabase.from("tasks").delete().eq("source_module", "Events").eq("source_id", id);
       const { error } = await supabase.from("events").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["events"] });
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setDeleteId(null);
       toast.success("Event deleted");
     },
@@ -158,13 +140,16 @@ export default function Planning() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Planning</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Planning</h1>
+          <p className="text-sm text-muted-foreground">Manage event logistics and checklists</p>
+        </div>
         <Button onClick={() => { resetForm(); setEditing(null); setDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" /> New Event</Button>
       </div>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -191,10 +176,16 @@ export default function Planning() {
                       <TableCell className="font-medium">{ev.name}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{ev.start_date || "—"}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{ev.end_date || "—"}</TableCell>
-                    <TableCell><Badge className={statusBadge(ev.status || "Planning")}>{ev.status || "Planning"}</Badge></TableCell>
-                    <TableCell><TagBadges tagIds={ev.tag_ids as string[] | null} /></TableCell>
-                    <TableCell>
-                      {needs.length > 0 ? needs.map((n) => <Badge key={n} variant="outline" className="mr-1 text-xs">{n}</Badge>) : <span className="text-muted-foreground text-sm">—</span>}
+                      <TableCell>
+                        <Badge className={`${statusBadgeClass(ev.status || "Planning")} border-0 font-medium`}>
+                          {ev.status || "Planning"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell><TagBadges tagIds={ev.tag_ids as string[] | null} /></TableCell>
+                      <TableCell>
+                        {needs.length > 0 ? needs.map((n) => (
+                          <Badge key={n} variant="outline" className="mr-1 text-xs">{n}</Badge>
+                        )) : <span className="text-muted-foreground text-sm">—</span>}
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
@@ -255,7 +246,6 @@ export default function Planning() {
                 ))}
               </div>
             </div>
-            {/* Checklist */}
             <div className="space-y-2">
               <Label>Checklist</Label>
               {form.checklist.length === 0 && <p className="text-xs text-muted-foreground">No items yet.</p>}

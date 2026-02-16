@@ -1,6 +1,9 @@
-import { Home, LayoutDashboard, DollarSign, ListTodo, FileText, Settings, LogOut } from "lucide-react";
+import {
+  LayoutDashboard, DollarSign, FileText, CalendarDays, Users,
+  ClipboardCheck, GraduationCap, TrendingUp, Tag, BookOpen,
+  Settings, ChevronDown, Wallet, PiggyBank, ListTodo,
+} from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useAuth } from "@/hooks/useAuth";
 import {
   Sidebar,
   SidebarContent,
@@ -12,55 +15,99 @@ import {
   SidebarMenuItem,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import logoWhite from "@/assets/Logo-THEFORGE_white.png";
 
-const items = [
-  { title: "Home", url: "/", icon: Home },
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Finance", url: "/finance", icon: DollarSign },
-  { title: "Tasks", url: "/tasks", icon: ListTodo },
-  { title: "Contracts", url: "/contracts", icon: FileText },
-  { title: "Settings", url: "/settings", icon: Settings },
+const sections = [
+  {
+    label: "Dashboard",
+    color: "text-primary",
+    items: [
+      { title: "Home", url: "/", icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: "Operations",
+    color: "text-module-operations",
+    items: [
+      { title: "Budget Dashboard", url: "/operations", icon: PiggyBank },
+      { title: "Expenses", url: "/operations/source", icon: DollarSign },
+      { title: "Stipends", url: "/operations/stipends", icon: Wallet },
+      { title: "Contracts", url: "/operations/contracts", icon: FileText },
+      { title: "Tasks", url: "/operations/tasks", icon: ListTodo },
+    ],
+  },
+  {
+    label: "Program",
+    color: "text-module-events",
+    items: [
+      { title: "Events Calendar", url: "/events", icon: CalendarDays },
+      { title: "Planning", url: "/events/planning", icon: ClipboardCheck },
+      { title: "Mentoring", url: "/events/mentoring", icon: Users },
+    ],
+  },
+  {
+    label: "Founders",
+    color: "text-module-founders",
+    items: [
+      { title: "Directory", url: "/founders", icon: GraduationCap },
+      { title: "Progress Tracker", url: "/founders/tracking", icon: TrendingUp },
+    ],
+  },
+  {
+    label: "System",
+    color: "text-muted-foreground",
+    items: [
+      { title: "Tags", url: "/settings", icon: Tag },
+      { title: "Library", url: "/library", icon: BookOpen },
+      { title: "Settings", url: "/settings", icon: Settings },
+    ],
+  },
 ];
 
 export function AppSidebar() {
-  const { signOut, user } = useAuth();
-
   return (
     <Sidebar>
       <SidebarContent>
-        <div className="px-4 py-6">
-          <h2 className="text-lg font-bold tracking-widest text-primary">THE FORGE</h2>
-          <p className="text-xs text-muted-foreground tracking-wider">HUB</p>
+        <div className="px-5 py-5">
+          <img src={logoWhite} alt="The Forge" className="h-8" />
         </div>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs tracking-widest text-muted-foreground">Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} end={item.url === "/"} className="hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-primary font-medium">
-                      <item.icon className="mr-2 h-4 w-4" />
-                      <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {sections.map((section) => (
+          <Collapsible key={section.label} defaultOpen>
+            <SidebarGroup>
+              <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-1 group">
+                <SidebarGroupLabel className={`text-[10px] font-bold tracking-[0.15em] uppercase ${section.color}`}>
+                  {section.label}
+                </SidebarGroupLabel>
+                <ChevronDown className="h-3 w-3 text-sidebar-foreground/50 transition-transform group-data-[state=closed]:-rotate-90" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {section.items.map((item) => (
+                      <SidebarMenuItem key={item.title + item.url}>
+                        <SidebarMenuButton asChild>
+                          <NavLink
+                            to={item.url}
+                            end={item.url === "/"}
+                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors text-sm"
+                            activeClassName="bg-sidebar-accent text-sidebar-primary font-semibold"
+                          >
+                            <item.icon className="h-4 w-4 shrink-0" />
+                            <span>{item.title}</span>
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </SidebarGroup>
+          </Collapsible>
+        ))}
       </SidebarContent>
       <SidebarFooter className="p-4">
-        {user && (
-          <div className="space-y-2">
-            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-            <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground hover:text-destructive" onClick={signOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
-            </Button>
-          </div>
-        )}
+        <p className="text-[10px] text-sidebar-foreground/40 tracking-wider uppercase">The Forge Hub v2.0</p>
       </SidebarFooter>
     </Sidebar>
   );

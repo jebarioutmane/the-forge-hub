@@ -211,9 +211,12 @@ export default function OperationsContracts() {
   );
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h1 className="text-3xl font-bold">Contracts</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Contracts</h1>
+          <p className="text-sm text-muted-foreground">Manage contract lifecycle and vendors</p>
+        </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={() => { setTempStages([...stages]); setSettingsOpen(true); }}>
             <Settings className="h-4 w-4" />

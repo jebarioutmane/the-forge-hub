@@ -206,10 +206,13 @@ export default function OperationsTasks() {
   if (isLoading) return <div className="p-6 text-muted-foreground">Loading tasks...</div>;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h1 className="text-3xl font-bold">Tasks</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Tasks</h1>
+          <p className="text-sm text-muted-foreground">Kanban board for task management</p>
+        </div>
         <div className="flex items-center gap-2">
           {selected.size > 0 && (
             <Popover open={delegateOpen} onOpenChange={setDelegateOpen}>
