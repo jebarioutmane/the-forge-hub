@@ -77,6 +77,36 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          name: string
+          needs: Json | null
+          start_date: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          name: string
+          needs?: Json | null
+          start_date?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          name?: string
+          needs?: Json | null
+          start_date?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number
@@ -127,6 +157,33 @@ export type Database = {
           },
         ]
       }
+      mentoring_sessions: {
+        Row: {
+          created_at: string
+          founder_name: string
+          id: string
+          mentor_name: string
+          session_date: string | null
+          time_slot: string | null
+        }
+        Insert: {
+          created_at?: string
+          founder_name: string
+          id?: string
+          mentor_name: string
+          session_date?: string | null
+          time_slot?: string | null
+        }
+        Update: {
+          created_at?: string
+          founder_name?: string
+          id?: string
+          mentor_name?: string
+          session_date?: string | null
+          time_slot?: string | null
+        }
+        Relationships: []
+      }
       stipends: {
         Row: {
           base_amount: number
@@ -166,6 +223,8 @@ export type Database = {
           due_date: string | null
           id: string
           priority: string | null
+          source_id: string | null
+          source_module: string | null
           status: string | null
           title: string
         }
@@ -177,6 +236,8 @@ export type Database = {
           due_date?: string | null
           id?: string
           priority?: string | null
+          source_id?: string | null
+          source_module?: string | null
           status?: string | null
           title: string
         }
@@ -188,6 +249,8 @@ export type Database = {
           due_date?: string | null
           id?: string
           priority?: string | null
+          source_id?: string | null
+          source_module?: string | null
           status?: string | null
           title?: string
         }
