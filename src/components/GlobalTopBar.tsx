@@ -1,4 +1,4 @@
-import { Hammer, LogOut, User } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import logoWhite from "@/assets/Logo-THEFORGE_white.png";
+import logoColored from "@/assets/Logo-THEFORGE_colored.png";
+import { useTheme } from "@/hooks/useTheme";
 
 export function GlobalTopBar() {
   const { user, signOut } = useAuth();
@@ -19,18 +22,13 @@ export function GlobalTopBar() {
     navigate("/auth");
   };
 
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   return (
     <header className="h-14 border-b border-border bg-card flex items-center justify-between px-6">
       <button onClick={() => navigate("/")} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-        <Hammer className="h-6 w-6 text-primary" />
-        <div className="leading-none">
-          <span className="text-sm font-bold tracking-widest text-foreground" style={{ fontFamily: "var(--font-display)" }}>
-            THE FORGE
-          </span>
-          <span className="text-xs tracking-widest text-primary ml-1" style={{ fontFamily: "var(--font-display)" }}>
-            HUB
-          </span>
-        </div>
+        <img src={isDark ? logoWhite : logoColored} alt="The Forge" className="h-8" />
       </button>
 
       <div className="flex items-center gap-2">

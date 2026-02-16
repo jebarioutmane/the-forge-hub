@@ -77,6 +77,48 @@ export type Database = {
         }
         Relationships: []
       }
+      event_attendance: {
+        Row: {
+          created_at: string | null
+          event_id: string | null
+          founder_id: string | null
+          id: string
+          notes: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_id?: string | null
+          founder_id?: string | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string | null
+          founder_id?: string | null
+          id?: string
+          notes?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_attendance_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_attendance_founder_id_fkey"
+            columns: ["founder_id"]
+            isOneToOne: false
+            referencedRelation: "founders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           checklist: Json | null
@@ -159,6 +201,68 @@ export type Database = {
             columns: ["budget_id"]
             isOneToOne: false
             referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      founder_progress: {
+        Row: {
+          created_at: string | null
+          founder_id: string | null
+          funding_score: number | null
+          funding_update: string | null
+          id: string
+          manager_notes: string | null
+          market_score: number | null
+          market_update: string | null
+          product_score: number | null
+          product_update: string | null
+          team_score: number | null
+          team_update: string | null
+          traction_score: number | null
+          traction_update: string | null
+          week_start_date: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          founder_id?: string | null
+          funding_score?: number | null
+          funding_update?: string | null
+          id?: string
+          manager_notes?: string | null
+          market_score?: number | null
+          market_update?: string | null
+          product_score?: number | null
+          product_update?: string | null
+          team_score?: number | null
+          team_update?: string | null
+          traction_score?: number | null
+          traction_update?: string | null
+          week_start_date?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          founder_id?: string | null
+          funding_score?: number | null
+          funding_update?: string | null
+          id?: string
+          manager_notes?: string | null
+          market_score?: number | null
+          market_update?: string | null
+          product_score?: number | null
+          product_update?: string | null
+          team_score?: number | null
+          team_update?: string | null
+          traction_score?: number | null
+          traction_update?: string | null
+          week_start_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "founder_progress_founder_id_fkey"
+            columns: ["founder_id"]
+            isOneToOne: false
+            referencedRelation: "founders"
             referencedColumns: ["id"]
           },
         ]
@@ -283,6 +387,30 @@ export type Database = {
           mentor_name?: string
           session_date?: string | null
           time_slot?: string | null
+        }
+        Relationships: []
+      }
+      mentors: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          expertise: string | null
+          full_name: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          expertise?: string | null
+          full_name: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          expertise?: string | null
+          full_name?: string
+          id?: string
         }
         Relationships: []
       }
