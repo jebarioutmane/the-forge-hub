@@ -1,4 +1,4 @@
-import { LayoutDashboard, Wallet, FileText, ListTodo, PiggyBank } from "lucide-react";
+import { LayoutDashboard, Wallet, FileText, ListTodo, PiggyBank, BookOpen } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -17,6 +17,7 @@ const items = [
   { title: "Stipends", url: "/operations/stipends", icon: Wallet },
   { title: "Contracts", url: "/operations/contracts", icon: FileText },
   { title: "Tasks", url: "/operations/tasks", icon: ListTodo },
+  { title: "Library", url: "/operations/library", icon: BookOpen },
 ];
 
 export function OperationsSidebar() {

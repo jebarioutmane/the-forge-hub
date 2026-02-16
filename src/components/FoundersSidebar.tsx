@@ -1,4 +1,4 @@
-import { Users, TrendingUp } from "lucide-react";
+import { Users, TrendingUp, BookOpen } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -14,6 +14,7 @@ import {
 const items = [
   { title: "Source", url: "/founders", icon: Users },
   { title: "Tracking", url: "/founders/tracking", icon: TrendingUp },
+  { title: "Library", url: "/founders/library", icon: BookOpen },
 ];
 
 export function FoundersSidebar() {
