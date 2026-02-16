@@ -157,6 +157,102 @@ export type Database = {
           },
         ]
       }
+      founders: {
+        Row: {
+          cohort: string | null
+          created_at: string | null
+          founder_name: string
+          id: string
+          startup_name: string
+        }
+        Insert: {
+          cohort?: string | null
+          created_at?: string | null
+          founder_name: string
+          id?: string
+          startup_name: string
+        }
+        Update: {
+          cohort?: string | null
+          created_at?: string | null
+          founder_name?: string
+          id?: string
+          startup_name?: string
+        }
+        Relationships: []
+      }
+      founders_tracking: {
+        Row: {
+          associate_id: string | null
+          clients_traction_rating: number | null
+          clients_traction_update: string | null
+          created_at: string | null
+          founder_id: string | null
+          funding_update: string | null
+          funding_update_rating: number | null
+          id: string
+          market_presence_rating: number | null
+          market_presence_update: string | null
+          other_updates: string | null
+          product_dev_rating: number | null
+          product_dev_update: string | null
+          team_structure_rating: number | null
+          team_structure_update: string | null
+          tracking_date: string | null
+        }
+        Insert: {
+          associate_id?: string | null
+          clients_traction_rating?: number | null
+          clients_traction_update?: string | null
+          created_at?: string | null
+          founder_id?: string | null
+          funding_update?: string | null
+          funding_update_rating?: number | null
+          id?: string
+          market_presence_rating?: number | null
+          market_presence_update?: string | null
+          other_updates?: string | null
+          product_dev_rating?: number | null
+          product_dev_update?: string | null
+          team_structure_rating?: number | null
+          team_structure_update?: string | null
+          tracking_date?: string | null
+        }
+        Update: {
+          associate_id?: string | null
+          clients_traction_rating?: number | null
+          clients_traction_update?: string | null
+          created_at?: string | null
+          founder_id?: string | null
+          funding_update?: string | null
+          funding_update_rating?: number | null
+          id?: string
+          market_presence_rating?: number | null
+          market_presence_update?: string | null
+          other_updates?: string | null
+          product_dev_rating?: number | null
+          product_dev_update?: string | null
+          team_structure_rating?: number | null
+          team_structure_update?: string | null
+          tracking_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "founders_tracking_associate_id_fkey"
+            columns: ["associate_id"]
+            isOneToOne: false
+            referencedRelation: "venture_associates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "founders_tracking_founder_id_fkey"
+            columns: ["founder_id"]
+            isOneToOne: false
+            referencedRelation: "founders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mentoring_sessions: {
         Row: {
           created_at: string
@@ -253,6 +349,24 @@ export type Database = {
           source_module?: string | null
           status?: string | null
           title?: string
+        }
+        Relationships: []
+      }
+      venture_associates: {
+        Row: {
+          created_at: string | null
+          full_name: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          full_name: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          full_name?: string
+          id?: string
         }
         Relationships: []
       }
