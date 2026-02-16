@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Hammer } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import logoColored from "@/assets/Logo-THEFORGE_colored.png";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -42,7 +42,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <Hammer className="h-10 w-10 text-primary mx-auto mb-2" />
+          <img src={logoColored} alt="The Forge" className="h-14 mx-auto mb-2" />
           <CardTitle className="text-2xl">THE FORGE HUB</CardTitle>
           <CardDescription>{isLogin ? "Sign in to your account" : "Create a new account"}</CardDescription>
         </CardHeader>
