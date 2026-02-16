@@ -286,6 +286,7 @@ export type Database = {
           founder_name: string
           id: string
           startup_name: string
+          tag_ids: string[] | null
         }
         Insert: {
           cohort?: string | null
@@ -293,6 +294,7 @@ export type Database = {
           founder_name: string
           id?: string
           startup_name: string
+          tag_ids?: string[] | null
         }
         Update: {
           cohort?: string | null
@@ -300,6 +302,7 @@ export type Database = {
           founder_name?: string
           id?: string
           startup_name?: string
+          tag_ids?: string[] | null
         }
         Relationships: []
       }

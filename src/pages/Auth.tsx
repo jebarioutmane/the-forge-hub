@@ -39,8 +39,8 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
+      <Card className="w-full max-w-md shadow-2xl border-0">
         <CardHeader className="text-center">
           <img src={logoColored} alt="The Forge" className="h-14 mx-auto mb-2" />
           <CardTitle className="text-2xl">THE FORGE HUB</CardTitle>

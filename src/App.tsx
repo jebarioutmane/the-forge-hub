@@ -3,10 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Layout } from "./components/Layout";
-import { OperationsLayout } from "./components/OperationsLayout";
-import { FoundersLayout } from "./components/FoundersLayout";
-import { EventsLayout } from "./components/EventsLayout";
+import { MainLayout } from "./components/MainLayout";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import OperationsDashboard from "./pages/operations/Dashboard";
@@ -20,10 +17,8 @@ import EventsTimeline from "./pages/events/Timeline";
 import EventsPlanning from "./pages/events/Planning";
 import EventsMentoring from "./pages/events/Mentoring";
 import Settings from "./pages/Settings";
+import Library from "./pages/Library";
 import NotFound from "./pages/NotFound";
-import OperationsLibrary from "./pages/operations/Library";
-import EventsLibrary from "./pages/events/Library";
-import FoundersLibrary from "./pages/founders/Library";
 
 const queryClient = new QueryClient();
 
@@ -35,21 +30,19 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={<Layout><Home /></Layout>} />
-          <Route path="/settings" element={<OperationsLayout><Settings /></OperationsLayout>} />
-          <Route path="/events" element={<EventsLayout><EventsTimeline /></EventsLayout>} />
-          <Route path="/events/planning" element={<EventsLayout><EventsPlanning /></EventsLayout>} />
-          <Route path="/events/mentoring" element={<EventsLayout><EventsMentoring /></EventsLayout>} />
-          <Route path="/events/library" element={<EventsLayout><EventsLibrary /></EventsLayout>} />
-          <Route path="/operations" element={<OperationsLayout><OperationsDashboard /></OperationsLayout>} />
-          <Route path="/operations/source" element={<OperationsLayout><Source /></OperationsLayout>} />
-          <Route path="/operations/stipends" element={<OperationsLayout><Stipends /></OperationsLayout>} />
-          <Route path="/operations/contracts" element={<OperationsLayout><OperationsContracts /></OperationsLayout>} />
-          <Route path="/operations/tasks" element={<OperationsLayout><OperationsTasks /></OperationsLayout>} />
-          <Route path="/operations/library" element={<OperationsLayout><OperationsLibrary /></OperationsLayout>} />
-          <Route path="/founders" element={<FoundersLayout><FoundersSource /></FoundersLayout>} />
-          <Route path="/founders/tracking" element={<FoundersLayout><FoundersTracking /></FoundersLayout>} />
-          <Route path="/founders/library" element={<FoundersLayout><FoundersLibrary /></FoundersLayout>} />
+          <Route path="/" element={<MainLayout><Home /></MainLayout>} />
+          <Route path="/operations" element={<MainLayout><OperationsDashboard /></MainLayout>} />
+          <Route path="/operations/source" element={<MainLayout><Source /></MainLayout>} />
+          <Route path="/operations/stipends" element={<MainLayout><Stipends /></MainLayout>} />
+          <Route path="/operations/contracts" element={<MainLayout><OperationsContracts /></MainLayout>} />
+          <Route path="/operations/tasks" element={<MainLayout><OperationsTasks /></MainLayout>} />
+          <Route path="/events" element={<MainLayout><EventsTimeline /></MainLayout>} />
+          <Route path="/events/planning" element={<MainLayout><EventsPlanning /></MainLayout>} />
+          <Route path="/events/mentoring" element={<MainLayout><EventsMentoring /></MainLayout>} />
+          <Route path="/founders" element={<MainLayout><FoundersSource /></MainLayout>} />
+          <Route path="/founders/tracking" element={<MainLayout><FoundersTracking /></MainLayout>} />
+          <Route path="/settings" element={<MainLayout><Settings /></MainLayout>} />
+          <Route path="/library" element={<MainLayout><Library moduleName="All" /></MainLayout>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

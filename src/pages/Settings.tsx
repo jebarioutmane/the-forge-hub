@@ -118,8 +118,11 @@ export default function Settings() {
   const PRESET_COLORS = ["#f97316", "#ef4444", "#22c55e", "#3b82f6", "#8b5cf6", "#ec4899", "#14b8a6", "#f59e0b", "#64748b"];
 
   return (
-    <div className="p-6 space-y-6 max-w-2xl">
-      <h1 className="text-3xl font-bold">Settings</h1>
+    <div className="p-6 lg:p-10 space-y-6 max-w-2xl">
+      <div>
+        <h1 className="text-3xl font-bold">Settings</h1>
+        <p className="text-sm text-muted-foreground">Manage global tags and system preferences</p>
+      </div>
 
       {/* Tags (Supabase) */}
       <Card>

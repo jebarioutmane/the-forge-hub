@@ -104,9 +104,12 @@ export default function Source() {
   );
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Budget Source</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Budget Source</h1>
+          <p className="text-sm text-muted-foreground">Manage budget allocations by category</p>
+        </div>
         <Button onClick={() => { resetForm(); setAddOpen(true); }}><Plus className="mr-2 h-4 w-4" /> Add Category</Button>
       </div>
 

@@ -57,9 +57,12 @@ export default function OperationsDashboard() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Budget Dashboard</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Budget Dashboard</h1>
+          <p className="text-sm text-muted-foreground">Track spending across all categories</p>
+        </div>
         <CurrencyToggle value={currency} onChange={setCurrency} />
       </div>
 
