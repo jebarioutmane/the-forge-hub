@@ -79,8 +79,10 @@ export type Database = {
       }
       events: {
         Row: {
+          checklist: Json | null
           created_at: string
           end_date: string | null
+          event_type: string | null
           id: string
           name: string
           needs: Json | null
@@ -88,8 +90,10 @@ export type Database = {
           status: string | null
         }
         Insert: {
+          checklist?: Json | null
           created_at?: string
           end_date?: string | null
+          event_type?: string | null
           id?: string
           name: string
           needs?: Json | null
@@ -97,8 +101,10 @@ export type Database = {
           status?: string | null
         }
         Update: {
+          checklist?: Json | null
           created_at?: string
           end_date?: string | null
+          event_type?: string | null
           id?: string
           name?: string
           needs?: Json | null

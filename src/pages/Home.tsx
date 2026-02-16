@@ -11,8 +11,8 @@ const modules = [
     active: true,
   },
   {
-    title: "Events",
-    description: "Plan and manage events and workshops.",
+    title: "Events & Programs",
+    description: "Timeline, planning, and mentoring.",
     icon: CalendarDays,
     route: "/events",
     active: true,
@@ -21,7 +21,7 @@ const modules = [
     title: "Mentoring",
     description: "Pair mentors with founders for sessions.",
     icon: Users,
-    route: "/mentoring",
+    route: "/events/mentoring",
     active: true,
   },
   {

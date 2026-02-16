@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { OperationsLayout } from "./components/OperationsLayout";
 import { FoundersLayout } from "./components/FoundersLayout";
+import { EventsLayout } from "./components/EventsLayout";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import OperationsDashboard from "./pages/operations/Dashboard";
@@ -15,8 +16,9 @@ import OperationsContracts from "./pages/operations/Contracts";
 import OperationsTasks from "./pages/operations/Tasks";
 import FoundersSource from "./pages/founders/Source";
 import FoundersTracking from "./pages/founders/Tracking";
-import Events from "./pages/Events";
-import Mentoring from "./pages/Mentoring";
+import EventsTimeline from "./pages/events/Timeline";
+import EventsPlanning from "./pages/events/Planning";
+import EventsMentoring from "./pages/events/Mentoring";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -32,8 +34,9 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<Layout><Home /></Layout>} />
           <Route path="/settings" element={<Layout><Settings /></Layout>} />
-          <Route path="/events" element={<Layout><Events /></Layout>} />
-          <Route path="/mentoring" element={<Layout><Mentoring /></Layout>} />
+          <Route path="/events" element={<EventsLayout><EventsTimeline /></EventsLayout>} />
+          <Route path="/events/planning" element={<EventsLayout><EventsPlanning /></EventsLayout>} />
+          <Route path="/events/mentoring" element={<EventsLayout><EventsMentoring /></EventsLayout>} />
           <Route path="/operations" element={<OperationsLayout><OperationsDashboard /></OperationsLayout>} />
           <Route path="/operations/source" element={<OperationsLayout><Source /></OperationsLayout>} />
           <Route path="/operations/stipends" element={<OperationsLayout><Stipends /></OperationsLayout>} />
