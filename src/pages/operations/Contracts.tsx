@@ -4,8 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -37,11 +37,8 @@ export default function OperationsContracts() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tempStages, setTempStages] = useState(stages);
   const [newStage, setNewStage] = useState("");
-
-  // AI Email
-  const [emailDialog, setEmailDialog] = useState(false);
-  const [emailContent, setEmailContent] = useState("");
-  const [emailLoading, setEmailLoading] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
   const [form, setForm] = useState({ title: "", stakeholder_name: "", value: "", type: "External", start_date: "", end_date: "" });
 
@@ -113,6 +110,21 @@ export default function OperationsContracts() {
     onError: (e) => toast.error(e.message),
   });
 
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async () => {
+      const ids = Array.from(selected);
+      const { error } = await supabase.from("contracts").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      setSelected(new Set());
+      setBulkDeleteOpen(false);
+      toast.success("Contracts deleted");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   const statusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase.from("contracts").update({ status }).eq("id", id);
@@ -136,6 +148,15 @@ export default function OperationsContracts() {
       end_date: c.end_date || "",
     });
     setEditingContract(c);
+  }
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
+  }
+
+  function toggleAll() {
+    if (selected.size === contracts.length) setSelected(new Set());
+    else setSelected(new Set(contracts.map((c) => c.id)));
   }
 
   const contractFormContent = (
@@ -192,11 +213,25 @@ export default function OperationsContracts() {
         </div>
       </div>
 
+      {/* Bulk Actions Bar */}
+      {selected.size > 0 && (
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-muted border">
+          <span className="text-sm font-medium">{selected.size} selected</span>
+          <Button size="sm" variant="outline" onClick={() => { const first = contracts.find((c) => selected.has(c.id)); if (first) openEdit(first); }}>
+            <Pencil className="mr-1 h-3 w-3" /> Edit
+          </Button>
+          <Button size="sm" variant="destructive" onClick={() => setBulkDeleteOpen(true)}>
+            <Trash2 className="mr-1 h-3 w-3" /> Delete
+          </Button>
+        </div>
+      )}
+
       <Card>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10"><Checkbox checked={contracts.length > 0 && selected.size === contracts.length} onCheckedChange={toggleAll} /></TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Stakeholder</TableHead>
                 <TableHead className="text-right">Value (MAD)</TableHead>
@@ -208,12 +243,13 @@ export default function OperationsContracts() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
               ) : contracts.length === 0 ? (
-                <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No contracts yet</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">No contracts yet</TableCell></TableRow>
               ) : (
                 contracts.map((c) => (
-                  <TableRow key={c.id}>
+                  <TableRow key={c.id} className={selected.has(c.id) ? "bg-muted/50" : ""}>
+                    <TableCell><Checkbox checked={selected.has(c.id)} onCheckedChange={() => toggleSelect(c.id)} /></TableCell>
                     <TableCell className="font-medium">{c.title}</TableCell>
                     <TableCell>{c.stakeholder_name}</TableCell>
                     <TableCell className="text-right">{c.value ? Number(c.value).toLocaleString() : "—"}</TableCell>
@@ -241,7 +277,6 @@ export default function OperationsContracts() {
         </CardContent>
       </Card>
 
-      {/* Add Contract Dialog */}
       <Dialog open={contractDialog} onOpenChange={setContractDialog}>
         <DialogContent>
           <DialogHeader><DialogTitle>New Contract</DialogTitle></DialogHeader>
@@ -252,7 +287,6 @@ export default function OperationsContracts() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Contract Dialog */}
       <Dialog open={!!editingContract} onOpenChange={(o) => !o && setEditingContract(null)}>
         <DialogContent>
           <DialogHeader><DialogTitle>Edit Contract</DialogTitle></DialogHeader>
@@ -263,10 +297,9 @@ export default function OperationsContracts() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirm */}
       <ConfirmDeleteDialog open={!!deleteId} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
+      <ConfirmDeleteDialog open={bulkDeleteOpen} onConfirm={() => bulkDeleteMutation.mutate()} onCancel={() => setBulkDeleteOpen(false)} />
 
-      {/* Settings Dialog */}
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>Contract Stages</DialogTitle></DialogHeader>

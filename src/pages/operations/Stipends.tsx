@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -21,7 +22,9 @@ export default function Stipends() {
   const [addOpen, setAddOpen] = useState(false);
   const [editingStipend, setEditingStipend] = useState<Stipend | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [form, setForm] = useState({ founder_name: "", base_amount: "", deductions: "0" });
+  const [form, setForm] = useState({ founder_name: "", base_amount: "" });
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
   const { data: stipends = [], isLoading } = useQuery({
     queryKey: ["stipends"],
@@ -37,7 +40,7 @@ export default function Stipends() {
       const { error } = await supabase.from("stipends").insert({
         founder_name: form.founder_name,
         base_amount: Number(form.base_amount),
-        deductions: Number(form.deductions) || 0,
+        deductions: 0,
       });
       if (error) throw error;
     },
@@ -56,7 +59,6 @@ export default function Stipends() {
       const { error } = await supabase.from("stipends").update({
         founder_name: form.founder_name,
         base_amount: Number(form.base_amount),
-        deductions: Number(form.deductions) || 0,
       }).eq("id", editingStipend.id);
       if (error) throw error;
     },
@@ -82,6 +84,21 @@ export default function Stipends() {
     onError: (e) => toast.error(e.message),
   });
 
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async () => {
+      const ids = Array.from(selected);
+      const { error } = await supabase.from("stipends").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["stipends"] });
+      setSelected(new Set());
+      setBulkDeleteOpen(false);
+      toast.success("Stipends deleted");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   const processPayment = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("stipends").update({ status: "Paid" }).eq("id", id);
@@ -94,17 +111,20 @@ export default function Stipends() {
     onError: (e) => toast.error(e.message),
   });
 
-  function resetForm() {
-    setForm({ founder_name: "", base_amount: "", deductions: "0" });
-  }
+  function resetForm() { setForm({ founder_name: "", base_amount: "" }); }
 
   function openEdit(s: Stipend) {
-    setForm({
-      founder_name: s.founder_name,
-      base_amount: String(s.base_amount),
-      deductions: String(s.deductions),
-    });
+    setForm({ founder_name: s.founder_name, base_amount: String(s.base_amount) });
     setEditingStipend(s);
+  }
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
+  }
+
+  function toggleAll() {
+    if (selected.size === stipends.length) setSelected(new Set());
+    else setSelected(new Set(stipends.map((s) => s.id)));
   }
 
   const statusColor = (s: string) => s === "Paid" ? "default" as const : "secondary" as const;
@@ -116,12 +136,8 @@ export default function Stipends() {
         <Input value={form.founder_name} onChange={(e) => setForm((f) => ({ ...f, founder_name: e.target.value }))} />
       </div>
       <div className="space-y-2">
-        <Label>Base Amount (MAD)</Label>
+        <Label>Amount (MAD)</Label>
         <Input type="number" value={form.base_amount} onChange={(e) => setForm((f) => ({ ...f, base_amount: e.target.value }))} />
-      </div>
-      <div className="space-y-2">
-        <Label>Deductions (MAD)</Label>
-        <Input type="number" value={form.deductions} onChange={(e) => setForm((f) => ({ ...f, deductions: e.target.value }))} />
       </div>
     </div>
   );
@@ -133,15 +149,28 @@ export default function Stipends() {
         <Button onClick={() => { resetForm(); setAddOpen(true); }}><Plus className="mr-2 h-4 w-4" /> Add Stipend</Button>
       </div>
 
+      {/* Bulk Actions Bar */}
+      {selected.size > 0 && (
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-muted border">
+          <span className="text-sm font-medium">{selected.size} selected</span>
+          <Button size="sm" variant="outline" onClick={() => { const first = stipends.find((s) => selected.has(s.id)); if (first) openEdit(first); }}>
+            <Pencil className="mr-1 h-3 w-3" /> Edit
+          </Button>
+          <Button size="sm" variant="destructive" onClick={() => setBulkDeleteOpen(true)}>
+            <Trash2 className="mr-1 h-3 w-3" /> Delete
+          </Button>
+        </div>
+      )}
+
       <Card>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10"><Checkbox checked={stipends.length > 0 && selected.size === stipends.length} onCheckedChange={toggleAll} /></TableHead>
                 <TableHead>Founder</TableHead>
-                <TableHead className="text-right">Base Amount</TableHead>
-                <TableHead className="text-right">Deductions</TableHead>
-                <TableHead className="text-right">Final Payout</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>Date</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -153,11 +182,11 @@ export default function Stipends() {
                 <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No stipends yet</TableCell></TableRow>
               ) : (
                 stipends.map((s) => (
-                  <TableRow key={s.id}>
+                  <TableRow key={s.id} className={selected.has(s.id) ? "bg-muted/50" : ""}>
+                    <TableCell><Checkbox checked={selected.has(s.id)} onCheckedChange={() => toggleSelect(s.id)} /></TableCell>
                     <TableCell className="font-medium">{s.founder_name}</TableCell>
                     <TableCell className="text-right">{Number(s.base_amount).toLocaleString()} MAD</TableCell>
-                    <TableCell className="text-right">{Number(s.deductions).toLocaleString()} MAD</TableCell>
-                    <TableCell className="text-right font-semibold">{Number(s.final_payout).toLocaleString()} MAD</TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{new Date(s.created_at).toLocaleDateString()}</TableCell>
                     <TableCell><Badge variant={statusColor(s.status)}>{s.status}</Badge></TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -181,7 +210,6 @@ export default function Stipends() {
         </CardContent>
       </Card>
 
-      {/* Add Dialog */}
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>New Stipend</DialogTitle></DialogHeader>
@@ -192,7 +220,6 @@ export default function Stipends() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
       <Dialog open={!!editingStipend} onOpenChange={(o) => !o && setEditingStipend(null)}>
         <DialogContent>
           <DialogHeader><DialogTitle>Edit Stipend</DialogTitle></DialogHeader>
@@ -203,8 +230,8 @@ export default function Stipends() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirm */}
       <ConfirmDeleteDialog open={!!deleteId} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
+      <ConfirmDeleteDialog open={bulkDeleteOpen} onConfirm={() => bulkDeleteMutation.mutate()} onCancel={() => setBulkDeleteOpen(false)} />
     </div>
   );
 }
