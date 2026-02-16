@@ -36,7 +36,7 @@ const App = () => (
         <Routes>
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<Layout><Home /></Layout>} />
-          <Route path="/settings" element={<Layout><Settings /></Layout>} />
+          <Route path="/settings" element={<OperationsLayout><Settings /></OperationsLayout>} />
           <Route path="/events" element={<EventsLayout><EventsTimeline /></EventsLayout>} />
           <Route path="/events/planning" element={<EventsLayout><EventsPlanning /></EventsLayout>} />
           <Route path="/events/mentoring" element={<EventsLayout><EventsMentoring /></EventsLayout>} />
