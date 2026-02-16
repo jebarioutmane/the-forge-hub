@@ -1,46 +1,57 @@
 
+# Wire Up Founders Module
 
-# StarRating Component with Hover Preview
+## Overview
 
-## Component: `src/components/StarRating.tsx`
+Create the missing Founders infrastructure (layout, sidebar, pages) and connect everything via routing and the Home hub. This builds on the existing `StarRating` component and follows the same pattern as the Operations module.
 
-A reusable star rating component using Lucide-react's `Star` icon with hover-to-preview functionality.
+---
 
-### Behavior
+## Files to Create
 
-- **Display mode** (`readOnly`): Shows filled/empty stars based on the `value` prop. No interaction.
-- **Input mode** (default): 
-  - Hovering over a star highlights it and all stars to its left in the accent color (Forge Orange).
-  - Moving the mouse away reverts to the current saved rating.
-  - Clicking a star sets the rating value.
+### 1. `src/components/FoundersSidebar.tsx`
+Sidebar with two links, matching the OperationsSidebar pattern:
+- **Source** (`/founders`) -- Manage Founders and Venture Associates
+- **Tracking** (`/founders/tracking`) -- Log and view weekly progress
 
-### Implementation Details
+Uses `NavLink` with active styling, same as OperationsSidebar.
 
-**State:**
-- `hoverValue: number | null` -- tracks which star is being hovered (1-5), `null` when mouse leaves.
+### 2. `src/components/FoundersLayout.tsx`
+Layout wrapper identical to `OperationsLayout`:
+- Auth guard (redirect to `/auth` if not logged in)
+- `GlobalTopBar` at top
+- `SidebarProvider` wrapping `FoundersSidebar` + main content area
+- `SidebarTrigger` bar below the top bar
 
-**Rendering logic:**
-- For each star (1 through 5):
-  - `displayValue = hoverValue ?? value`
-  - If star index <= displayValue: render `Star` with `fill="currentColor"` and accent text color
-  - Otherwise: render `Star` with no fill and muted text color
-- On `onMouseEnter` of star N: set `hoverValue = N`
-- On `onMouseLeave` of the container: set `hoverValue = null`
-- On `onClick` of star N: call `onChange(N)`
+### 3. `src/pages/founders/Source.tsx`
+Placeholder page with heading "Founders & Venture Associates" so the route resolves. The full CRUD implementation will come in a follow-up.
 
-**Props interface:**
-```text
-value: number (1-5)
-onChange?: (rating: number) => void
-readOnly?: boolean
-size?: number (default 20)
-```
+### 4. `src/pages/founders/Tracking.tsx`
+Placeholder page with heading "Founders Tracking" so the route resolves. The full aggregated view and drill-down will come in a follow-up.
 
-**Styling:**
-- Active/hovered stars: `text-forge-orange` (or `text-yellow-400` fallback) with `fill="currentColor"`
-- Inactive stars: `text-muted-foreground` with no fill
-- Cursor: `pointer` in input mode, `default` in readOnly mode
-- Smooth transition on hover using `transition-colors duration-150`
+---
 
-No new dependencies -- uses only `lucide-react` Star icon and React state.
+## Files to Update
 
+### 5. `src/App.tsx`
+Add two new routes and imports:
+- `/founders` wrapping `FoundersSource` in `FoundersLayout`
+- `/founders/tracking` wrapping `FoundersTracking` in `FoundersLayout`
+
+### 6. `src/pages/Home.tsx`
+Add a "Founders" card to the modules array:
+- Title: "Founders"
+- Description: "Track founder progress and venture associates."
+- Icon: `Users` (use a different icon like `GraduationCap` to avoid conflict with Mentoring)
+- Route: `/founders`
+- Active: `true`
+
+Update grid to `lg:grid-cols-5` to accommodate the 5th card, or keep `lg:grid-cols-4` for a balanced 2-row layout.
+
+---
+
+## Technical Notes
+
+- The FoundersLayout follows the exact same auth-guard + sidebar pattern as OperationsLayout, keeping architecture consistent.
+- Placeholder pages ensure routes work immediately; full CRUD and tracking features are a separate step.
+- No new dependencies required.
