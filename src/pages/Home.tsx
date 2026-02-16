@@ -11,18 +11,18 @@ const modules = [
     active: true,
   },
   {
-    title: "Founders",
-    description: "Track founder profiles and cohorts.",
-    icon: Users,
-    route: null,
-    active: false,
-  },
-  {
     title: "Events",
     description: "Plan and manage events and workshops.",
     icon: CalendarDays,
-    route: null,
-    active: false,
+    route: "/events",
+    active: true,
+  },
+  {
+    title: "Mentoring",
+    description: "Pair mentors with founders for sessions.",
+    icon: Users,
+    route: "/mentoring",
+    active: true,
   },
   {
     title: "Strategy",

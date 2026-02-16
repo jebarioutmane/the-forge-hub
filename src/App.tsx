@@ -8,9 +8,12 @@ import { OperationsLayout } from "./components/OperationsLayout";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import OperationsDashboard from "./pages/operations/Dashboard";
+import Source from "./pages/operations/Source";
 import Stipends from "./pages/operations/Stipends";
 import OperationsContracts from "./pages/operations/Contracts";
 import OperationsTasks from "./pages/operations/Tasks";
+import Events from "./pages/Events";
+import Mentoring from "./pages/Mentoring";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -26,7 +29,10 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<Layout><Home /></Layout>} />
           <Route path="/settings" element={<Layout><Settings /></Layout>} />
+          <Route path="/events" element={<Layout><Events /></Layout>} />
+          <Route path="/mentoring" element={<Layout><Mentoring /></Layout>} />
           <Route path="/operations" element={<OperationsLayout><OperationsDashboard /></OperationsLayout>} />
+          <Route path="/operations/source" element={<OperationsLayout><Source /></OperationsLayout>} />
           <Route path="/operations/stipends" element={<OperationsLayout><Stipends /></OperationsLayout>} />
           <Route path="/operations/contracts" element={<OperationsLayout><OperationsContracts /></OperationsLayout>} />
           <Route path="/operations/tasks" element={<OperationsLayout><OperationsTasks /></OperationsLayout>} />

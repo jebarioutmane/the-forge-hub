@@ -1,4 +1,4 @@
-import { LayoutDashboard, Wallet, FileText, ListTodo } from "lucide-react";
+import { LayoutDashboard, Wallet, FileText, ListTodo, PiggyBank } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -13,6 +13,7 @@ import {
 
 const items = [
   { title: "Dashboard", url: "/operations", icon: LayoutDashboard },
+  { title: "Budget Source", url: "/operations/source", icon: PiggyBank },
   { title: "Stipends", url: "/operations/stipends", icon: Wallet },
   { title: "Contracts", url: "/operations/contracts", icon: FileText },
   { title: "Tasks", url: "/operations/tasks", icon: ListTodo },
