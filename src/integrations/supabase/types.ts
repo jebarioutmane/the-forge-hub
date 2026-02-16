@@ -289,6 +289,7 @@ export type Database = {
       resource_library: {
         Row: {
           created_at: string
+          description: string | null
           id: string
           module_name: string
           resource_name: string
@@ -296,6 +297,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: string
           module_name: string
           resource_name: string
@@ -303,6 +305,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: string
           module_name?: string
           resource_name?: string

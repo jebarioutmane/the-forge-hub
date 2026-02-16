@@ -19,8 +19,14 @@ export default function Library({ moduleName }: LibraryProps) {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [url, setUrl] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const ensureProtocol = (u: string) => {
+    if (!/^https?:\/\//i.test(u)) return `https://${u}`;
+    return u;
+  };
 
   const { data: resources = [], isLoading } = useQuery({
     queryKey: ["resource_library", moduleName],
@@ -40,7 +46,8 @@ export default function Library({ moduleName }: LibraryProps) {
       const { error } = await supabase.from("resource_library").insert({
         module_name: moduleName,
         resource_name: name,
-        url,
+        description: description.trim() || null,
+        url: ensureProtocol(url),
       });
       if (error) throw error;
     },
@@ -48,6 +55,7 @@ export default function Library({ moduleName }: LibraryProps) {
       queryClient.invalidateQueries({ queryKey: ["resource_library", moduleName] });
       setDialogOpen(false);
       setName("");
+      setDescription("");
       setUrl("");
       toast({ title: "Resource added" });
     },
@@ -82,8 +90,12 @@ export default function Library({ moduleName }: LibraryProps) {
                 <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Resource name" />
               </div>
               <div className="space-y-2">
+                <Label>Description <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Brief context for this resource" />
+              </div>
+              <div className="space-y-2">
                 <Label>URL</Label>
-                <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." />
+                <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://... or example.com" />
               </div>
             </div>
             <DialogFooter>
@@ -110,17 +122,22 @@ export default function Library({ moduleName }: LibraryProps) {
           ) : (
             <ul className="divide-y divide-border">
               {resources.map((r) => (
-                <li key={r.id} className="flex items-center justify-between py-3">
-                  <a
-                    href={r.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-sm font-medium text-primary hover:underline truncate"
-                  >
-                    <ExternalLink className="h-4 w-4 shrink-0" />
-                    {r.resource_name}
-                  </a>
-                  <Button variant="ghost" size="icon" onClick={() => setDeleteId(r.id)}>
+                <li key={r.id} className="flex items-center justify-between py-3 gap-4">
+                  <div className="min-w-0 flex-1">
+                    <a
+                      href={ensureProtocol(r.url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm font-medium text-primary hover:underline truncate"
+                    >
+                      <ExternalLink className="h-4 w-4 shrink-0" />
+                      {r.resource_name}
+                    </a>
+                    {r.description && (
+                      <p className="text-xs text-muted-foreground mt-0.5 ml-6 truncate">{r.description}</p>
+                    )}
+                  </div>
+                  <Button variant="ghost" size="icon" className="shrink-0" onClick={() => setDeleteId(r.id)}>
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </li>
