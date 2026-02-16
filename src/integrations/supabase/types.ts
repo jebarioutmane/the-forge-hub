@@ -286,6 +286,30 @@ export type Database = {
         }
         Relationships: []
       }
+      resource_library: {
+        Row: {
+          created_at: string
+          id: string
+          module_name: string
+          resource_name: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          module_name: string
+          resource_name: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          module_name?: string
+          resource_name?: string
+          url?: string
+        }
+        Relationships: []
+      }
       stipends: {
         Row: {
           base_amount: number

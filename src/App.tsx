@@ -21,6 +21,9 @@ import EventsPlanning from "./pages/events/Planning";
 import EventsMentoring from "./pages/events/Mentoring";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import OperationsLibrary from "./pages/operations/Library";
+import EventsLibrary from "./pages/events/Library";
+import FoundersLibrary from "./pages/founders/Library";
 
 const queryClient = new QueryClient();
 
@@ -37,13 +40,16 @@ const App = () => (
           <Route path="/events" element={<EventsLayout><EventsTimeline /></EventsLayout>} />
           <Route path="/events/planning" element={<EventsLayout><EventsPlanning /></EventsLayout>} />
           <Route path="/events/mentoring" element={<EventsLayout><EventsMentoring /></EventsLayout>} />
+          <Route path="/events/library" element={<EventsLayout><EventsLibrary /></EventsLayout>} />
           <Route path="/operations" element={<OperationsLayout><OperationsDashboard /></OperationsLayout>} />
           <Route path="/operations/source" element={<OperationsLayout><Source /></OperationsLayout>} />
           <Route path="/operations/stipends" element={<OperationsLayout><Stipends /></OperationsLayout>} />
           <Route path="/operations/contracts" element={<OperationsLayout><OperationsContracts /></OperationsLayout>} />
           <Route path="/operations/tasks" element={<OperationsLayout><OperationsTasks /></OperationsLayout>} />
+          <Route path="/operations/library" element={<OperationsLayout><OperationsLibrary /></OperationsLayout>} />
           <Route path="/founders" element={<FoundersLayout><FoundersSource /></FoundersLayout>} />
           <Route path="/founders/tracking" element={<FoundersLayout><FoundersTracking /></FoundersLayout>} />
+          <Route path="/founders/library" element={<FoundersLayout><FoundersLibrary /></FoundersLayout>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
