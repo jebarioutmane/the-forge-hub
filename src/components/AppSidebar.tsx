@@ -2,6 +2,7 @@ import {
   LayoutDashboard, DollarSign, FileText, CalendarDays, Users,
   ClipboardCheck, GraduationCap, TrendingUp, Tag, BookOpen,
   Settings, ChevronDown, Wallet, PiggyBank, ListTodo,
+  ClipboardList, BarChart3,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -52,6 +53,8 @@ const sections = [
     items: [
       { title: "Directory", url: "/founders", icon: GraduationCap },
       { title: "Progress Tracker", url: "/founders/tracking", icon: TrendingUp },
+      { title: "Evaluations", url: "/founders/evaluation", icon: ClipboardList },
+      { title: "Portfolio Dashboard", url: "/founders/portfolio", icon: BarChart3 },
     ],
   },
   {

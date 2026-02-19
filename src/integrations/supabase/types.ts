@@ -214,6 +214,54 @@ export type Database = {
           },
         ]
       }
+      founder_evaluations: {
+        Row: {
+          block_name: string
+          categories_data: Json | null
+          created_at: string | null
+          evaluation_date: string | null
+          execution_score: number | null
+          founder_id: string
+          id: string
+          momentum_score: number | null
+          overall_confidence: number | null
+          quantitative_metrics: Json | null
+          support_required: string[] | null
+          total_score: number | null
+          traction_score: number | null
+        }
+        Insert: {
+          block_name: string
+          categories_data?: Json | null
+          created_at?: string | null
+          evaluation_date?: string | null
+          execution_score?: number | null
+          founder_id: string
+          id?: string
+          momentum_score?: number | null
+          overall_confidence?: number | null
+          quantitative_metrics?: Json | null
+          support_required?: string[] | null
+          total_score?: number | null
+          traction_score?: number | null
+        }
+        Update: {
+          block_name?: string
+          categories_data?: Json | null
+          created_at?: string | null
+          evaluation_date?: string | null
+          execution_score?: number | null
+          founder_id?: string
+          id?: string
+          momentum_score?: number | null
+          overall_confidence?: number | null
+          quantitative_metrics?: Json | null
+          support_required?: string[] | null
+          total_score?: number | null
+          traction_score?: number | null
+        }
+        Relationships: []
+      }
       founder_progress: {
         Row: {
           created_at: string | null
