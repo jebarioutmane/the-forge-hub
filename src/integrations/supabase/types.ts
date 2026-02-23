@@ -331,26 +331,44 @@ export type Database = {
         Row: {
           cohort: string | null
           created_at: string | null
+          description: string | null
+          email: string | null
           founder_name: string
           id: string
+          nationality: string | null
+          phone: string | null
           startup_name: string
+          status: string | null
           tag_ids: string[] | null
+          venture_associate: string | null
         }
         Insert: {
           cohort?: string | null
           created_at?: string | null
+          description?: string | null
+          email?: string | null
           founder_name: string
           id?: string
+          nationality?: string | null
+          phone?: string | null
           startup_name: string
+          status?: string | null
           tag_ids?: string[] | null
+          venture_associate?: string | null
         }
         Update: {
           cohort?: string | null
           created_at?: string | null
+          description?: string | null
+          email?: string | null
           founder_name?: string
           id?: string
+          nationality?: string | null
+          phone?: string | null
           startup_name?: string
+          status?: string | null
           tag_ids?: string[] | null
+          venture_associate?: string | null
         }
         Relationships: []
       }
