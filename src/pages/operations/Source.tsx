@@ -9,7 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { Plus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Trash2, Eye } from "lucide-react";
+import ViewDetailDialog from "@/components/ViewDetailDialog";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -20,6 +21,7 @@ export default function Source() {
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<Budget | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [viewing, setViewing] = useState<Budget | null>(null);
   const [form, setForm] = useState({ category: "", total_amount: "" });
 
   const { data: budgets = [], isLoading } = useQuery({
@@ -140,6 +142,7 @@ export default function Source() {
                             <Button size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setViewing(b)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => openEdit(b)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
                             <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(b.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
                           </DropdownMenuContent>
@@ -180,6 +183,18 @@ export default function Source() {
       </Dialog>
 
       <ConfirmDeleteDialog open={!!deleteId} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
+
+      <ViewDetailDialog
+        open={!!viewing}
+        onClose={() => setViewing(null)}
+        title="Budget Details"
+        fields={viewing ? [
+          { label: "Category", value: viewing.category },
+          { label: "Total Amount", value: `${Number(viewing.total_amount).toLocaleString()} MAD` },
+          { label: "Currency", value: viewing.currency },
+          { label: "Fiscal Year", value: viewing.fiscal_year },
+        ] : []}
+      />
     </div>
   );
 }

@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Plus, MoreHorizontal, Pencil, Trash2, CheckCircle } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Trash2, CheckCircle, Eye } from "lucide-react";
+import ViewDetailDialog from "@/components/ViewDetailDialog";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -25,6 +26,7 @@ export default function Stipends() {
   const [form, setForm] = useState({ founder_name: "", base_amount: "" });
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [viewing, setViewing] = useState<Stipend | null>(null);
 
   const { data: stipends = [], isLoading } = useQuery({
     queryKey: ["stipends"],
@@ -197,6 +199,7 @@ export default function Stipends() {
                           <Button size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setViewing(s)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openEdit(s)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
                           {s.status !== "Paid" && (
                             <DropdownMenuItem onClick={() => processPayment.mutate(s.id)}><CheckCircle className="mr-2 h-3 w-3" /> Mark Paid</DropdownMenuItem>
@@ -235,6 +238,20 @@ export default function Stipends() {
 
       <ConfirmDeleteDialog open={!!deleteId} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
       <ConfirmDeleteDialog open={bulkDeleteOpen} onConfirm={() => bulkDeleteMutation.mutate()} onCancel={() => setBulkDeleteOpen(false)} />
+
+      <ViewDetailDialog
+        open={!!viewing}
+        onClose={() => setViewing(null)}
+        title="Stipend Details"
+        fields={viewing ? [
+          { label: "Founder", value: viewing.founder_name },
+          { label: "Base Amount", value: `${Number(viewing.base_amount).toLocaleString()} MAD` },
+          { label: "Deductions", value: `${Number(viewing.deductions).toLocaleString()} MAD` },
+          { label: "Final Payout", value: viewing.final_payout ? `${Number(viewing.final_payout).toLocaleString()} MAD` : "—" },
+          { label: "Status", value: viewing.status },
+          { label: "Date", value: new Date(viewing.created_at).toLocaleDateString() },
+        ] : []}
+      />
     </div>
   );
 }

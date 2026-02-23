@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, ExternalLink, Trash2, BookOpen } from "lucide-react";
+import { Plus, ExternalLink, Trash2, BookOpen, Pencil, Eye } from "lucide-react";
+import ViewDetailDialog from "@/components/ViewDetailDialog";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 
 interface LibraryProps {
@@ -22,6 +23,8 @@ export default function Library({ moduleName }: LibraryProps) {
   const [description, setDescription] = useState("");
   const [url, setUrl] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<{ id: string; resource_name: string; description: string | null; url: string } | null>(null);
+  const [viewing, setViewing] = useState<{ resource_name: string; description: string | null; url: string; created_at: string } | null>(null);
 
   const ensureProtocol = (u: string) => {
     if (!/^https?:\/\//i.test(u)) return `https://${u}`;
@@ -60,6 +63,27 @@ export default function Library({ moduleName }: LibraryProps) {
       toast({ title: "Resource added" });
     },
     onError: () => toast({ title: "Error adding resource", variant: "destructive" }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      if (!editing) return;
+      const { error } = await supabase.from("resource_library").update({
+        resource_name: name,
+        description: description.trim() || null,
+        url: ensureProtocol(url),
+      }).eq("id", editing.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["resource_library", moduleName] });
+      setEditing(null);
+      setName("");
+      setDescription("");
+      setUrl("");
+      toast({ title: "Resource updated" });
+    },
+    onError: () => toast({ title: "Error updating resource", variant: "destructive" }),
   });
 
   const deleteMutation = useMutation({
@@ -137,9 +161,17 @@ export default function Library({ moduleName }: LibraryProps) {
                       <p className="text-xs text-muted-foreground mt-0.5 ml-6 truncate">{r.description}</p>
                     )}
                   </div>
-                  <Button variant="ghost" size="icon" className="shrink-0" onClick={() => setDeleteId(r.id)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setViewing(r)}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setEditing(r); setName(r.resource_name); setDescription(r.description || ""); setUrl(r.url); }}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDeleteId(r.id)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -158,6 +190,42 @@ export default function Library({ moduleName }: LibraryProps) {
         }}
         title="Delete resource?"
         description="This will permanently remove this resource link."
+      />
+
+      {/* Edit Resource Dialog */}
+      <Dialog open={!!editing} onOpenChange={(o) => { if (!o) setEditing(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Resource</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Name</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>URL</Label>
+              <Input value={url} onChange={(e) => setUrl(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => updateMutation.mutate()} disabled={!name.trim() || !url.trim()}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ViewDetailDialog
+        open={!!viewing}
+        onClose={() => setViewing(null)}
+        title="Resource Details"
+        fields={viewing ? [
+          { label: "Name", value: viewing.resource_name },
+          { label: "Description", value: viewing.description },
+          { label: "URL", value: <a href={ensureProtocol(viewing.url)} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{viewing.url}</a> },
+          { label: "Created", value: new Date(viewing.created_at).toLocaleDateString() },
+        ] : []}
       />
     </div>
   );

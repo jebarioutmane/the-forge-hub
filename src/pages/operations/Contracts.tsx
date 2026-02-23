@@ -11,12 +11,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { Plus, Settings, MoreHorizontal, Pencil, Trash2, X } from "lucide-react";
+import { Plus, Settings, MoreHorizontal, Pencil, Trash2, X, Eye } from "lucide-react";
 import StatusPipeline from "@/components/StatusPipeline";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import type { Tables } from "@/integrations/supabase/types";
 import { TagPicker } from "@/components/TagPicker";
 import { TagBadges } from "@/components/TagBadges";
+import ViewDetailDialog from "@/components/ViewDetailDialog";
 
 type Contract = Tables<"contracts">;
 
@@ -41,6 +42,7 @@ export default function OperationsContracts() {
   const [newStage, setNewStage] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [viewing, setViewing] = useState<Contract | null>(null);
 
   const [form, setForm] = useState({ title: "", stakeholder_name: "", value: "", type: "External", start_date: "", end_date: "", tag_ids: [] as string[] });
 
@@ -278,6 +280,7 @@ export default function OperationsContracts() {
                           <Button size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setViewing(c)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openEdit(c)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
                           <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(c.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
                         </DropdownMenuContent>
@@ -313,6 +316,22 @@ export default function OperationsContracts() {
 
       <ConfirmDeleteDialog open={!!deleteId} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
       <ConfirmDeleteDialog open={bulkDeleteOpen} onConfirm={() => bulkDeleteMutation.mutate()} onCancel={() => setBulkDeleteOpen(false)} />
+
+      <ViewDetailDialog
+        open={!!viewing}
+        onClose={() => setViewing(null)}
+        title="Contract Details"
+        fields={viewing ? [
+          { label: "Title", value: viewing.title },
+          { label: "Stakeholder", value: viewing.stakeholder_name },
+          { label: "Value", value: viewing.value ? `${Number(viewing.value).toLocaleString()} MAD` : "—" },
+          { label: "Type", value: viewing.type },
+          { label: "Status", value: viewing.status },
+          { label: "Start Date", value: viewing.start_date },
+          { label: "End Date", value: viewing.end_date },
+          { label: "Tags", value: <TagBadges tagIds={viewing.tag_ids as string[] | null} /> },
+        ] : []}
+      />
 
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogContent>
