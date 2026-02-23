@@ -22,7 +22,7 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type Founder = Tables<"founders">;
 
-const COHORT_YEARS = ["2024", "2025", "2026"];
+const COHORT_YEARS = Array.from({ length: 81 }, (_, i) => String(2020 + i));
 
 interface FounderForm {
   founder_name: string;
@@ -55,6 +55,7 @@ export default function FoundersSource() {
   const [filterCohort, setFilterCohort] = useState("all");
   const [filterCountry, setFilterCountry] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterVA, setFilterVA] = useState("all");
 
   const { data: founders = [], isLoading } = useQuery({
     queryKey: ["founders"],
@@ -78,6 +79,7 @@ export default function FoundersSource() {
   const uniqueCohorts = useMemo(() => [...new Set(founders.map(f => f.cohort).filter(Boolean))].sort(), [founders]);
   const uniqueCountries = useMemo(() => [...new Set(founders.map(f => f.nationality).filter(Boolean))].sort(), [founders]);
   const uniqueStatuses = useMemo(() => [...new Set(founders.map(f => f.status).filter(Boolean))].sort(), [founders]);
+  const uniqueVAs = useMemo(() => [...new Set(founders.map(f => f.venture_associate).filter(Boolean))].sort(), [founders]);
 
   // Filtered founders
   const filtered = useMemo(() => {
@@ -87,9 +89,10 @@ export default function FoundersSource() {
       if (filterCohort !== "all" && f.cohort !== filterCohort) return false;
       if (filterCountry !== "all" && f.nationality !== filterCountry) return false;
       if (filterStatus !== "all" && f.status !== filterStatus) return false;
+      if (filterVA !== "all" && f.venture_associate !== filterVA) return false;
       return true;
     });
-  }, [founders, search, filterCohort, filterCountry, filterStatus]);
+  }, [founders, search, filterCohort, filterCountry, filterStatus, filterVA]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -182,7 +185,7 @@ export default function FoundersSource() {
       {/* Filter Bar */}
       <Card className="border">
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Search name or startup..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
@@ -206,6 +209,13 @@ export default function FoundersSource() {
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
                 {uniqueStatuses.map((s) => <SelectItem key={s} value={s!}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filterVA} onValueChange={setFilterVA}>
+              <SelectTrigger><SelectValue placeholder="All VAs" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Venture Associates</SelectItem>
+                {uniqueVAs.map((va) => <SelectItem key={va} value={va!}>{va}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
