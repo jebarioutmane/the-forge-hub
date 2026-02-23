@@ -9,7 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { Plus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Trash2, Eye } from "lucide-react";
+import ViewDetailDialog from "@/components/ViewDetailDialog";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -20,6 +21,7 @@ export default function Mentoring() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Session | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [viewing, setViewing] = useState<Session | null>(null);
   const [form, setForm] = useState({ mentor_name: "", founder_name: "", session_date: "", time_slot: "" });
 
   const { data: sessions = [], isLoading } = useQuery({
@@ -150,6 +152,7 @@ export default function Mentoring() {
                           <Button size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setViewing(s)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openEdit(s)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
                           <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(s.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
                         </DropdownMenuContent>
@@ -176,6 +179,18 @@ export default function Mentoring() {
       </Dialog>
 
       <ConfirmDeleteDialog open={!!deleteId} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
+
+      <ViewDetailDialog
+        open={!!viewing}
+        onClose={() => setViewing(null)}
+        title="Session Details"
+        fields={viewing ? [
+          { label: "Mentor", value: viewing.mentor_name },
+          { label: "Founder", value: viewing.founder_name },
+          { label: "Date", value: viewing.session_date },
+          { label: "Time Slot", value: viewing.time_slot },
+        ] : []}
+      />
     </div>
   );
 }

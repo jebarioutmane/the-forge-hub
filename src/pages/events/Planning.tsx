@@ -13,7 +13,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Plus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Trash2, Eye } from "lucide-react";
+import ViewDetailDialog from "@/components/ViewDetailDialog";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import type { Tables, Json } from "@/integrations/supabase/types";
 import { TagPicker } from "@/components/TagPicker";
@@ -45,6 +46,7 @@ export default function Planning() {
   const [editing, setEditing] = useState<Event | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [newItem, setNewItem] = useState("");
+  const [viewing, setViewing] = useState<Event | null>(null);
   const [form, setForm] = useState({ name: "", start_date: "", end_date: "", status: "Planning", needs: [] as string[], checklist: [] as ChecklistItem[], tag_ids: [] as string[] });
 
   const { data: events = [], isLoading } = useQuery({
@@ -193,6 +195,7 @@ export default function Planning() {
                             <Button size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setViewing(ev)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => openEdit(ev)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
                             <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(ev.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
                           </DropdownMenuContent>
@@ -275,6 +278,21 @@ export default function Planning() {
       </Dialog>
 
       <ConfirmDeleteDialog open={!!deleteId} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
+
+      <ViewDetailDialog
+        open={!!viewing}
+        onClose={() => setViewing(null)}
+        title="Event Details"
+        fields={viewing ? [
+          { label: "Name", value: viewing.name },
+          { label: "Start Date", value: viewing.start_date },
+          { label: "End Date", value: viewing.end_date },
+          { label: "Status", value: viewing.status },
+          { label: "Tags", value: <TagBadges tagIds={viewing.tag_ids as string[] | null} /> },
+          { label: "Logistics", value: Array.isArray(viewing.needs) ? (viewing.needs as string[]).join(", ") : "—" },
+          { label: "Checklist", value: (() => { const items = parseChecklist(viewing.checklist); return items.length > 0 ? items.map(i => `${i.done ? "✅" : "⬜"} ${i.text}`).join("\n") : "—"; })() },
+        ] : []}
+      />
     </div>
   );
 }

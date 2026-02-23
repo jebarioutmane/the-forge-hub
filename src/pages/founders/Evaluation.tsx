@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { StarRating } from "@/components/StarRating";
 import { toast } from "sonner";
-import { Plus, TrendingUp, Target, Zap, Activity } from "lucide-react";
+import { Plus, TrendingUp, Target, Zap, Activity, Eye, Pencil, Trash2, MoreHorizontal } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import {
   BLOCKS, SUPPORT_OPTIONS, calculateScores, getRiskTag,
@@ -24,6 +24,9 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import type { Tables } from "@/integrations/supabase/types";
 import type { Json } from "@/integrations/supabase/types";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
+import ViewDetailDialog from "@/components/ViewDetailDialog";
 
 type Founder = Tables<"founders">;
 type Evaluation = Tables<"founder_evaluations">;
@@ -54,6 +57,9 @@ export default function FounderEvaluation() {
   const [metricsData, setMetricsData] = useState<Record<string, MetricData>>({});
   const [confidence, setConfidence] = useState(0);
   const [supportRequired, setSupportRequired] = useState<string[]>([]);
+  const [editingEval, setEditingEval] = useState<Evaluation | null>(null);
+  const [deleteEvalId, setDeleteEvalId] = useState<string | null>(null);
+  const [viewingEval, setViewingEval] = useState<Evaluation | null>(null);
 
   const block = BLOCKS.find((b) => b.name === selectedBlock) || BLOCKS[0];
 
@@ -91,7 +97,7 @@ export default function FounderEvaluation() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("founder_evaluations").insert({
+      const payload = {
         founder_id: selectedFounder,
         block_name: selectedBlock,
         evaluation_date: evalDate,
@@ -103,24 +109,56 @@ export default function FounderEvaluation() {
         total_score: scores.total,
         overall_confidence: confidence,
         support_required: supportRequired,
-      });
-      if (error) throw error;
+      };
+      if (editingEval) {
+        const { error } = await supabase.from("founder_evaluations").update(payload).eq("id", editingEval.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("founder_evaluations").insert(payload);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["founder_evaluations"] });
       setDialogOpen(false);
-      toast.success("Evaluation saved");
+      setEditingEval(null);
+      toast.success(editingEval ? "Evaluation updated" : "Evaluation saved");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteEvalMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("founder_evaluations").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["founder_evaluations"] });
+      setDeleteEvalId(null);
+      toast.success("Evaluation deleted");
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   function openNewEval() {
+    setEditingEval(null);
     const b = BLOCKS.find((bl) => bl.name === selectedBlock) || BLOCKS[0];
     setCategoriesData(initCategoryData(b));
     setMetricsData(initMetricData(b));
     setConfidence(0);
     setSupportRequired([]);
     setEvalDate(new Date().toISOString().split("T")[0]);
+    setDialogOpen(true);
+  }
+
+  function openEditEval(ev: Evaluation) {
+    setEditingEval(ev);
+    setSelectedBlock(ev.block_name);
+    setEvalDate(ev.evaluation_date || new Date().toISOString().split("T")[0]);
+    setCategoriesData((ev.categories_data as unknown as Record<string, CategoryData>) || {});
+    setMetricsData((ev.quantitative_metrics as unknown as Record<string, MetricData>) || {});
+    setConfidence(ev.overall_confidence || 0);
+    setSupportRequired((ev.support_required as string[]) || []);
     setDialogOpen(true);
   }
 
@@ -267,6 +305,16 @@ export default function FounderEvaluation() {
                               <div className="flex items-center gap-2">
                                 <span className="text-lg font-bold text-primary">{ev.total_score}/100</span>
                                 <Badge className={`text-white ${risk.color}`}>{risk.label}</Badge>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button size="icon" variant="ghost" className="h-7 w-7"><MoreHorizontal className="h-3.5 w-3.5" /></Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => setViewingEval(ev)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => openEditEval(ev)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
+                                    <DropdownMenuItem className="text-destructive" onClick={() => setDeleteEvalId(ev.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </div>
                             </div>
                             <div className="grid grid-cols-3 gap-2 text-xs">
@@ -290,7 +338,7 @@ export default function FounderEvaluation() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>New Evaluation — {block.name}: {block.label}</DialogTitle>
+            <DialogTitle>{editingEval ? "Edit" : "New"} Evaluation — {block.name}: {block.label}</DialogTitle>
           </DialogHeader>
           <div className="space-y-6 py-2">
             <div className="grid grid-cols-2 gap-4">
@@ -428,11 +476,29 @@ export default function FounderEvaluation() {
           </div>
           <DialogFooter>
             <Button onClick={() => saveMutation.mutate()} disabled={!selectedFounder || saveMutation.isPending}>
-              Save Evaluation
+              {editingEval ? "Save Changes" : "Save Evaluation"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDeleteDialog open={!!deleteEvalId} onConfirm={() => deleteEvalId && deleteEvalMutation.mutate(deleteEvalId)} onCancel={() => setDeleteEvalId(null)} />
+
+      <ViewDetailDialog
+        open={!!viewingEval}
+        onClose={() => setViewingEval(null)}
+        title="Evaluation Details"
+        fields={viewingEval ? [
+          { label: "Block", value: viewingEval.block_name },
+          { label: "Date", value: viewingEval.evaluation_date },
+          { label: "Total Score", value: `${viewingEval.total_score}/100` },
+          { label: "Execution", value: String(viewingEval.execution_score) },
+          { label: "Traction", value: String(viewingEval.traction_score) },
+          { label: "Momentum", value: String(viewingEval.momentum_score) },
+          { label: "Confidence", value: `${viewingEval.overall_confidence}/5` },
+          { label: "Support", value: (viewingEval.support_required as string[] || []).join(", ") },
+        ] : []}
+      />
     </div>
   );
 }

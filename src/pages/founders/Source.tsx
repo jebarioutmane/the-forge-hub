@@ -8,7 +8,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Users, GraduationCap, Briefcase } from "lucide-react";
+import { Plus, Users, GraduationCap, Briefcase, Eye, Pencil, Trash2, MoreHorizontal } from "lucide-react";
+import ViewDetailDialog from "@/components/ViewDetailDialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { TagPicker } from "@/components/TagPicker";
 import { TagBadges } from "@/components/TagBadges";
@@ -22,6 +24,7 @@ export default function FoundersSource() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Founder | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [viewing, setViewing] = useState<Founder | null>(null);
   const [form, setForm] = useState({ founder_name: "", startup_name: "", cohort: "", tag_ids: [] as string[] });
 
   const { data: founders = [], isLoading } = useQuery({
@@ -132,15 +135,27 @@ export default function FoundersSource() {
           {founders.map((f) => {
             const score = getLatestScore(f.id);
             return (
-              <Card key={f.id} className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 cursor-pointer border" onClick={() => openEdit(f)}>
+              <Card key={f.id} className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 border">
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between mb-3">
                     <div className="h-10 w-10 rounded-full bg-module-founders/10 flex items-center justify-center text-module-founders font-bold text-sm">
                       {f.founder_name.charAt(0).toUpperCase()}
                     </div>
-                    {f.cohort && (
-                      <Badge variant="outline" className="text-[10px]">{f.cohort}</Badge>
-                    )}
+                    <div className="flex items-center gap-1">
+                      {f.cohort && (
+                        <Badge variant="outline" className="text-[10px]">{f.cohort}</Badge>
+                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="icon" variant="ghost" className="h-7 w-7"><MoreHorizontal className="h-3.5 w-3.5" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setViewing(f)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openEdit(f)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(f.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                   <h3 className="font-bold text-sm mb-0.5">{f.founder_name}</h3>
                   <p className="text-xs text-muted-foreground mb-3">{f.startup_name}</p>
@@ -196,6 +211,19 @@ export default function FoundersSource() {
       </Dialog>
 
       <ConfirmDeleteDialog open={!!deleteId} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
+
+      <ViewDetailDialog
+        open={!!viewing}
+        onClose={() => setViewing(null)}
+        title="Founder Details"
+        fields={viewing ? [
+          { label: "Name", value: viewing.founder_name },
+          { label: "Startup", value: viewing.startup_name },
+          { label: "Cohort", value: viewing.cohort },
+          { label: "Tags", value: <TagBadges tagIds={viewing.tag_ids as string[] | null} /> },
+          { label: "Score", value: `${getLatestScore(viewing.id)}%` },
+        ] : []}
+      />
     </div>
   );
 }
