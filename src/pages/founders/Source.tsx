@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Plus, GraduationCap, Eye, Pencil, Trash2, MoreHorizontal, Search, Phone, Mail } from "lucide-react";
+import { Plus, GraduationCap, Eye, Pencil, Trash2, MoreHorizontal, Search, Phone, Mail, ExternalLink, ChevronsUpDown, X } from "lucide-react";
 import ViewDetailDialog from "@/components/ViewDetailDialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
@@ -29,18 +32,68 @@ interface FounderForm {
   startup_name: string;
   cohort: string;
   venture_associate: string;
-  nationality: string;
+  nationalities: string[];
   phone: string;
   email: string;
   status: string;
   description: string;
   tag_ids: string[];
+  link_title: string;
+  link_url: string;
 }
 
 const emptyForm: FounderForm = {
   founder_name: "", startup_name: "", cohort: "", venture_associate: "",
-  nationality: "", phone: "", email: "", status: "", description: "", tag_ids: [],
+  nationalities: [], phone: "", email: "", status: "", description: "", tag_ids: [],
+  link_title: "", link_url: "",
 };
+
+/* ── Multi-select country combobox ── */
+function CountryMultiSelect({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
+  const [open, setOpen] = useState(false);
+
+  const toggle = (country: string) => {
+    onChange(value.includes(country) ? value.filter(c => c !== country) : [...value, country]);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" role="combobox" className="w-full justify-between h-auto min-h-10 font-normal">
+          {value.length === 0 ? (
+            <span className="text-muted-foreground">Select countries...</span>
+          ) : (
+            <div className="flex flex-wrap gap-1">
+              {value.map(c => (
+                <Badge key={c} variant="secondary" className="text-xs gap-1">
+                  {getFlag(c)} {c}
+                  <X className="h-3 w-3 cursor-pointer" onClick={(e) => { e.stopPropagation(); toggle(c); }} />
+                </Badge>
+              ))}
+            </div>
+          )}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[340px] p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Search country..." />
+          <CommandList>
+            <CommandEmpty>No country found.</CommandEmpty>
+            <CommandGroup>
+              {COUNTRIES.map(c => (
+                <CommandItem key={c} onSelect={() => toggle(c)} className="flex items-center gap-2">
+                  <Checkbox checked={value.includes(c)} className="pointer-events-none" />
+                  <span>{getFlag(c)} {c}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export default function FoundersSource() {
   const queryClient = useQueryClient();
@@ -77,9 +130,20 @@ export default function FoundersSource() {
 
   // Derive unique values for filter dropdowns
   const uniqueCohorts = useMemo(() => [...new Set(founders.map(f => f.cohort).filter(Boolean))].sort(), [founders]);
-  const uniqueCountries = useMemo(() => [...new Set(founders.map(f => f.nationality).filter(Boolean))].sort(), [founders]);
+  const uniqueCountries = useMemo(() => {
+    const all = founders.flatMap(f => (f.nationalities as string[] | null) || (f.nationality ? [f.nationality] : []));
+    return [...new Set(all.filter(Boolean))].sort();
+  }, [founders]);
   const uniqueStatuses = useMemo(() => [...new Set(founders.map(f => f.status).filter(Boolean))].sort(), [founders]);
   const uniqueVAs = useMemo(() => [...new Set(founders.map(f => f.venture_associate).filter(Boolean))].sort(), [founders]);
+
+  // Helper: get nationalities for a founder (use array field, fallback to legacy single)
+  function getFounderNationalities(f: Founder): string[] {
+    const arr = (f.nationalities as string[] | null);
+    if (arr && arr.length > 0) return arr;
+    if (f.nationality) return [f.nationality];
+    return [];
+  }
 
   // Filtered founders
   const filtered = useMemo(() => {
@@ -87,7 +151,10 @@ export default function FoundersSource() {
       const q = search.toLowerCase();
       if (q && !f.founder_name.toLowerCase().includes(q) && !f.startup_name.toLowerCase().includes(q)) return false;
       if (filterCohort !== "all" && f.cohort !== filterCohort) return false;
-      if (filterCountry !== "all" && f.nationality !== filterCountry) return false;
+      if (filterCountry !== "all") {
+        const nats = getFounderNationalities(f);
+        if (!nats.includes(filterCountry)) return false;
+      }
       if (filterStatus !== "all" && f.status !== filterStatus) return false;
       if (filterVA !== "all" && f.venture_associate !== filterVA) return false;
       return true;
@@ -101,12 +168,15 @@ export default function FoundersSource() {
         startup_name: form.startup_name,
         cohort: form.cohort || null,
         venture_associate: form.venture_associate || null,
-        nationality: form.nationality || null,
+        nationality: form.nationalities[0] || null,
+        nationalities: form.nationalities,
         phone: form.phone || null,
         email: form.email || null,
         status: form.status || null,
         description: form.description || null,
         tag_ids: form.tag_ids,
+        link_title: form.link_title || null,
+        link_url: form.link_url || null,
       };
       if (editing) {
         const { error } = await supabase.from("founders").update(payload).eq("id", editing.id);
@@ -123,7 +193,7 @@ export default function FoundersSource() {
       setForm(emptyForm);
       toast.success(editing ? "Founder updated" : "Founder added");
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e: any) => toast.error(e.message),
   });
 
   const deleteMutation = useMutation({
@@ -136,21 +206,24 @@ export default function FoundersSource() {
       setDeleteId(null);
       toast.success("Founder deleted");
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e: any) => toast.error(e.message),
   });
 
   function openEdit(f: Founder) {
+    const nats = getFounderNationalities(f);
     setForm({
       founder_name: f.founder_name,
       startup_name: f.startup_name,
       cohort: f.cohort || "",
       venture_associate: f.venture_associate || "",
-      nationality: f.nationality || "",
+      nationalities: nats,
       phone: f.phone || "",
       email: f.email || "",
       status: f.status || "",
       description: f.description || "",
       tag_ids: (f.tag_ids as string[]) || [],
+      link_title: f.link_title || "",
+      link_url: f.link_url || "",
     });
     setEditing(f);
     setDialogOpen(true);
@@ -237,15 +310,10 @@ export default function FoundersSource() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map((f) => {
             const score = getLatestScore(f.id);
-            const flag = getFlag(f.nationality);
+            const nats = getFounderNationalities(f);
             return (
               <Card key={f.id} className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 border relative overflow-hidden">
                 <CardContent className="p-5">
-                  {/* Flag in corner */}
-                  {flag && (
-                    <span className="absolute top-3 right-3 text-2xl leading-none" title={f.nationality || ""}>{flag}</span>
-                  )}
-
                   {/* Avatar + Actions */}
                   <div className="flex items-start justify-between mb-3">
                     <div className="h-11 w-11 rounded-full bg-module-founders/10 flex items-center justify-center text-module-founders font-bold text-base">
@@ -263,8 +331,13 @@ export default function FoundersSource() {
                     </DropdownMenu>
                   </div>
 
-                  {/* Name & Startup */}
-                  <h3 className="font-bold text-sm mb-0.5 truncate pr-8">{f.founder_name}</h3>
+                  {/* Name & Nationalities */}
+                  <h3 className="font-bold text-sm mb-0.5 truncate">{f.founder_name}</h3>
+                  {nats.length > 0 && (
+                    <p className="text-[11px] text-muted-foreground mb-1 truncate">
+                      {nats.map(n => `${getFlag(n)} ${n}`).join(", ")}
+                    </p>
+                  )}
                   <p className="text-xs text-muted-foreground mb-2 truncate">{f.startup_name}</p>
 
                   {/* Badges row */}
@@ -323,38 +396,43 @@ export default function FoundersSource() {
                 <Input value={form.venture_associate} onChange={(e) => set("venture_associate", e.target.value)} placeholder="Assigned VA" />
               </div>
             </div>
+            <div className="space-y-2">
+              <Label>Nationalities</Label>
+              <CountryMultiSelect value={form.nationalities} onChange={(v) => set("nationalities", v)} />
+            </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Nationality</Label>
-                <Select value={form.nationality} onValueChange={(v) => set("nationality", v)}>
-                  <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
-                  <SelectContent>
-                    {COUNTRIES.map((c) => <SelectItem key={c} value={c}>{getFlag(c)} {c}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
               <div className="space-y-2">
                 <Label>Status</Label>
                 <Input value={form.status} onChange={(e) => set("status", e.target.value)} placeholder="e.g. Active, Dismissed" />
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Email</Label>
                 <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Phone</Label>
                 <Input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+212..." />
+              </div>
+              <div className="space-y-2">
+                <Label>Tags</Label>
+                <TagPicker value={form.tag_ids} onChange={(ids) => set("tag_ids", ids)} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Link Title</Label>
+                <Input value={form.link_title} onChange={(e) => set("link_title", e.target.value)} placeholder="e.g. LinkedIn, Pitch Deck" />
+              </div>
+              <div className="space-y-2">
+                <Label>Link URL</Label>
+                <Input value={form.link_url} onChange={(e) => set("link_url", e.target.value)} placeholder="https://..." />
               </div>
             </div>
             <div className="space-y-2">
               <Label>Description / Business Idea</Label>
               <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={3} placeholder="Brief description of the startup..." />
-            </div>
-            <div className="space-y-2">
-              <Label>Tags</Label>
-              <TagPicker value={form.tag_ids} onChange={(ids) => set("tag_ids", ids)} />
             </div>
           </div>
           <DialogFooter className="gap-2">
@@ -378,11 +456,19 @@ export default function FoundersSource() {
           { label: "Name", value: viewing.founder_name },
           { label: "Startup", value: viewing.startup_name },
           { label: "Cohort", value: viewing.cohort },
-          { label: "Nationality", value: viewing.nationality ? `${getFlag(viewing.nationality)} ${viewing.nationality}` : null },
+          { label: "Nationalities", value: (() => {
+            const nats = getFounderNationalities(viewing);
+            return nats.length > 0 ? nats.map(n => `${getFlag(n)} ${n}`).join(", ") : null;
+          })() },
           { label: "Status", value: viewing.status },
           { label: "Venture Associate", value: viewing.venture_associate },
           { label: "Email", value: viewing.email },
           { label: "Phone", value: viewing.phone },
+          { label: "Link", value: viewing.link_url ? (
+            <a href={viewing.link_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
+              {viewing.link_title || viewing.link_url} <ExternalLink className="h-3 w-3" />
+            </a>
+          ) : null },
           { label: "Description", value: viewing.description },
           { label: "Tags", value: <TagBadges tagIds={viewing.tag_ids as string[] | null} /> },
           { label: "Score", value: `${getLatestScore(viewing.id)}%` },

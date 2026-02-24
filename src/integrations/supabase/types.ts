@@ -335,6 +335,9 @@ export type Database = {
           email: string | null
           founder_name: string
           id: string
+          link_title: string | null
+          link_url: string | null
+          nationalities: string[] | null
           nationality: string | null
           phone: string | null
           startup_name: string
@@ -349,6 +352,9 @@ export type Database = {
           email?: string | null
           founder_name: string
           id?: string
+          link_title?: string | null
+          link_url?: string | null
+          nationalities?: string[] | null
           nationality?: string | null
           phone?: string | null
           startup_name: string
@@ -363,6 +369,9 @@ export type Database = {
           email?: string | null
           founder_name?: string
           id?: string
+          link_title?: string | null
+          link_url?: string | null
+          nationalities?: string[] | null
           nationality?: string | null
           phone?: string | null
           startup_name?: string
