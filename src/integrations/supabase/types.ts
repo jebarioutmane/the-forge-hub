@@ -150,6 +150,7 @@ export type Database = {
           expert_id: string | null
           id: string
           links: Json | null
+          location: string | null
           logistics_needs: Json | null
           name: string
           needs: Json | null
@@ -167,6 +168,7 @@ export type Database = {
           expert_id?: string | null
           id?: string
           links?: Json | null
+          location?: string | null
           logistics_needs?: Json | null
           name: string
           needs?: Json | null
@@ -184,6 +186,7 @@ export type Database = {
           expert_id?: string | null
           id?: string
           links?: Json | null
+          location?: string | null
           logistics_needs?: Json | null
           name?: string
           needs?: Json | null

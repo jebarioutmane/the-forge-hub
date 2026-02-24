@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, DollarSign, FileText, CalendarDays, Users,
+  LayoutDashboard, DollarSign, FileText, CalendarDays,
   ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
   Settings, ChevronDown, Wallet, PiggyBank, ListTodo,
   ClipboardList, BarChart3, Users2,
@@ -44,7 +44,6 @@ const sections = [
     items: [
       { title: "Events Calendar", url: "/events", icon: CalendarDays },
       { title: "Planning", url: "/events/planning", icon: ClipboardCheck },
-      { title: "Mentoring", url: "/events/mentoring", icon: Users },
       { title: "Stakeholders", url: "/events/stakeholders", icon: Users2 },
     ],
   },

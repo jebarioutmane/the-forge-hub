@@ -23,6 +23,7 @@ import { TagBadges } from "@/components/TagBadges";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { formatUrl } from "@/lib/formatUrl";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Founder = Tables<"founders">;
@@ -568,7 +569,7 @@ export default function FoundersSource() {
             return (
               <div className="flex flex-col gap-1">
                 {links.map((l, i) => (
-                  <a key={i} href={l.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1 text-sm">
+                  <a key={i} href={formatUrl(l.url)} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1 text-sm">
                     {l.title || l.url} <ExternalLink className="h-3 w-3" />
                   </a>
                 ))}

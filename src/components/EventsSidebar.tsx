@@ -1,4 +1,4 @@
-import { CalendarDays, ClipboardList, Users, BookOpen, Settings } from "lucide-react";
+import { CalendarDays, ClipboardList, BookOpen, Settings } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -14,7 +14,6 @@ import {
 const items = [
   { title: "Timeline", url: "/events", icon: CalendarDays },
   { title: "Planning", url: "/events/planning", icon: ClipboardList },
-  { title: "Mentoring", url: "/events/mentoring", icon: Users },
   { title: "Library", url: "/events/library", icon: BookOpen },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
