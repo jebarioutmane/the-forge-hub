@@ -561,6 +561,54 @@ export type Database = {
         }
         Relationships: []
       }
+      stakeholders: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          email: string | null
+          full_name: string
+          id: string
+          links: Json | null
+          nationalities: string[] | null
+          phone: string | null
+          point_of_contact: string | null
+          sector: string | null
+          status: string | null
+          title: string | null
+          type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          links?: Json | null
+          nationalities?: string[] | null
+          phone?: string | null
+          point_of_contact?: string | null
+          sector?: string | null
+          status?: string | null
+          title?: string | null
+          type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          links?: Json | null
+          nationalities?: string[] | null
+          phone?: string | null
+          point_of_contact?: string | null
+          sector?: string | null
+          status?: string | null
+          title?: string | null
+          type?: string | null
+        }
+        Relationships: []
+      }
       stipends: {
         Row: {
           base_amount: number
