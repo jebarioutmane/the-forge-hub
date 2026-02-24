@@ -498,6 +498,9 @@ export default function FoundersSource() {
                       onSelect={(d) => set("birthday", d)}
                       disabled={(date) => date > new Date()}
                       initialFocus
+                      captionLayout="dropdown-buttons"
+                      fromYear={1940}
+                      toYear={new Date().getFullYear()}
                       className={cn("p-3 pointer-events-auto")}
                     />
                   </PopoverContent>
