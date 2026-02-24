@@ -485,28 +485,49 @@ export type Database = {
       }
       mentoring_sessions: {
         Row: {
+          all_founders: boolean | null
           created_at: string
+          description: string | null
           founder_name: string
           id: string
+          links: Json | null
+          mentor_id: string | null
           mentor_name: string
+          one_on_one_slots: Json | null
           session_date: string | null
+          status: string | null
           time_slot: string | null
+          title: string | null
         }
         Insert: {
+          all_founders?: boolean | null
           created_at?: string
+          description?: string | null
           founder_name: string
           id?: string
+          links?: Json | null
+          mentor_id?: string | null
           mentor_name: string
+          one_on_one_slots?: Json | null
           session_date?: string | null
+          status?: string | null
           time_slot?: string | null
+          title?: string | null
         }
         Update: {
+          all_founders?: boolean | null
           created_at?: string
+          description?: string | null
           founder_name?: string
           id?: string
+          links?: Json | null
+          mentor_id?: string | null
           mentor_name?: string
+          one_on_one_slots?: Json | null
           session_date?: string | null
+          status?: string | null
           time_slot?: string | null
+          title?: string | null
         }
         Relationships: []
       }
