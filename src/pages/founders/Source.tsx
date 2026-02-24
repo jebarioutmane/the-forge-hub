@@ -49,7 +49,7 @@ const emptyForm: FounderForm = {
 };
 
 /* ── Multi-select country combobox ── */
-function CountryMultiSelect({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
+function CountryMultiSelect({ value, onChange, placeholder = "Select countries..." }: { value: string[]; onChange: (v: string[]) => void; placeholder?: string }) {
   const [open, setOpen] = useState(false);
 
   const toggle = (country: string) => {
@@ -61,7 +61,7 @@ function CountryMultiSelect({ value, onChange }: { value: string[]; onChange: (v
       <PopoverTrigger asChild>
         <Button variant="outline" role="combobox" className="w-full justify-between h-auto min-h-10 font-normal">
           {value.length === 0 ? (
-            <span className="text-muted-foreground">Select countries...</span>
+            <span className="text-muted-foreground">{placeholder}</span>
           ) : (
             <div className="flex flex-wrap gap-1">
               {value.map(c => (
@@ -75,10 +75,10 @@ function CountryMultiSelect({ value, onChange }: { value: string[]; onChange: (v
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[340px] p-0" align="start">
+      <PopoverContent className="w-[340px] p-0 z-50" align="start">
         <Command>
           <CommandInput placeholder="Search country..." />
-          <CommandList>
+          <CommandList className="max-h-[300px] overflow-y-auto">
             <CommandEmpty>No country found.</CommandEmpty>
             <CommandGroup>
               {COUNTRIES.map(c => (
@@ -106,7 +106,7 @@ export default function FoundersSource() {
   // Filters
   const [search, setSearch] = useState("");
   const [filterCohort, setFilterCohort] = useState("all");
-  const [filterCountry, setFilterCountry] = useState("all");
+  const [filterCountries, setFilterCountries] = useState<string[]>([]);
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterVA, setFilterVA] = useState("all");
 
@@ -151,15 +151,15 @@ export default function FoundersSource() {
       const q = search.toLowerCase();
       if (q && !f.founder_name.toLowerCase().includes(q) && !f.startup_name.toLowerCase().includes(q)) return false;
       if (filterCohort !== "all" && f.cohort !== filterCohort) return false;
-      if (filterCountry !== "all") {
+      if (filterCountries.length > 0) {
         const nats = getFounderNationalities(f);
-        if (!nats.includes(filterCountry)) return false;
+        if (!filterCountries.some(c => nats.includes(c))) return false;
       }
       if (filterStatus !== "all" && f.status !== filterStatus) return false;
       if (filterVA !== "all" && f.venture_associate !== filterVA) return false;
       return true;
     });
-  }, [founders, search, filterCohort, filterCountry, filterStatus, filterVA]);
+  }, [founders, search, filterCohort, filterCountries, filterStatus, filterVA]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -270,13 +270,7 @@ export default function FoundersSource() {
                 {uniqueCohorts.map((c) => <SelectItem key={c} value={c!}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Select value={filterCountry} onValueChange={setFilterCountry}>
-              <SelectTrigger><SelectValue placeholder="All Countries" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Countries</SelectItem>
-                {uniqueCountries.map((c) => <SelectItem key={c} value={c!}>{getFlag(c)} {c}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <CountryMultiSelect value={filterCountries} onChange={setFilterCountries} placeholder="Filter countries..." />
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger><SelectValue placeholder="All Statuses" /></SelectTrigger>
               <SelectContent>
