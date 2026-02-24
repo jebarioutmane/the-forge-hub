@@ -18,6 +18,7 @@ import PortfolioDashboard from "./pages/founders/Portfolio";
 import EventsTimeline from "./pages/events/Timeline";
 import EventsPlanning from "./pages/events/Planning";
 import EventsMentoring from "./pages/events/Mentoring";
+import EventsStakeholders from "./pages/events/Stakeholders";
 import Settings from "./pages/Settings";
 import Library from "./pages/Library";
 import NotFound from "./pages/NotFound";
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/events" element={<MainLayout><EventsTimeline /></MainLayout>} />
           <Route path="/events/planning" element={<MainLayout><EventsPlanning /></MainLayout>} />
           <Route path="/events/mentoring" element={<MainLayout><EventsMentoring /></MainLayout>} />
+          <Route path="/events/stakeholders" element={<MainLayout><EventsStakeholders /></MainLayout>} />
           <Route path="/founders" element={<MainLayout><FoundersSource /></MainLayout>} />
           <Route path="/founders/tracking" element={<MainLayout><FoundersTracking /></MainLayout>} />
           <Route path="/founders/evaluation" element={<MainLayout><FounderEvaluation /></MainLayout>} />
