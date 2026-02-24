@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -12,19 +12,27 @@ import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
-import { Plus, GraduationCap, Eye, Pencil, Trash2, MoreHorizontal, Search, Phone, Mail, ExternalLink, ChevronsUpDown, X } from "lucide-react";
+import { Plus, GraduationCap, Eye, Pencil, Trash2, MoreHorizontal, Search, ExternalLink, ChevronsUpDown, X, CalendarIcon } from "lucide-react";
 import ViewDetailDialog from "@/components/ViewDetailDialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { TagPicker } from "@/components/TagPicker";
 import { TagBadges } from "@/components/TagBadges";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Founder = Tables<"founders">;
 
 const COHORT_YEARS = Array.from({ length: 81 }, (_, i) => String(2020 + i));
+
+interface LinkItem {
+  title: string;
+  url: string;
+}
 
 interface FounderForm {
   founder_name: string;
@@ -37,14 +45,17 @@ interface FounderForm {
   status: string;
   description: string;
   tag_ids: string[];
-  link_title: string;
-  link_url: string;
+  links: LinkItem[];
+  cin_number: string;
+  passport_number: string;
+  birthday: Date | undefined;
 }
 
 const emptyForm: FounderForm = {
   founder_name: "", startup_name: "", cohort: "", venture_associate: "",
   nationalities: [], phone: "", email: "", status: "", description: "", tag_ids: [],
-  link_title: "", link_url: "",
+  links: [],
+  cin_number: "", passport_number: "", birthday: undefined,
 };
 
 /* ── Multi-select country combobox (fetches from Supabase) ── */
@@ -64,6 +75,10 @@ function CountryMultiSelect({ value, onChange, placeholder = "Select countries..
     onChange(value.includes(country) ? value.filter(c => c !== country) : [...value, country]);
   };
 
+  const remove = (country: string) => {
+    onChange(value.filter(c => c !== country));
+  };
+
   const getEmoji = (name: string) => countries.find(c => c.name === name)?.emoji || "🏳️";
 
   return (
@@ -77,7 +92,14 @@ function CountryMultiSelect({ value, onChange, placeholder = "Select countries..
               {value.map(c => (
                 <Badge key={c} variant="secondary" className="text-xs gap-1">
                   {getEmoji(c)} {c}
-                  <X className="h-3 w-3 cursor-pointer" onClick={(e) => { e.stopPropagation(); toggle(c); }} />
+                  <span
+                    role="button"
+                    onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); remove(c); }}
+                    className="cursor-pointer"
+                  >
+                    <X className="h-3 w-3" />
+                  </span>
                 </Badge>
               ))}
             </div>
@@ -161,7 +183,6 @@ export default function FoundersSource() {
   const uniqueStatuses = useMemo(() => [...new Set(founders.map(f => f.status).filter(Boolean))].sort(), [founders]);
   const uniqueVAs = useMemo(() => [...new Set(founders.map(f => f.venture_associate).filter(Boolean))].sort(), [founders]);
 
-  // Helper: get nationalities for a founder (use array field, fallback to legacy single)
   function getFounderNationalities(f: Founder): string[] {
     const arr = (f.nationalities as string[] | null);
     if (arr && arr.length > 0) return arr;
@@ -169,7 +190,14 @@ export default function FoundersSource() {
     return [];
   }
 
-  // Filtered founders
+  function getFounderLinks(f: Founder): LinkItem[] {
+    const linksJson = f.links as unknown;
+    if (Array.isArray(linksJson) && linksJson.length > 0) return linksJson as LinkItem[];
+    // Fallback: legacy single link
+    if (f.link_title || f.link_url) return [{ title: f.link_title || "", url: f.link_url || "" }];
+    return [];
+  }
+
   const filtered = useMemo(() => {
     return founders.filter((f) => {
       const q = search.toLowerCase();
@@ -199,8 +227,12 @@ export default function FoundersSource() {
         status: form.status || null,
         description: form.description || null,
         tag_ids: form.tag_ids,
-        link_title: form.link_title || null,
-        link_url: form.link_url || null,
+        links: form.links.filter(l => l.url) as any,
+        link_title: form.links[0]?.title || null,
+        link_url: form.links[0]?.url || null,
+        cin_number: form.cin_number || null,
+        passport_number: form.passport_number || null,
+        birthday: form.birthday ? format(form.birthday, "yyyy-MM-dd") : null,
       };
       if (editing) {
         const { error } = await supabase.from("founders").update(payload).eq("id", editing.id);
@@ -235,6 +267,7 @@ export default function FoundersSource() {
 
   function openEdit(f: Founder) {
     const nats = getFounderNationalities(f);
+    const links = getFounderLinks(f);
     setForm({
       founder_name: f.founder_name,
       startup_name: f.startup_name,
@@ -246,8 +279,10 @@ export default function FoundersSource() {
       status: f.status || "",
       description: f.description || "",
       tag_ids: (f.tag_ids as string[]) || [],
-      link_title: f.link_title || "",
-      link_url: f.link_url || "",
+      links: links.length > 0 ? links : [],
+      cin_number: f.cin_number || "",
+      passport_number: f.passport_number || "",
+      birthday: f.birthday ? new Date(f.birthday) : undefined,
     });
     setEditing(f);
     setDialogOpen(true);
@@ -264,7 +299,15 @@ export default function FoundersSource() {
     return Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 20);
   }
 
-  const set = (key: keyof FounderForm, val: string | string[]) => setForm((f) => ({ ...f, [key]: val }));
+  const set = (key: keyof FounderForm, val: any) => setForm((f) => ({ ...f, [key]: val }));
+
+  const addLink = () => set("links", [...form.links, { title: "", url: "" }]);
+  const removeLink = (idx: number) => set("links", form.links.filter((_, i) => i !== idx));
+  const updateLink = (idx: number, field: "title" | "url", val: string) => {
+    const updated = [...form.links];
+    updated[idx] = { ...updated[idx], [field]: val };
+    set("links", updated);
+  };
 
   return (
     <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
@@ -313,7 +356,6 @@ export default function FoundersSource() {
         </CardContent>
       </Card>
 
-      {/* Results count */}
       <p className="text-xs text-muted-foreground">{filtered.length} founder{filtered.length !== 1 ? "s" : ""} found</p>
 
       {/* Grid */}
@@ -332,7 +374,6 @@ export default function FoundersSource() {
             return (
               <Card key={f.id} className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 border relative overflow-hidden">
                 <CardContent className="p-5">
-                  {/* Avatar + Actions */}
                   <div className="flex items-start justify-between mb-3">
                     <div className="h-11 w-11 rounded-full bg-module-founders/10 flex items-center justify-center text-module-founders font-bold text-base">
                       {f.founder_name.charAt(0).toUpperCase()}
@@ -348,8 +389,6 @@ export default function FoundersSource() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-
-                  {/* Name & Nationalities */}
                   <h3 className="font-bold text-sm mb-0.5 truncate">{f.founder_name}</h3>
                   {nats.length > 0 && (
                     <p className="text-[11px] text-muted-foreground mb-1 truncate">
@@ -357,16 +396,12 @@ export default function FoundersSource() {
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground mb-2 truncate">{f.startup_name}</p>
-
-                  {/* Badges row */}
                   <div className="flex flex-wrap items-center gap-1.5 mb-3">
                     {f.cohort && <Badge variant="outline" className="text-[10px] font-medium">{f.cohort}</Badge>}
                     {f.status && (
                       <Badge className="text-[10px] bg-module-founders/10 text-module-founders border-module-founders/20 hover:bg-module-founders/20">{f.status}</Badge>
                     )}
                   </div>
-
-                  {/* Progress */}
                   <div className="space-y-1.5 mb-3">
                     <div className="flex items-center justify-between text-[10px]">
                       <span className="text-muted-foreground">Progress Score</span>
@@ -374,8 +409,6 @@ export default function FoundersSource() {
                     </div>
                     <Progress value={score} className="h-1.5" />
                   </div>
-
-                  {/* Tags */}
                   <TagBadges tagIds={f.tag_ids as string[] | null} />
                 </CardContent>
               </Card>
@@ -438,16 +471,57 @@ export default function FoundersSource() {
                 <TagPicker value={form.tag_ids} onChange={(ids) => set("tag_ids", ids)} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+
+            {/* Identity Fields */}
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>Link Title</Label>
-                <Input value={form.link_title} onChange={(e) => set("link_title", e.target.value)} placeholder="e.g. LinkedIn, Pitch Deck" />
+                <Label>CIN Number</Label>
+                <Input value={form.cin_number} onChange={(e) => set("cin_number", e.target.value)} placeholder="e.g. AB123456" />
               </div>
               <div className="space-y-2">
-                <Label>Link URL</Label>
-                <Input value={form.link_url} onChange={(e) => set("link_url", e.target.value)} placeholder="https://..." />
+                <Label>Passport Number</Label>
+                <Input value={form.passport_number} onChange={(e) => set("passport_number", e.target.value)} placeholder="e.g. AB1234567" />
+              </div>
+              <div className="space-y-2">
+                <Label>Birthday</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.birthday && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {form.birthday ? format(form.birthday, "PPP") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={form.birthday}
+                      onSelect={(d) => set("birthday", d)}
+                      disabled={(date) => date > new Date()}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
+
+            {/* Dynamic Links */}
+            <div className="space-y-2">
+              <Label>Links</Label>
+              {form.links.map((link, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <Input value={link.title} onChange={(e) => updateLink(idx, "title", e.target.value)} placeholder="Link Title" className="flex-1" />
+                  <Input value={link.url} onChange={(e) => updateLink(idx, "url", e.target.value)} placeholder="https://..." className="flex-1" />
+                  <Button type="button" size="icon" variant="ghost" onClick={() => removeLink(idx)} className="shrink-0 text-destructive hover:text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm" onClick={addLink}>
+                <Plus className="mr-1 h-3 w-3" /> Add Link
+              </Button>
+            </div>
+
             <div className="space-y-2">
               <Label>Description / Business Idea</Label>
               <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={3} placeholder="Brief description of the startup..." />
@@ -482,11 +556,22 @@ export default function FoundersSource() {
           { label: "Venture Associate", value: viewing.venture_associate },
           { label: "Email", value: viewing.email },
           { label: "Phone", value: viewing.phone },
-          { label: "Link", value: viewing.link_url ? (
-            <a href={viewing.link_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
-              {viewing.link_title || viewing.link_url} <ExternalLink className="h-3 w-3" />
-            </a>
-          ) : null },
+          { label: "CIN Number", value: viewing.cin_number },
+          { label: "Passport", value: viewing.passport_number },
+          { label: "Birthday", value: viewing.birthday ? format(new Date(viewing.birthday), "PPP") : null },
+          { label: "Links", value: (() => {
+            const links = getFounderLinks(viewing);
+            if (links.length === 0) return null;
+            return (
+              <div className="flex flex-col gap-1">
+                {links.map((l, i) => (
+                  <a key={i} href={l.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline inline-flex items-center gap-1 text-sm">
+                    {l.title || l.url} <ExternalLink className="h-3 w-3" />
+                  </a>
+                ))}
+              </div>
+            );
+          })() },
           { label: "Description", value: viewing.description },
           { label: "Tags", value: <TagBadges tagIds={viewing.tag_ids as string[] | null} /> },
           { label: "Score", value: `${getLatestScore(viewing.id)}%` },
