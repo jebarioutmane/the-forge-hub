@@ -20,7 +20,6 @@ import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { TagPicker } from "@/components/TagPicker";
 import { TagBadges } from "@/components/TagBadges";
 import { Progress } from "@/components/ui/progress";
-import { COUNTRIES, getFlag } from "@/lib/countries";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Founder = Tables<"founders">;
@@ -48,13 +47,24 @@ const emptyForm: FounderForm = {
   link_title: "", link_url: "",
 };
 
-/* ── Multi-select country combobox ── */
+/* ── Multi-select country combobox (fetches from Supabase) ── */
 function CountryMultiSelect({ value, onChange, placeholder = "Select countries..." }: { value: string[]; onChange: (v: string[]) => void; placeholder?: string }) {
   const [open, setOpen] = useState(false);
+
+  const { data: countries = [] } = useQuery({
+    queryKey: ["countries"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("countries").select("*").order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const toggle = (country: string) => {
     onChange(value.includes(country) ? value.filter(c => c !== country) : [...value, country]);
   };
+
+  const getEmoji = (name: string) => countries.find(c => c.name === name)?.emoji || "🏳️";
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -66,7 +76,7 @@ function CountryMultiSelect({ value, onChange, placeholder = "Select countries..
             <div className="flex flex-wrap gap-1">
               {value.map(c => (
                 <Badge key={c} variant="secondary" className="text-xs gap-1">
-                  {getFlag(c)} {c}
+                  {getEmoji(c)} {c}
                   <X className="h-3 w-3 cursor-pointer" onClick={(e) => { e.stopPropagation(); toggle(c); }} />
                 </Badge>
               ))}
@@ -81,10 +91,10 @@ function CountryMultiSelect({ value, onChange, placeholder = "Select countries..
           <CommandList className="max-h-[300px] overflow-y-auto">
             <CommandEmpty>No country found.</CommandEmpty>
             <CommandGroup>
-              {COUNTRIES.map(c => (
-                <CommandItem key={c} onSelect={() => toggle(c)} className="flex items-center gap-2">
-                  <Checkbox checked={value.includes(c)} className="pointer-events-none" />
-                  <span>{getFlag(c)} {c}</span>
+              {countries.map(c => (
+                <CommandItem key={c.id} onSelect={() => toggle(c.name)} className="flex items-center gap-2">
+                  <Checkbox checked={value.includes(c.name)} className="pointer-events-none" />
+                  <span>{c.emoji} {c.name}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -118,6 +128,20 @@ export default function FoundersSource() {
       return data;
     },
   });
+
+  const { data: countries = [] } = useQuery({
+    queryKey: ["countries"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("countries").select("*").order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const getFlag = (name: string | null | undefined) => {
+    if (!name) return "";
+    return countries.find(c => c.name === name)?.emoji || "🏳️";
+  };
 
   const { data: tracking = [] } = useQuery({
     queryKey: ["founders_tracking"],

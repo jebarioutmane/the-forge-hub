@@ -80,6 +80,24 @@ export type Database = {
         }
         Relationships: []
       }
+      countries: {
+        Row: {
+          emoji: string
+          id: string
+          name: string
+        }
+        Insert: {
+          emoji: string
+          id?: string
+          name: string
+        }
+        Update: {
+          emoji?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       event_attendance: {
         Row: {
           created_at: string | null
