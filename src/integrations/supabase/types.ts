@@ -347,6 +347,8 @@ export type Database = {
       }
       founders: {
         Row: {
+          birthday: string | null
+          cin_number: string | null
           cohort: string | null
           created_at: string | null
           description: string | null
@@ -355,8 +357,10 @@ export type Database = {
           id: string
           link_title: string | null
           link_url: string | null
+          links: Json | null
           nationalities: string[] | null
           nationality: string | null
+          passport_number: string | null
           phone: string | null
           startup_name: string
           status: string | null
@@ -364,6 +368,8 @@ export type Database = {
           venture_associate: string | null
         }
         Insert: {
+          birthday?: string | null
+          cin_number?: string | null
           cohort?: string | null
           created_at?: string | null
           description?: string | null
@@ -372,8 +378,10 @@ export type Database = {
           id?: string
           link_title?: string | null
           link_url?: string | null
+          links?: Json | null
           nationalities?: string[] | null
           nationality?: string | null
+          passport_number?: string | null
           phone?: string | null
           startup_name: string
           status?: string | null
@@ -381,6 +389,8 @@ export type Database = {
           venture_associate?: string | null
         }
         Update: {
+          birthday?: string | null
+          cin_number?: string | null
           cohort?: string | null
           created_at?: string | null
           description?: string | null
@@ -389,8 +399,10 @@ export type Database = {
           id?: string
           link_title?: string | null
           link_url?: string | null
+          links?: Json | null
           nationalities?: string[] | null
           nationality?: string | null
+          passport_number?: string | null
           phone?: string | null
           startup_name?: string
           status?: string | null
