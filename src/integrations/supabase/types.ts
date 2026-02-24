@@ -142,37 +142,52 @@ export type Database = {
       }
       events: {
         Row: {
+          all_founders: boolean | null
           checklist: Json | null
           created_at: string
           end_date: string | null
           event_type: string | null
+          expert_id: string | null
           id: string
+          links: Json | null
+          logistics_needs: Json | null
           name: string
           needs: Json | null
+          one_on_one_slots: Json | null
           start_date: string | null
           status: string | null
           tag_ids: string[] | null
         }
         Insert: {
+          all_founders?: boolean | null
           checklist?: Json | null
           created_at?: string
           end_date?: string | null
           event_type?: string | null
+          expert_id?: string | null
           id?: string
+          links?: Json | null
+          logistics_needs?: Json | null
           name: string
           needs?: Json | null
+          one_on_one_slots?: Json | null
           start_date?: string | null
           status?: string | null
           tag_ids?: string[] | null
         }
         Update: {
+          all_founders?: boolean | null
           checklist?: Json | null
           created_at?: string
           end_date?: string | null
           event_type?: string | null
+          expert_id?: string | null
           id?: string
+          links?: Json | null
+          logistics_needs?: Json | null
           name?: string
           needs?: Json | null
+          one_on_one_slots?: Json | null
           start_date?: string | null
           status?: string | null
           tag_ids?: string[] | null
