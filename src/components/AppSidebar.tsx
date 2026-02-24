@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, DollarSign, FileText, CalendarDays, Users,
-  ClipboardCheck, GraduationCap, TrendingUp, Tag, BookOpen,
+  ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
   Settings, ChevronDown, Wallet, PiggyBank, ListTodo,
   ClipboardList, BarChart3,
 } from "lucide-react";
@@ -61,7 +61,6 @@ const sections = [
     label: "System",
     color: "text-muted-foreground",
     items: [
-      { title: "Tags", url: "/settings", icon: Tag },
       { title: "Library", url: "/library", icon: BookOpen },
       { title: "Settings", url: "/settings", icon: Settings },
     ],
