@@ -2,7 +2,7 @@ import {
   LayoutDashboard, DollarSign, FileText, CalendarDays,
   ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
   Settings, ChevronDown, Wallet, PiggyBank, ListTodo,
-  ClipboardList, BarChart3, Users2,
+  ClipboardList, BarChart3, Users2, Truck,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -44,6 +44,7 @@ const sections = [
     items: [
       { title: "Events Calendar", url: "/events", icon: CalendarDays },
       { title: "Planning", url: "/events/planning", icon: ClipboardCheck },
+      { title: "Logistics", url: "/events/logistics", icon: Truck },
       { title: "Stakeholders", url: "/events/stakeholders", icon: Users2 },
     ],
   },
