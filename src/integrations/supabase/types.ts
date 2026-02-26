@@ -142,76 +142,37 @@ export type Database = {
       }
       event_logistics: {
         Row: {
-          accommodation_name: string | null
-          arrival_city: string | null
-          arrival_time: string | null
-          catering_options: string | null
-          check_in_date: string | null
-          check_out_date: string | null
+          accommodations: Json | null
+          caterings: Json | null
           comments: string | null
           created_at: string | null
-          departure_city: string | null
           event_id: string | null
-          flight_details: string | null
           id: string
-          is_round_trip: boolean | null
           links: Json | null
           people_involved: string[] | null
-          pickup_dropoff_details: string | null
-          return_arrival_city: string | null
-          return_departure_city: string | null
-          return_flight_details: string | null
-          return_time: string | null
-          room_options: string | null
-          transportation_type: string | null
+          transportations: Json | null
         }
         Insert: {
-          accommodation_name?: string | null
-          arrival_city?: string | null
-          arrival_time?: string | null
-          catering_options?: string | null
-          check_in_date?: string | null
-          check_out_date?: string | null
+          accommodations?: Json | null
+          caterings?: Json | null
           comments?: string | null
           created_at?: string | null
-          departure_city?: string | null
           event_id?: string | null
-          flight_details?: string | null
           id?: string
-          is_round_trip?: boolean | null
           links?: Json | null
           people_involved?: string[] | null
-          pickup_dropoff_details?: string | null
-          return_arrival_city?: string | null
-          return_departure_city?: string | null
-          return_flight_details?: string | null
-          return_time?: string | null
-          room_options?: string | null
-          transportation_type?: string | null
+          transportations?: Json | null
         }
         Update: {
-          accommodation_name?: string | null
-          arrival_city?: string | null
-          arrival_time?: string | null
-          catering_options?: string | null
-          check_in_date?: string | null
-          check_out_date?: string | null
+          accommodations?: Json | null
+          caterings?: Json | null
           comments?: string | null
           created_at?: string | null
-          departure_city?: string | null
           event_id?: string | null
-          flight_details?: string | null
           id?: string
-          is_round_trip?: boolean | null
           links?: Json | null
           people_involved?: string[] | null
-          pickup_dropoff_details?: string | null
-          return_arrival_city?: string | null
-          return_departure_city?: string | null
-          return_flight_details?: string | null
-          return_time?: string | null
-          room_options?: string | null
-          transportation_type?: string | null
+          transportations?: Json | null
         }
         Relationships: [
           {
