@@ -14,9 +14,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Plus, MoreHorizontal, Pencil, Trash2, Eye, ChevronsUpDown, ExternalLink, X } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Trash2, Eye, ChevronsUpDown, ExternalLink, X, Plane } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { formatUrl } from "@/lib/formatUrl";
+import { buildClickUpUrl } from "@/lib/clickupTransfer";
 import type { Json } from "@/integrations/supabase/types";
 
 const TRANSPORT_TYPES = ["Flight", "Train", "Car", "Bus"];
@@ -245,6 +247,38 @@ export default function Logistics() {
     return { t, a, c };
   };
 
+  const transferToClickUp = (item: any, personName?: string) => {
+    const transports = parseArr<TransportEntry>(item.transportations);
+    const accoms = parseArr<AccommodationEntry>(item.accommodations);
+    const eventName = getEventName(item.event_id);
+    const people = (item.people_involved as string[]) || [];
+
+    // If a specific person is provided, filter to their entries; otherwise use first
+    const targetPerson = personName || people[0] || "";
+    const transport = transports.find(t => t.person === targetPerson) || transports[0];
+    const accom = accoms.find(a => a.person === targetPerson) || accoms[0];
+
+    const url = buildClickUpUrl({
+      personName: targetPerson,
+      travelType: transport?.type,
+      departureDate: transport?.departure_time?.split("T")[0],
+      arrivalDate: transport?.arrival_time?.split("T")[0],
+      departureCity: transport?.departure_city,
+      arrivalCity: transport?.arrival_city,
+      arrivalFlightNumber: transport?.flight_number,
+      departureFlightNumber: transport?.is_round_trip ? transport?.return_flight_number : undefined,
+      accommodationType: accom?.room_type,
+      housingArrivalDate: accom?.check_in,
+      housingDepartureDate: accom?.check_out,
+      numberOfPassengers: String(people.length),
+      allPassengerNames: people.join(", "),
+      eventName,
+      comments: item.comments || undefined,
+    });
+
+    window.open(url, "_blank");
+  };
+
   // VIEW helpers
   const vTransports = viewing ? parseArr<TransportEntry>(viewing.transportations) : [];
   const vAccommodations = viewing ? parseArr<AccommodationEntry>(viewing.accommodations) : [];
@@ -296,6 +330,7 @@ export default function Logistics() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => setViewing(item)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openEdit(item)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => transferToClickUp(item)}><Plane className="mr-2 h-3 w-3" /> Transfer to ClickUp</DropdownMenuItem>
                           <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(item.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -524,9 +559,44 @@ export default function Logistics() {
       {/* View Dialog */}
       <Dialog open={!!viewing} onOpenChange={o => { if (!o) setViewing(null); }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Logistics — {getEventName(viewing?.event_id)}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Logistics — {getEventName(viewing?.event_id)}</DialogTitle>
+          </DialogHeader>
           {viewing && (
             <div className="space-y-5 py-2">
+              {/* Transfer to ClickUp */}
+              <div className="flex items-center gap-3">
+                {(viewing.people_involved as string[] || []).length > 1 ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="default" size="sm">
+                        <Plane className="mr-2 h-4 w-4" /> ✈️ Transfer to ClickUp
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {(viewing.people_involved as string[]).map((p: string, i: number) => (
+                        <DropdownMenuItem key={i} onClick={() => transferToClickUp(viewing, p)}>
+                          {p}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Button variant="default" size="sm" onClick={() => transferToClickUp(viewing)}>
+                    <Plane className="mr-2 h-4 w-4" /> ✈️ Transfer to ClickUp
+                  </Button>
+                )}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="text-xs text-muted-foreground cursor-help underline decoration-dotted">ℹ️ Note</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs max-w-[200px]">PEC and Passport files must be uploaded manually on the ClickUp form.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               {/* People */}
               {(viewing.people_involved as string[] || []).length > 0 && (
                 <div className="space-y-2">
