@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import GlobalNetworkMap from "@/components/GlobalNetworkMap";
+import EventCountdowns from "@/components/EventCountdowns";
 
 const shortcuts = [
   {
@@ -119,6 +120,9 @@ export default function Home() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Event Countdowns */}
+      <EventCountdowns />
 
       {/* Global Network Map */}
       <GlobalNetworkMap />
