@@ -134,9 +134,14 @@ export default function OperationsTasks() {
 
   const delegateMutation = useMutation({
     mutationFn: async () => {
+      const validatedName = delegateName.trim().slice(0, 100);
+      if (!validatedName || !/^[\p{L}\p{N}\s\-_.,']+$/u.test(validatedName)) {
+        throw new Error("Invalid team member name. Use only letters, numbers, spaces, and basic punctuation.");
+      }
       const selectedTasks = tasks.filter((t) => selected.has(t.id));
       for (const t of selectedTasks) {
-        const newDesc = (t.description || "") + `\n\nAssigned to: ${delegateName}`;
+        const currentDesc = (t.description || "").slice(0, 4900);
+        const newDesc = currentDesc + `\n\nAssigned to: ${validatedName}`;
         const { error } = await supabase.from("tasks").update({ description: newDesc }).eq("id", t.id);
         if (error) throw error;
       }
@@ -146,7 +151,7 @@ export default function OperationsTasks() {
       setSelected(new Set());
       setDelegateOpen(false);
       setDelegateName("");
-      toast.success(`Delegated ${selected.size} task(s) to ${delegateName}`);
+      toast.success(`Delegated ${selected.size} task(s)`);
     },
     onError: (e) => toast.error(e.message),
   });
