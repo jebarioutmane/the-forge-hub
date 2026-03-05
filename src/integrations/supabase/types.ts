@@ -646,11 +646,13 @@ export type Database = {
       }
       stakeholders: {
         Row: {
+          based_in_country: string | null
           created_at: string | null
           description: string | null
           email: string | null
           full_name: string
           id: string
+          institution_name: string | null
           links: Json | null
           nationalities: string[] | null
           phone: string | null
@@ -661,11 +663,13 @@ export type Database = {
           type: string | null
         }
         Insert: {
+          based_in_country?: string | null
           created_at?: string | null
           description?: string | null
           email?: string | null
           full_name: string
           id?: string
+          institution_name?: string | null
           links?: Json | null
           nationalities?: string[] | null
           phone?: string | null
@@ -676,11 +680,13 @@ export type Database = {
           type?: string | null
         }
         Update: {
+          based_in_country?: string | null
           created_at?: string | null
           description?: string | null
           email?: string | null
           full_name?: string
           id?: string
+          institution_name?: string | null
           links?: Json | null
           nationalities?: string[] | null
           phone?: string | null

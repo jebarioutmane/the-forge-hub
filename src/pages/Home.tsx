@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import GlobalNetworkMap from "@/components/GlobalNetworkMap";
 
 const modules = [
   {
@@ -112,6 +113,9 @@ export default function Home() {
           </Card>
         ))}
       </div>
+
+      {/* Global Network Map */}
+      <GlobalNetworkMap />
 
       {/* Module Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

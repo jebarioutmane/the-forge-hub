@@ -42,11 +42,14 @@ interface StakeholderForm {
   status: string;
   description: string;
   links: LinkItem[];
+  institution_name: string;
+  based_in_country: string;
 }
 
 const emptyForm: StakeholderForm = {
   full_name: "", title: "", sector: "", type: "", point_of_contact: "",
   nationalities: [], phone: "", email: "", status: "", description: "", links: [],
+  institution_name: "", based_in_country: "",
 };
 
 /* ── Country Multi-Select (same as Founders) ── */
@@ -189,6 +192,8 @@ export default function StakeholdersDirectory() {
         status: form.status || null,
         description: form.description || null,
         links: form.links.filter(l => l.url) as any,
+        institution_name: form.institution_name || null,
+        based_in_country: form.based_in_country || null,
       };
       if (editing) {
         const { error } = await supabase.from("stakeholders").update(payload).eq("id", editing.id);
@@ -234,6 +239,8 @@ export default function StakeholdersDirectory() {
       status: s.status || "",
       description: s.description || "",
       links: getLinks(s),
+      institution_name: s.institution_name || "",
+      based_in_country: s.based_in_country || "",
     });
     setEditing(s);
     setDialogOpen(true);
@@ -395,6 +402,42 @@ export default function StakeholdersDirectory() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
+                <Label>Institution Name</Label>
+                <Input value={form.institution_name} onChange={e => set("institution_name", e.target.value)} placeholder="e.g. MIT, Stanford" />
+              </div>
+              <div className="space-y-2">
+                <Label>Based In Country</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+                      {form.based_in_country ? (
+                        <span>{getFlag(form.based_in_country)} {form.based_in_country}</span>
+                      ) : (
+                        <span className="text-muted-foreground">Select country...</span>
+                      )}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[300px] p-0 z-50" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search country..." />
+                      <CommandList className="max-h-[300px] overflow-y-auto">
+                        <CommandEmpty>No country found.</CommandEmpty>
+                        <CommandGroup>
+                          {countries.map(c => (
+                            <CommandItem key={c.id} onSelect={() => set("based_in_country", c.name)}>
+                              {c.emoji} {c.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <Label>Point of Contact</Label>
                 <Input value={form.point_of_contact} onChange={e => set("point_of_contact", e.target.value)} placeholder="UM6P team member" />
               </div>
@@ -460,6 +503,8 @@ export default function StakeholdersDirectory() {
         fields={viewing ? [
           { label: "Full Name", value: viewing.full_name },
           { label: "Title", value: viewing.title },
+          { label: "Institution", value: viewing.institution_name },
+          { label: "Based In", value: viewing.based_in_country ? `${getFlag(viewing.based_in_country)} ${viewing.based_in_country}` : null },
           { label: "Sector", value: viewing.sector },
           { label: "Type", value: viewing.type },
           { label: "Point of Contact", value: viewing.point_of_contact },
