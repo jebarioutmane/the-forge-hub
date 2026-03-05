@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,15 +15,39 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  // If already authenticated, redirect immediately
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) navigate("/", { replace: true });
+    });
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      toast({ title: "Login failed", description: error.message, variant: "destructive" });
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        console.error("Sign in error:", error.message);
+        toast({ title: "Login failed", description: error.message, variant: "destructive" });
+        setLoading(false);
+        return;
+      }
+
+      if (data?.user) {
+        toast({ title: "Welcome back!", description: "You have been successfully logged in." });
+        navigate("/", { replace: true });
+      }
+    } catch (err: any) {
+      console.error("Unexpected sign in error:", err);
+      toast({ title: "An unexpected error occurred", description: "Please try again later.", variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const forgotPasswordHref =
