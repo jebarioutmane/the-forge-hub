@@ -9,11 +9,10 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cleanCountryName } from "@/lib/cleanCountryName";
 
-// Geo URL for world map
 const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
-// Coordinate lookup for countries
 const COORDS: Record<string, [number, number]> = {
   "Afghanistan": [69.1, 33.9], "Albania": [20.2, 41.3], "Algeria": [3.0, 36.7],
   "Andorra": [1.5, 42.5], "Angola": [13.2, -8.8], "Argentina": [-58.4, -34.6],
@@ -29,8 +28,10 @@ const COORDS: Record<string, [number, number]> = {
   "Chad": [15.0, 12.1], "Chile": [-70.7, -33.4], "China": [116.4, 39.9],
   "Colombia": [-74.1, 4.6], "Comoros": [43.3, -11.7], "Congo": [15.3, -4.3],
   "Congo (DRC)": [15.3, -4.3], "Costa Rica": [-84.1, 9.9],
-  "Côte d'Ivoire": [-5.5, 6.8], "Croatia": [16.0, 45.8], "Cuba": [-82.4, 23.1],
-  "Cyprus": [33.4, 35.2], "Czech Republic": [14.4, 50.1], "Denmark": [12.6, 55.7],
+  "Côte d'Ivoire": [-5.5, 6.8], "Ivory Coast": [-5.5, 6.8],
+  "Croatia": [16.0, 45.8], "Cuba": [-82.4, 23.1],
+  "Cyprus": [33.4, 35.2], "Czech Republic": [14.4, 50.1], "Czechia": [14.4, 50.1],
+  "Denmark": [12.6, 55.7],
   "Djibouti": [43.1, 11.6], "Dominican Republic": [-69.9, 18.5],
   "Ecuador": [-78.5, -0.2], "Egypt": [31.2, 30.0], "El Salvador": [-89.2, 13.7],
   "Equatorial Guinea": [8.8, 3.8], "Eritrea": [38.9, 15.3], "Estonia": [24.7, 59.4],
@@ -73,6 +74,7 @@ const COORDS: Record<string, [number, number]> = {
   "Turkey": [32.9, 39.9], "Turkmenistan": [58.4, 37.9], "Uganda": [32.6, 0.3],
   "Ukraine": [30.5, 50.4], "United Arab Emirates": [54.4, 24.5],
   "United Kingdom": [-0.1, 51.5], "United States": [-77.0, 38.9],
+  "USA": [-77.0, 38.9], "UK": [-0.1, 51.5], "UAE": [54.4, 24.5],
   "Uruguay": [-56.2, -34.9], "Uzbekistan": [69.3, 41.3], "Venezuela": [-66.9, 10.5],
   "Vietnam": [105.8, 21.0], "Yemen": [44.2, 15.4], "Zambia": [28.3, -15.4],
   "Zimbabwe": [31.1, -17.8],
@@ -91,7 +93,7 @@ export default function GlobalNetworkMap() {
   const [tooltip, setTooltip] = useState<{ x: number; y: number; data: CountryData } | null>(null);
 
   const { data: founders = [] } = useQuery({
-    queryKey: ["founders"],
+    queryKey: ["founders-map"],
     queryFn: async () => {
       const { data, error } = await supabase.from("founders").select("nationalities");
       if (error) throw error;
@@ -100,7 +102,7 @@ export default function GlobalNetworkMap() {
   });
 
   const { data: stakeholders = [] } = useQuery({
-    queryKey: ["stakeholders"],
+    queryKey: ["stakeholders-map"],
     queryFn: async () => {
       const { data, error } = await supabase.from("stakeholders").select("based_in_country, institution_name");
       if (error) throw error;
@@ -111,10 +113,11 @@ export default function GlobalNetworkMap() {
   const countryData = useMemo(() => {
     const map: Record<string, CountryData> = {};
 
-    // Aggregate founders nationalities
+    // Aggregate founder nationalities
     founders.forEach((f) => {
       const nats = (f.nationalities as string[] | null) || [];
-      nats.forEach((country) => {
+      nats.forEach((raw) => {
+        const country = cleanCountryName(raw);
         if (!country || country === "Morocco") return;
         if (!map[country]) map[country] = { country, founderCount: 0, expertCount: 0, institutions: [] };
         map[country].founderCount++;
@@ -123,7 +126,7 @@ export default function GlobalNetworkMap() {
 
     // Aggregate stakeholders
     stakeholders.forEach((s) => {
-      const country = s.based_in_country;
+      const country = cleanCountryName(s.based_in_country);
       if (!country || country === "Morocco") return;
       if (!map[country]) map[country] = { country, founderCount: 0, expertCount: 0, institutions: [] };
       map[country].expertCount++;
@@ -216,10 +219,12 @@ export default function GlobalNetworkMap() {
             {founderCountries.map((d) => {
               const coords = COORDS[d.country];
               if (!coords) return null;
+              // Offset if also an expert country
+              const hasExpert = d.expertCount > 0;
               return (
                 <Marker
                   key={`fm-${d.country}`}
-                  coordinates={coords}
+                  coordinates={hasExpert ? [coords[0] - 1.2, coords[1] - 0.8] : coords}
                   onMouseEnter={(e) => {
                     const rect = (e.target as SVGElement).closest("svg")?.getBoundingClientRect();
                     if (rect) {
@@ -243,12 +248,11 @@ export default function GlobalNetworkMap() {
             {expertCountries.map((d) => {
               const coords = COORDS[d.country];
               if (!coords) return null;
-              // Offset slightly if also a founder country
-              const offset = d.founderCount > 0 ? 4 : 0;
+              const hasFounder = d.founderCount > 0;
               return (
                 <Marker
                   key={`em-${d.country}`}
-                  coordinates={[coords[0] + offset * 0.3, coords[1] + offset * 0.3]}
+                  coordinates={hasFounder ? [coords[0] + 1.2, coords[1] + 0.8] : coords}
                   onMouseEnter={(e) => {
                     const rect = (e.target as SVGElement).closest("svg")?.getBoundingClientRect();
                     if (rect) {
