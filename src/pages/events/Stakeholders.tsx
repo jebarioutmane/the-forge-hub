@@ -328,7 +328,7 @@ export default function StakeholdersDirectory() {
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between mb-3">
                     <div className="h-11 w-11 rounded-full bg-module-events/10 flex items-center justify-center text-module-events font-bold text-base">
-                      {s.full_name.charAt(0).toUpperCase()}
+                      {(s.full_name || "?").charAt(0).toUpperCase()}
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
