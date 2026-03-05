@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { StatCard } from "@/components/StatCard";
 import { CurrencyToggle, Currency, convertCurrency, formatCurrency } from "@/components/CurrencyToggle";
-import { Wallet, TrendingDown, PiggyBank, AlertTriangle, TrendingUp } from "lucide-react";
+import { Wallet, TrendingDown, PiggyBank, AlertTriangle, TrendingUp, FileText, Briefcase } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
@@ -30,6 +30,15 @@ export default function OperationsDashboard() {
     },
   });
 
+  const { data: contracts = [] } = useQuery({
+    queryKey: ["contracts"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("contracts").select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const totalBudget = budgets.reduce((sum, b) => sum + Number(b.total_amount), 0);
   const totalSpent = expenses
     .filter((e) => e.status === "Confirmed" || e.status === "Paid")
@@ -38,6 +47,8 @@ export default function OperationsDashboard() {
     .filter((e) => e.status === "Pending" || e.status === "Planned")
     .reduce((sum, e) => sum + Number(e.amount), 0);
   const remaining = totalBudget - totalSpent;
+  const pendingCount = expenses.filter((e) => e.status === "Pending").length;
+  const activeContracts = contracts.filter((c) => c.status === "Signed" || c.status === "Active").length;
 
   // Chart data: group by budget category
   const chartData = budgets.map((b) => {
@@ -73,7 +84,7 @@ export default function OperationsDashboard() {
         </Badge>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <StatCard
           title="Total Budget"
           value={formatCurrency(convertCurrency(totalBudget, currency), currency)}
@@ -94,6 +105,16 @@ export default function OperationsDashboard() {
           value={formatCurrency(convertCurrency(remaining, currency), currency)}
           icon={Wallet}
           warning={remaining <= 0}
+        />
+        <StatCard
+          title="Pending Expenses"
+          value={String(pendingCount)}
+          icon={FileText}
+        />
+        <StatCard
+          title="Active Contracts"
+          value={String(activeContracts)}
+          icon={Briefcase}
         />
       </div>
 
