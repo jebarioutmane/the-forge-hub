@@ -5,6 +5,7 @@ import {
   Geography,
   Marker,
   Line,
+  ZoomableGroup,
 } from "react-simple-maps";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,36 +30,22 @@ const parseCountryValues = (value: unknown): string[] => {
       .map((item) => item.trim())
       .filter(Boolean);
   }
-
   if (typeof value !== "string") return [];
-
   const trimmed = value.trim();
   if (!trimmed) return [];
-
   if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
     try {
-      const parsed = JSON.parse(trimmed);
-      return parseCountryValues(parsed);
+      return parseCountryValues(JSON.parse(trimmed));
     } catch {
       return [];
     }
   }
-
   if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
-    return trimmed
-      .slice(1, -1)
-      .split(",")
-      .map((item) => item.replace(/^"|"$/g, "").trim())
-      .filter(Boolean);
+    return trimmed.slice(1, -1).split(",").map((i) => i.replace(/^"|"$/g, "").trim()).filter(Boolean);
   }
-
   if (trimmed.includes(",")) {
-    return trimmed
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean);
+    return trimmed.split(",").map((i) => i.trim()).filter(Boolean);
   }
-
   return [trimmed];
 };
 
@@ -77,74 +64,69 @@ export default function GlobalNetworkMap() {
   const { data: stakeholders = [] } = useQuery({
     queryKey: ["stakeholders-map"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("stakeholders")
-        .select("based_in_country, institution_name, nationalities");
+      const { data, error } = await supabase.from("stakeholders").select("based_in_country, institution_name, nationalities");
       if (error) throw error;
       return data;
     },
   });
 
-  const mapData = useMemo(() => {
+  const { moroccanFounderCount, mapData } = useMemo(() => {
     const map: Record<string, CountryData> = {};
+    let moroccanCount = 0;
 
     founders.forEach((founder) => {
-      const founderCountries = new Set(
-        [...parseCountryValues(founder.nationalities), ...parseCountryValues(founder.nationality)]
-          .map((rawCountry) => cleanCountryName(rawCountry))
-          .filter((country) => Boolean(country) && country !== "Morocco")
-      );
+      const allCountries = [
+        ...parseCountryValues(founder.nationalities),
+        ...parseCountryValues(founder.nationality),
+      ].map((raw) => cleanCountryName(raw)).filter(Boolean);
 
-      founderCountries.forEach((country) => {
-        if (!map[country]) {
-          map[country] = { country, founderCount: 0, expertCount: 0, institutions: [] };
+      allCountries.forEach((country) => {
+        if (country === "Morocco") {
+          moroccanCount += 1;
+          return;
         }
+        if (!map[country]) map[country] = { country, founderCount: 0, expertCount: 0, institutions: [] };
         map[country].founderCount += 1;
       });
     });
 
-    stakeholders.forEach((stakeholder) => {
-      const stakeholderCountries = parseCountryValues(stakeholder.based_in_country);
+    stakeholders.forEach((s) => {
+      const countries = parseCountryValues(s.based_in_country);
+      if (countries.length === 0) countries.push(...parseCountryValues(s.nationalities));
 
-      if (stakeholderCountries.length === 0) {
-        stakeholderCountries.push(...parseCountryValues(stakeholder.nationalities));
-      }
-
-      const normalizedCountries = new Set(
-        stakeholderCountries
-          .map((rawCountry) => cleanCountryName(rawCountry))
-          .filter((country) => Boolean(country) && country !== "Morocco")
+      const normalized = new Set(
+        countries.map((raw) => cleanCountryName(raw)).filter((c) => Boolean(c) && c !== "Morocco")
       );
 
-      normalizedCountries.forEach((country) => {
-        if (!map[country]) {
-          map[country] = { country, founderCount: 0, expertCount: 0, institutions: [] };
-        }
-
+      normalized.forEach((country) => {
+        if (!map[country]) map[country] = { country, founderCount: 0, expertCount: 0, institutions: [] };
         map[country].expertCount += 1;
-
-        if (
-          stakeholder.institution_name &&
-          !map[country].institutions.includes(stakeholder.institution_name)
-        ) {
-          map[country].institutions.push(stakeholder.institution_name);
+        if (s.institution_name && !map[country].institutions.includes(s.institution_name)) {
+          map[country].institutions.push(s.institution_name);
         }
       });
     });
 
-    return Object.values(map);
+    return { moroccanFounderCount: moroccanCount, mapData: Object.values(map) };
   }, [founders, stakeholders]);
 
-  const founderCountries = mapData.filter((country) => country.founderCount > 0);
-  const expertCountries = mapData.filter((country) => country.expertCount > 0);
+  const founderCountries = mapData.filter((c) => c.founderCount > 0);
+  const expertCountries = mapData.filter((c) => c.expertCount > 0);
 
   console.log("Aggregated Map Data:", mapData);
+
+  const handleMarkerHover = (event: React.MouseEvent, data: CountryData) => {
+    const rect = (event.target as SVGElement).closest("svg")?.getBoundingClientRect();
+    if (rect) {
+      setTooltip({ x: event.clientX - rect.left, y: event.clientY - rect.top, data });
+    }
+  };
 
   return (
     <Card className="border overflow-hidden">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-bold">🌍 Global Network</CardTitle>
-        <p className="text-xs text-muted-foreground">The Forge's international reach from Morocco</p>
+        <p className="text-xs text-muted-foreground">The Forge's international reach — scroll to zoom, drag to pan</p>
       </CardHeader>
       <CardContent className="p-0 relative">
         <div className="bg-[hsl(var(--card))]">
@@ -155,129 +137,131 @@ export default function GlobalNetworkMap() {
             height={420}
             style={{ width: "100%", height: "auto" }}
           >
-            <Geographies geography={GEO_URL}>
-              {({ geographies }) =>
-                geographies.map((geo) => (
-                  <Geography
-                    key={geo.rpiKey}
-                    geography={geo}
-                    fill="hsl(var(--muted))"
-                    stroke="hsl(var(--border))"
-                    strokeWidth={0.5}
-                    style={{
-                      default: { outline: "none" },
-                      hover: { outline: "none", fill: "hsl(var(--muted-foreground) / 0.2)" },
-                      pressed: { outline: "none" },
-                    }}
+            <ZoomableGroup>
+              <Geographies geography={GEO_URL}>
+                {({ geographies }) =>
+                  geographies.map((geo) => (
+                    <Geography
+                      key={geo.rpiKey}
+                      geography={geo}
+                      fill="hsl(var(--muted))"
+                      stroke="hsl(var(--border))"
+                      strokeWidth={0.5}
+                      style={{
+                        default: { outline: "none" },
+                        hover: { outline: "none", fill: "hsl(var(--muted-foreground) / 0.2)" },
+                        pressed: { outline: "none" },
+                      }}
+                    />
+                  ))
+                }
+              </Geographies>
+
+              {/* Founder lines (orange) */}
+              {founderCountries.map((d) => {
+                const coords = getCountryCoordinates(d.country);
+                if (!coords) return null;
+                return (
+                  <Line
+                    key={`fl-${d.country}`}
+                    from={coords}
+                    to={MOROCCO}
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={1.5}
+                    strokeLinecap="round"
+                    strokeDasharray="4 2"
+                    strokeOpacity={0.5}
                   />
-                ))
-              }
-            </Geographies>
+                );
+              })}
 
-            {founderCountries.map((countryData) => {
-              const coords = getCountryCoordinates(countryData.country);
-              if (!coords) return null;
+              {/* Expert lines (blue) */}
+              {expertCountries.map((d) => {
+                const coords = getCountryCoordinates(d.country);
+                if (!coords) return null;
+                return (
+                  <Line
+                    key={`el-${d.country}`}
+                    from={coords}
+                    to={MOROCCO}
+                    stroke="hsl(var(--module-events))"
+                    strokeWidth={1.5}
+                    strokeLinecap="round"
+                    strokeDasharray="4 2"
+                    strokeOpacity={0.5}
+                  />
+                );
+              })}
 
-              return (
-                <Line
-                  key={`fl-${countryData.country}`}
-                  from={coords}
-                  to={MOROCCO}
-                  stroke="hsl(var(--primary) / 0.3)"
-                  strokeWidth={1}
-                  strokeLinecap="round"
-                  strokeDasharray="4 2"
-                />
-              );
-            })}
-
-            {expertCountries.map((countryData) => {
-              const coords = getCountryCoordinates(countryData.country);
-              if (!coords) return null;
-
-              return (
-                <Line
-                  key={`el-${countryData.country}`}
-                  from={coords}
-                  to={MOROCCO}
-                  stroke="hsl(var(--module-events) / 0.3)"
-                  strokeWidth={1}
-                  strokeLinecap="round"
-                  strokeDasharray="4 2"
-                />
-              );
-            })}
-
-            <Marker coordinates={MOROCCO}>
-              <circle r={6} fill="hsl(var(--primary))" stroke="hsl(var(--background))" strokeWidth={2} />
-              <circle r={10} fill="hsl(var(--primary) / 0.2)" />
-            </Marker>
-
-            {founderCountries.map((countryData) => {
-              const coords = getCountryCoordinates(countryData.country);
-              if (!coords) return null;
-
-              const hasExpert = countryData.expertCount > 0;
-
-              return (
-                <Marker
-                  key={`fm-${countryData.country}`}
-                  coordinates={hasExpert ? [coords[0] - 1.2, coords[1] - 0.8] : coords}
-                  onMouseEnter={(event) => {
-                    const rect = (event.target as SVGElement).closest("svg")?.getBoundingClientRect();
-                    if (rect) {
-                      setTooltip({
-                        x: event.clientX - rect.left,
-                        y: event.clientY - rect.top,
-                        data: countryData,
-                      });
-                    }
-                  }}
+              {/* Morocco hub emoji */}
+              <Marker coordinates={MOROCCO}>
+                <text
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fontSize={18}
+                  className="cursor-pointer"
+                  onMouseEnter={(e) =>
+                    handleMarkerHover(e, {
+                      country: "Morocco",
+                      founderCount: moroccanFounderCount,
+                      expertCount: 0,
+                      institutions: ["The Forge (Hub)"],
+                    })
+                  }
                   onMouseLeave={() => setTooltip(null)}
                 >
-                  <circle
-                    r={Math.min(3 + countryData.founderCount, 8)}
-                    fill="hsl(var(--primary))"
-                    stroke="hsl(var(--background))"
-                    strokeWidth={1}
-                    className="cursor-pointer"
-                  />
-                </Marker>
-              );
-            })}
+                  🏢
+                </text>
+              </Marker>
 
-            {expertCountries.map((countryData) => {
-              const coords = getCountryCoordinates(countryData.country);
-              if (!coords) return null;
+              {/* Founder emoji markers */}
+              {founderCountries.map((d) => {
+                const coords = getCountryCoordinates(d.country);
+                if (!coords) return null;
+                const hasExpert = d.expertCount > 0;
+                return (
+                  <Marker
+                    key={`fm-${d.country}`}
+                    coordinates={hasExpert ? [coords[0] - 1.5, coords[1] - 1] : coords}
+                  >
+                    <text
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fontSize={Math.min(12 + d.founderCount * 2, 20)}
+                      className="cursor-pointer"
+                      onMouseEnter={(e) => handleMarkerHover(e, d)}
+                      onMouseLeave={() => setTooltip(null)}
+                    >
+                      🧑‍💻
+                    </text>
+                  </Marker>
+                );
+              })}
 
-              const hasFounder = countryData.founderCount > 0;
-
-              return (
-                <Marker
-                  key={`em-${countryData.country}`}
-                  coordinates={hasFounder ? [coords[0] + 1.2, coords[1] + 0.8] : coords}
-                  onMouseEnter={(event) => {
-                    const rect = (event.target as SVGElement).closest("svg")?.getBoundingClientRect();
-                    if (rect) {
-                      setTooltip({
-                        x: event.clientX - rect.left,
-                        y: event.clientY - rect.top,
-                        data: countryData,
-                      });
-                    }
-                  }}
-                  onMouseLeave={() => setTooltip(null)}
-                >
-                  <circle
-                    r={Math.min(3 + countryData.expertCount, 8)}
-                    fill="hsl(var(--module-events))"
-                    stroke="hsl(var(--background))"
-                    strokeWidth={1}
-                    className="cursor-pointer"
-                  />
-                </Marker>
-              );
-            })}
+              {/* Expert emoji markers */}
+              {expertCountries.map((d) => {
+                const coords = getCountryCoordinates(d.country);
+                if (!coords) return null;
+                const hasFounder = d.founderCount > 0;
+                return (
+                  <Marker
+                    key={`em-${d.country}`}
+                    coordinates={hasFounder ? [coords[0] + 1.5, coords[1] + 1] : coords}
+                  >
+                    <text
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fontSize={Math.min(12 + d.expertCount * 2, 20)}
+                      className="cursor-pointer"
+                      onMouseEnter={(e) => handleMarkerHover(e, d)}
+                      onMouseLeave={() => setTooltip(null)}
+                    >
+                      👔
+                    </text>
+                  </Marker>
+                );
+              })}
+            </ZoomableGroup>
           </ComposableMap>
 
           {tooltip && (
@@ -290,16 +274,14 @@ export default function GlobalNetworkMap() {
                 <p className="text-xs text-primary">Founders: {tooltip.data.founderCount}</p>
               )}
               {tooltip.data.expertCount > 0 && (
-                <>
-                  <p className="text-xs text-module-events">Experts: {tooltip.data.expertCount}</p>
-                  {tooltip.data.institutions.length > 0 && (
-                    <ul className="text-xs text-muted-foreground mt-1 list-disc list-inside">
-                      {tooltip.data.institutions.map((institution) => (
-                        <li key={institution}>{institution}</li>
-                      ))}
-                    </ul>
-                  )}
-                </>
+                <p className="text-xs text-module-events">Experts: {tooltip.data.expertCount}</p>
+              )}
+              {tooltip.data.institutions.length > 0 && (
+                <ul className="text-xs text-muted-foreground mt-1 list-disc list-inside">
+                  {tooltip.data.institutions.map((inst) => (
+                    <li key={inst}>{inst}</li>
+                  ))}
+                </ul>
               )}
             </div>
           )}
@@ -307,15 +289,15 @@ export default function GlobalNetworkMap() {
 
         <div className="flex items-center gap-6 px-4 py-3 border-t bg-muted/30">
           <div className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded-full bg-primary inline-block" />
+            <span className="text-sm">🧑‍💻</span>
             <span className="text-xs text-muted-foreground">Founder Nationalities</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded-full bg-module-events inline-block" />
-            <span className="text-xs text-muted-foreground">Expert / Institution Network</span>
+            <span className="text-sm">👔</span>
+            <span className="text-xs text-muted-foreground">Expert / Institution</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded-full bg-primary ring-2 ring-primary/20 inline-block" />
+            <span className="text-sm">🏢</span>
             <span className="text-xs text-muted-foreground">Morocco (Hub)</span>
           </div>
         </div>
