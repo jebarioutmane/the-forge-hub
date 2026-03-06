@@ -102,7 +102,7 @@ export default function EventCountdowns() {
       </div>
       <div className="flex gap-3 overflow-x-auto pb-1">
         {upcomingEvents.map((e) => (
-          <CountdownCard key={e.id} name={e.name} date={e.start_date!} />
+          <CountdownCard key={e.id} name={e.name} date={e.start_date!} creator={(e as any).profiles} />
         ))}
       </div>
     </div>

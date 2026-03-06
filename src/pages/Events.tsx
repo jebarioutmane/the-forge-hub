@@ -181,6 +181,19 @@ export default function Events() {
                 return (
                   <div key={ev.id} className="grid gap-px items-center min-h-[32px]" style={{ gridTemplateColumns: `160px repeat(${gantt.cols}, minmax(28px, 1fr))` }}>
                     <div className="text-sm font-medium truncate px-1 flex items-center gap-2">
+                      {ev.profiles && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Avatar className="h-6 w-6 shrink-0">
+                                <AvatarImage src={ev.profiles.avatar_url ? `${ev.profiles.avatar_url}?t=${Date.now()}` : undefined} />
+                                <AvatarFallback className="text-[10px] bg-muted">{ev.profiles.full_name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "?"}</AvatarFallback>
+                              </Avatar>
+                            </TooltipTrigger>
+                            <TooltipContent>Created by {ev.profiles.full_name || "Unknown"}</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                       <span className="truncate">{ev.name}</span>
                       <TagBadges tagIds={ev.tag_ids as string[] | null} />
                       <DropdownMenu>
