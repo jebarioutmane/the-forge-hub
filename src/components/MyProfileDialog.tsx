@@ -48,7 +48,7 @@ export function MyProfileDialog() {
       return;
     }
     const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
-    setAvatarUrl(urlData.publicUrl);
+    setAvatarUrl(`${urlData.publicUrl}?t=${Date.now()}`);
     toast.success("Photo uploaded!");
   };
 

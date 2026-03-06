@@ -23,7 +23,7 @@ export function AnimatedTooltip({ items }: { items: TooltipItem[] }) {
   };
 
   return (
-    <div className="flex items-center -space-x-2">
+    <div className="flex items-center -space-x-2 md:-space-x-3">
       {items.map((item) => (
         <div
           key={item.id}
@@ -39,7 +39,7 @@ export function AnimatedTooltip({ items }: { items: TooltipItem[] }) {
                 animate={{ opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 260, damping: 10 } }}
                 exit={{ opacity: 0, y: 20, scale: 0.6 }}
                 style={{ translateX, rotate, whiteSpace: "nowrap" }}
-                className="absolute -top-16 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center rounded-xl border bg-popover px-4 py-2 shadow-xl"
+                className="absolute -top-16 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center rounded-xl border bg-popover px-4 py-2 shadow-xl"
               >
                 <div className="absolute inset-x-10 -bottom-px z-30 h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
                 <div className="absolute -bottom-px left-10 z-30 h-px w-[40%] bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
@@ -50,14 +50,14 @@ export function AnimatedTooltip({ items }: { items: TooltipItem[] }) {
           </AnimatePresence>
 
           <div className="relative">
-            <Avatar className="h-10 w-10 border-2 border-background cursor-pointer transition-transform duration-200 group-hover:scale-110 group-hover:z-30">
+            <Avatar className="h-8 w-8 md:h-10 md:w-10 border-2 border-background cursor-pointer transition-transform duration-200 group-hover:scale-110 group-hover:z-30">
               <AvatarImage src={item.image} alt={item.name} />
               <AvatarFallback className="text-xs font-semibold bg-muted">
                 {item.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <span
-              className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background ${
+              className={`absolute bottom-0 right-0 h-2.5 w-2.5 md:h-3 md:w-3 rounded-full border-2 border-background ${
                 item.isOnline ? "bg-emerald-500" : "bg-gray-400"
               }`}
             />
