@@ -1,21 +1,10 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MyProfileDialog } from "@/components/MyProfileDialog";
+import { Navigate } from "react-router-dom";
+import { TopNav } from "@/components/TopNav";
+import { RetroGrid } from "@/components/ui/retro-grid";
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading, signOut } = useAuth();
-  const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -29,30 +18,13 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     return <Navigate to="/auth" replace />;
   }
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/auth");
-  };
-
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Top bar */}
-          <header className="h-14 border-b border-border bg-card/80 backdrop-blur-sm flex items-center justify-between px-4 sticky top-0 z-50 overflow-visible">
-            <SidebarTrigger />
-            <div className="flex items-center gap-2">
-              <ThemeToggle />
-              <MyProfileDialog />
-              <Button variant="ghost" size="icon" onClick={handleSignOut} className="text-muted-foreground hover:text-destructive" title="Sign Out">
-                <LogOut className="h-5 w-5" />
-              </Button>
-            </div>
-          </header>
-          <main className="flex-1 overflow-auto">{children}</main>
-        </div>
-      </div>
-    </SidebarProvider>
+    <div className="min-h-screen relative">
+      <RetroGrid />
+      <TopNav />
+      <main className="relative z-10 pt-16">
+        {children}
+      </main>
+    </div>
   );
 }
