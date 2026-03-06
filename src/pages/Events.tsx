@@ -30,8 +30,9 @@ const STATUSES = ["Planning", "Active", "Completed"];
 
 export default function Events() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<Event | null>(null);
+  const [editing, setEditing] = useState<EventWithProfile | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", start_date: "", end_date: "", status: "Planning", needs: [] as string[], tag_ids: [] as string[] });
 
