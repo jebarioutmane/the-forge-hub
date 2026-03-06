@@ -73,7 +73,7 @@ export default function Events() {
         if (error) throw error;
         await syncTasks(editing.id, form.name, form.needs);
       } else {
-        const { data, error } = await supabase.from("events").insert(payload).select().single();
+        const { data, error } = await supabase.from("events").insert({ ...payload, created_by: user?.id }).select().single();
         if (error) throw error;
         await syncTasks(data.id, form.name, form.needs);
       }
