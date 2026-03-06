@@ -25,7 +25,7 @@ function getTimeLeft(target: Date): TimeLeft | null {
   };
 }
 
-function CountdownCard({ name, date }: { name: string; date: string }) {
+function CountdownCard({ name, date, creator }: { name: string; date: string; creator?: { full_name: string | null; avatar_url: string | null } | null }) {
   const target = parseISO(date);
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(() => getTimeLeft(target));
 
