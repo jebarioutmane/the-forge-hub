@@ -30,7 +30,13 @@ export default function TeamPresence() {
 
   return (
     <div className="flex items-center gap-3">
-      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider hidden sm:block">Team</span>
+      <div className="hidden sm:flex flex-col items-center gap-0.5">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Team</span>
+        <span className="flex items-center gap-1 text-[10px] font-medium text-emerald-500">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          LIVE
+        </span>
+      </div>
       <AnimatedTooltip items={items} />
     </div>
   );
