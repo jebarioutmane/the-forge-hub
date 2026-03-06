@@ -81,7 +81,7 @@ export default function EventCountdowns() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
-        .select("id, name, start_date, status")
+        .select("id, name, start_date, status, profiles!events_created_by_fkey(full_name, avatar_url)")
         .gt("start_date", now)
         .not("status", "in", '("Completed","done","deleted")')
         .order("start_date", { ascending: true });
