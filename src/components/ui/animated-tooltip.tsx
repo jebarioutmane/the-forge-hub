@@ -26,7 +26,7 @@ export function AnimatedTooltip({ items }: { items: TooltipItem[] }) {
   return (
     <div className="flex items-center -space-x-2 md:-space-x-3">
       {items.map((item, idx) => {
-        const isEdge = idx >= items.length - 2;
+        const isRightHalf = idx >= Math.floor(items.length / 2);
         return (
           <div
             key={item.id}
