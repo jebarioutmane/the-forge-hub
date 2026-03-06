@@ -65,8 +65,8 @@ export function AnimatedTooltip({ items }: { items: TooltipItem[] }) {
               />
             </div>
           </div>
-        );
-      })}
+        )
+      )}
     </div>
   );
 }
