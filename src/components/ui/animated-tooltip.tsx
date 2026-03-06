@@ -25,7 +25,9 @@ export function AnimatedTooltip({ items }: { items: TooltipItem[] }) {
 
   return (
     <div className="flex items-center -space-x-2 md:-space-x-3">
-      {items.map((item) => (
+      {items.map((item, idx) => {
+        const isEdge = idx >= items.length - 2;
+        return (
           <div
             key={item.id}
             className="relative group"
@@ -39,8 +41,11 @@ export function AnimatedTooltip({ items }: { items: TooltipItem[] }) {
                   initial={{ opacity: 0, y: -20, scale: 0.6 }}
                   animate={{ opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 260, damping: 10 } }}
                   exit={{ opacity: 0, y: -20, scale: 0.6 }}
-                  style={{ translateX, rotate, whiteSpace: "nowrap" }}
-                  className="absolute top-full mt-2 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center rounded-xl border bg-popover px-4 py-2 shadow-xl"
+                  style={{ translateX: isEdge ? undefined : translateX, rotate, whiteSpace: "nowrap" }}
+                  className={cn(
+                    "absolute top-full mt-2 z-[9999] flex flex-col items-center rounded-xl border bg-popover px-4 py-2 shadow-xl",
+                    isEdge ? "right-0" : "left-1/2 -translate-x-1/2"
+                  )}
                 >
                   <div className="absolute inset-x-10 -top-px z-30 h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
                   <div className="absolute -top-px left-10 z-30 h-px w-[40%] bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
@@ -65,8 +70,8 @@ export function AnimatedTooltip({ items }: { items: TooltipItem[] }) {
               />
             </div>
           </div>
-        )
-      )}
+        );
+      })}
     </div>
   );
 }
