@@ -4,13 +4,14 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut, User } from "lucide-react";
+import { LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { MyProfileDialog } from "@/components/MyProfileDialog";
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, signOut } = useAuth();
@@ -43,24 +44,10 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             <SidebarTrigger />
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                    <User className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {user && (
-                    <DropdownMenuItem disabled className="text-xs text-muted-foreground">
-                      {user.email}
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <MyProfileDialog />
+              <Button variant="ghost" size="icon" onClick={handleSignOut} className="text-muted-foreground hover:text-destructive" title="Sign Out">
+                <LogOut className="h-5 w-5" />
+              </Button>
             </div>
           </header>
           <main className="flex-1 overflow-auto">{children}</main>
