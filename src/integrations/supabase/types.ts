@@ -189,6 +189,7 @@ export type Database = {
           all_founders: boolean | null
           checklist: Json | null
           created_at: string
+          created_by: string | null
           end_date: string | null
           event_type: string | null
           expert_id: string | null
@@ -207,6 +208,7 @@ export type Database = {
           all_founders?: boolean | null
           checklist?: Json | null
           created_at?: string
+          created_by?: string | null
           end_date?: string | null
           event_type?: string | null
           expert_id?: string | null
@@ -225,6 +227,7 @@ export type Database = {
           all_founders?: boolean | null
           checklist?: Json | null
           created_at?: string
+          created_by?: string | null
           end_date?: string | null
           event_type?: string | null
           expert_id?: string | null
@@ -239,7 +242,15 @@ export type Database = {
           status?: string | null
           tag_ids?: string[] | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       expenses: {
         Row: {

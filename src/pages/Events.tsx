@@ -17,25 +17,31 @@ import { addDays, differenceInDays, format, parseISO, min, max } from "date-fns"
 import type { Tables } from "@/integrations/supabase/types";
 import { TagPicker } from "@/components/TagPicker";
 import { TagBadges } from "@/components/TagBadges";
+import { useAuth } from "@/hooks/useAuth";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-type Event = Tables<"events">;
+type EventWithProfile = Tables<"events"> & {
+  profiles?: { full_name: string | null; avatar_url: string | null } | null;
+};
 
 const LOGISTICS = ["Room", "Transport", "Catering"];
 const STATUSES = ["Planning", "Active", "Completed"];
 
 export default function Events() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<Event | null>(null);
+  const [editing, setEditing] = useState<EventWithProfile | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", start_date: "", end_date: "", status: "Planning", needs: [] as string[], tag_ids: [] as string[] });
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["events"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("events").select("*").order("start_date");
+      const { data, error } = await supabase.from("events").select("*, profiles!events_created_by_fkey(full_name, avatar_url)").order("start_date");
       if (error) throw error;
-      return data;
+      return data as EventWithProfile[];
     },
   });
 
@@ -67,7 +73,7 @@ export default function Events() {
         if (error) throw error;
         await syncTasks(editing.id, form.name, form.needs);
       } else {
-        const { data, error } = await supabase.from("events").insert(payload).select().single();
+        const { data, error } = await supabase.from("events").insert({ ...payload, created_by: user?.id }).select().single();
         if (error) throw error;
         await syncTasks(data.id, form.name, form.needs);
       }
@@ -102,7 +108,7 @@ export default function Events() {
     setForm({ name: "", start_date: "", end_date: "", status: "Planning", needs: [], tag_ids: [] });
   }
 
-  function openEdit(ev: Event) {
+  function openEdit(ev: EventWithProfile) {
     const needs = Array.isArray(ev.needs) ? (ev.needs as string[]) : [];
     setForm({
       name: ev.name,
@@ -175,6 +181,19 @@ export default function Events() {
                 return (
                   <div key={ev.id} className="grid gap-px items-center min-h-[32px]" style={{ gridTemplateColumns: `160px repeat(${gantt.cols}, minmax(28px, 1fr))` }}>
                     <div className="text-sm font-medium truncate px-1 flex items-center gap-2">
+                      {ev.profiles && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Avatar className="h-6 w-6 shrink-0">
+                                <AvatarImage src={ev.profiles.avatar_url ? `${ev.profiles.avatar_url}?t=${Date.now()}` : undefined} />
+                                <AvatarFallback className="text-[10px] bg-muted">{ev.profiles.full_name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "?"}</AvatarFallback>
+                              </Avatar>
+                            </TooltipTrigger>
+                            <TooltipContent>Created by {ev.profiles.full_name || "Unknown"}</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                       <span className="truncate">{ev.name}</span>
                       <TagBadges tagIds={ev.tag_ids as string[] | null} />
                       <DropdownMenu>

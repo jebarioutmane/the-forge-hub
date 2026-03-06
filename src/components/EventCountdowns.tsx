@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { CalendarDays } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TimeLeft {
   days: number;
@@ -23,7 +25,7 @@ function getTimeLeft(target: Date): TimeLeft | null {
   };
 }
 
-function CountdownCard({ name, date }: { name: string; date: string }) {
+function CountdownCard({ name, date, creator }: { name: string; date: string; creator?: { full_name: string | null; avatar_url: string | null } | null }) {
   const target = parseISO(date);
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(() => getTimeLeft(target));
 
@@ -40,7 +42,22 @@ function CountdownCard({ name, date }: { name: string; date: string }) {
   return (
     <Card className="border shadow-sm min-w-[220px] shrink-0">
       <CardContent className="p-4 text-center space-y-2">
-        <p className="font-bold text-sm truncate">{name}</p>
+        <div className="flex items-center justify-center gap-2">
+          {creator && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Avatar className="h-6 w-6 shrink-0">
+                    <AvatarImage src={creator.avatar_url ? `${creator.avatar_url}?t=${Date.now()}` : undefined} />
+                    <AvatarFallback className="text-[9px] bg-muted">{creator.full_name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "?"}</AvatarFallback>
+                  </Avatar>
+                </TooltipTrigger>
+                <TooltipContent>Created by {creator.full_name || "Unknown"}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          <p className="font-bold text-sm truncate">{name}</p>
+        </div>
         <p className="text-[11px] text-muted-foreground">{format(target, "MMM d, yyyy")}</p>
         <div className="flex items-center justify-center gap-1.5 font-mono text-base font-semibold tracking-wide">
           <span className="bg-muted rounded px-1.5 py-0.5">{timeLeft.days}d</span>
@@ -64,7 +81,7 @@ export default function EventCountdowns() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
-        .select("id, name, start_date, status")
+        .select("id, name, start_date, status, profiles!events_created_by_fkey(full_name, avatar_url)")
         .gt("start_date", now)
         .not("status", "in", '("Completed","done","deleted")')
         .order("start_date", { ascending: true });
@@ -85,7 +102,7 @@ export default function EventCountdowns() {
       </div>
       <div className="flex gap-3 overflow-x-auto pb-1">
         {upcomingEvents.map((e) => (
-          <CountdownCard key={e.id} name={e.name} date={e.start_date!} />
+          <CountdownCard key={e.id} name={e.name} date={e.start_date!} creator={(e as any).profiles} />
         ))}
       </div>
     </div>
