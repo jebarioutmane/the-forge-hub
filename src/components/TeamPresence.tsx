@@ -21,7 +21,7 @@ export default function TeamPresence() {
     id: p.id,
     name: p.full_name || "Team Member",
     designation: p.title || "Team",
-    image: p.avatar_url || "",
+    image: p.avatar_url ? `${p.avatar_url}?t=${Date.now()}` : "",
     isOnline: onlineUserIds.has(p.id),
   }));
 
