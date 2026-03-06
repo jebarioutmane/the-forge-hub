@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import GlobalNetworkMap from "@/components/GlobalNetworkMap";
 import EventCountdowns from "@/components/EventCountdowns";
+import TeamPresence from "@/components/TeamPresence";
 
 const shortcuts = [
   {
@@ -61,9 +62,12 @@ export default function Home() {
 
   return (
     <div className="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto">
-      <div>
-        <h1 className="text-4xl font-extrabold tracking-tight">Command Center</h1>
-        <p className="text-muted-foreground mt-1 text-lg">Welcome back. Here's your overview.</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-extrabold tracking-tight">Command Center</h1>
+          <p className="text-muted-foreground mt-1 text-lg">Welcome back. Here's your overview.</p>
+        </div>
+        <TeamPresence />
       </div>
 
       {/* Shortcut Buttons */}
