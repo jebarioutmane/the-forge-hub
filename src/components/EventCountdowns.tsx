@@ -42,7 +42,22 @@ function CountdownCard({ name, date, creator }: { name: string; date: string; cr
   return (
     <Card className="border shadow-sm min-w-[220px] shrink-0">
       <CardContent className="p-4 text-center space-y-2">
-        <p className="font-bold text-sm truncate">{name}</p>
+        <div className="flex items-center justify-center gap-2">
+          {creator && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Avatar className="h-6 w-6 shrink-0">
+                    <AvatarImage src={creator.avatar_url ? `${creator.avatar_url}?t=${Date.now()}` : undefined} />
+                    <AvatarFallback className="text-[9px] bg-muted">{creator.full_name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "?"}</AvatarFallback>
+                  </Avatar>
+                </TooltipTrigger>
+                <TooltipContent>Created by {creator.full_name || "Unknown"}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          <p className="font-bold text-sm truncate">{name}</p>
+        </div>
         <p className="text-[11px] text-muted-foreground">{format(target, "MMM d, yyyy")}</p>
         <div className="flex items-center justify-center gap-1.5 font-mono text-base font-semibold tracking-wide">
           <span className="bg-muted rounded px-1.5 py-0.5">{timeLeft.days}d</span>
