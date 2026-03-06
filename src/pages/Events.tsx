@@ -108,7 +108,7 @@ export default function Events() {
     setForm({ name: "", start_date: "", end_date: "", status: "Planning", needs: [], tag_ids: [] });
   }
 
-  function openEdit(ev: Event) {
+  function openEdit(ev: EventWithProfile) {
     const needs = Array.isArray(ev.needs) ? (ev.needs as string[]) : [];
     setForm({
       name: ev.name,
