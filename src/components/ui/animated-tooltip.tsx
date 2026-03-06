@@ -41,10 +41,10 @@ export function AnimatedTooltip({ items }: { items: TooltipItem[] }) {
                   initial={{ opacity: 0, y: -20, scale: 0.6 }}
                   animate={{ opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 260, damping: 10 } }}
                   exit={{ opacity: 0, y: -20, scale: 0.6 }}
-                  style={{ translateX: isEdge ? undefined : translateX, rotate, whiteSpace: "nowrap" }}
+                  style={{ translateX: isRightHalf ? undefined : translateX, rotate, whiteSpace: "nowrap" }}
                   className={cn(
-                    "absolute top-full mt-2 z-[9999] flex flex-col items-center rounded-xl border bg-popover px-4 py-2 shadow-xl",
-                    isEdge ? "right-0" : "left-1/2 -translate-x-1/2"
+                    "absolute top-full mt-2 z-[9999] flex flex-col items-center rounded-xl border bg-popover px-4 py-2 shadow-xl min-w-max",
+                    isRightHalf ? "right-0" : "left-1/2 -translate-x-1/2"
                   )}
                 >
                   <div className="absolute inset-x-10 -top-px z-30 h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
