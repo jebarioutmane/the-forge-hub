@@ -39,9 +39,9 @@ export default function Events() {
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["events"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("events").select("*").order("start_date");
+      const { data, error } = await supabase.from("events").select("*, profiles!events_created_by_fkey(full_name, avatar_url)").order("start_date");
       if (error) throw error;
-      return data;
+      return data as EventWithProfile[];
     },
   });
 
