@@ -233,14 +233,7 @@ export function TopNav() {
                     alt="The Forge"
                     className="h-6"
                   />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setMobileOpen(false)}
-                    className="h-8 w-8 text-foreground"
-                  >
-                    <X className="h-5 w-5" />
-                  </Button>
+                  {/* Default SheetContent close button is used */}
                 </div>
 
                 {/* Mobile nav content */}
