@@ -324,6 +324,31 @@ export default function FoundersSource() {
         </Button>
       </div>
 
+      {/* Excel/CSV Uploader */}
+      <ExcelUploader
+        onDataExtracted={(data) => {
+          if (data.length === 0) return;
+          const row = data[0] as Record<string, any>;
+          const mapped: FounderForm = {
+            ...emptyForm,
+            founder_name: row["Name"] || row["name"] || row["Founder Name"] || row["founder_name"] || "",
+            startup_name: row["Startup"] || row["startup"] || row["Startup Name"] || row["startup_name"] || row["Company"] || "",
+            email: row["Email"] || row["email"] || "",
+            phone: row["Phone"] || row["phone"] || "",
+            cohort: row["Cohort"] || row["cohort"] || "",
+            status: row["Status"] || row["status"] || "",
+            description: row["Description"] || row["description"] || row["Bio"] || "",
+            venture_associate: row["VA"] || row["Venture Associate"] || row["venture_associate"] || "",
+            cin_number: row["CIN"] || row["cin_number"] || "",
+            passport_number: row["Passport"] || row["passport_number"] || "",
+          };
+          setForm(mapped);
+          setEditing(null);
+          setDialogOpen(true);
+          toast.success(`Auto-filled form from "${row["Name"] || row["name"] || "Row 1"}". Review & save.`);
+        }}
+      />
+
       {/* Filter Bar */}
       <Card className="border">
         <CardContent className="p-4">
