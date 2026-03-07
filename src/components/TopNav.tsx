@@ -1,9 +1,10 @@
+import { useState } from "react";
 import {
   LayoutDashboard, DollarSign, FileText, CalendarDays,
   ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
   Settings, Wallet, PiggyBank, ListTodo,
   ClipboardList, BarChart3, Users2, Truck,
-  LogOut, ChevronDown, Menu,
+  LogOut, Menu, X, ChevronRight,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,69 +12,133 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { MyProfileDialog } from "@/components/MyProfileDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
+import { useIsMobile } from "@/hooks/use-mobile";
 import TeamPresence from "@/components/TeamPresence";
 import logoWhite from "@/assets/Logo-THEFORGE_white.png";
 import logoColored from "@/assets/Logo-THEFORGE_colored.png";
 import { cn } from "@/lib/utils";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { AnimatePresence, motion } from "framer-motion";
 
 const sections = [
   {
-    label: "Dashboard",
+    label: "Founders",
+    headline: "Explore Founders",
+    description: "Manage your portfolio founders, track progress, and run evaluations.",
     items: [
-      { title: "Home", url: "/", icon: LayoutDashboard },
+      { title: "Directory", url: "/founders", icon: GraduationCap, desc: "Browse and manage all founders" },
+      { title: "Progress Tracker", url: "/founders/tracking", icon: TrendingUp, desc: "Weekly progress updates" },
+      { title: "Evaluations", url: "/founders/evaluation", icon: ClipboardList, desc: "Structured evaluation blocks" },
+      { title: "Portfolio Dashboard", url: "/founders/portfolio", icon: BarChart3, desc: "High-level portfolio view" },
+    ],
+  },
+  {
+    label: "Events",
+    headline: "Program Events",
+    description: "Plan, coordinate, and execute program events seamlessly.",
+    items: [
+      { title: "Events Calendar", url: "/events", icon: CalendarDays, desc: "View upcoming events" },
+      { title: "Planning", url: "/events/planning", icon: ClipboardCheck, desc: "Event checklists and prep" },
+      { title: "Logistics", url: "/events/logistics", icon: Truck, desc: "Transport, catering, venues" },
+      { title: "Stakeholders", url: "/events/stakeholders", icon: Users2, desc: "Manage external contacts" },
     ],
   },
   {
     label: "Operations",
+    headline: "Operations Hub",
+    description: "Budget tracking, expenses, contracts, and team tasks.",
     items: [
-      { title: "Budget Dashboard", url: "/operations", icon: PiggyBank },
-      { title: "Expenses", url: "/operations/source", icon: DollarSign },
-      { title: "Stipends", url: "/operations/stipends", icon: Wallet },
-      { title: "Contracts", url: "/operations/contracts", icon: FileText },
-      { title: "Tasks", url: "/operations/tasks", icon: ListTodo },
-    ],
-  },
-  {
-    label: "Program",
-    items: [
-      { title: "Events Calendar", url: "/events", icon: CalendarDays },
-      { title: "Planning", url: "/events/planning", icon: ClipboardCheck },
-      { title: "Logistics", url: "/events/logistics", icon: Truck },
-      { title: "Stakeholders", url: "/events/stakeholders", icon: Users2 },
-    ],
-  },
-  {
-    label: "Founders",
-    items: [
-      { title: "Directory", url: "/founders", icon: GraduationCap },
-      { title: "Progress Tracker", url: "/founders/tracking", icon: TrendingUp },
-      { title: "Evaluations", url: "/founders/evaluation", icon: ClipboardList },
-      { title: "Portfolio Dashboard", url: "/founders/portfolio", icon: BarChart3 },
+      { title: "Budget Dashboard", url: "/operations", icon: PiggyBank, desc: "Financial overview" },
+      { title: "Expenses", url: "/operations/source", icon: DollarSign, desc: "Track and categorize spend" },
+      { title: "Stipends", url: "/operations/stipends", icon: Wallet, desc: "Founder stipend payouts" },
+      { title: "Contracts", url: "/operations/contracts", icon: FileText, desc: "Manage agreements" },
+      { title: "Tasks", url: "/operations/tasks", icon: ListTodo, desc: "Team task management" },
     ],
   },
   {
     label: "System",
+    headline: "System & Settings",
+    description: "Application configuration and shared resources.",
     items: [
-      { title: "Library", url: "/library", icon: BookOpen },
-      { title: "Settings", url: "/settings", icon: Settings },
+      { title: "Library", url: "/library", icon: BookOpen, desc: "Shared resource links" },
+      { title: "Settings", url: "/settings", icon: Settings, desc: "App preferences" },
     ],
   },
 ];
 
+function MegaMenuContent({
+  section,
+  navigate,
+  location,
+}: {
+  section: (typeof sections)[0];
+  navigate: ReturnType<typeof useNavigate>;
+  location: ReturnType<typeof useLocation>;
+}) {
+  return (
+    <div className="grid w-[560px] gap-0 p-6 md:grid-cols-[200px_1fr]">
+      {/* Left: headline */}
+      <div className="flex flex-col justify-center pr-6 border-r border-border/40">
+        <p className="text-lg font-semibold text-foreground tracking-tight">{section.headline}</p>
+        <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{section.description}</p>
+      </div>
+      {/* Right: links */}
+      <ul className="flex flex-col gap-1 pl-6">
+        {section.items.map((item) => {
+          const isActive =
+            item.url === "/" ? location.pathname === "/" : location.pathname.startsWith(item.url);
+          return (
+            <li key={item.url}>
+              <button
+                onClick={() => navigate(item.url)}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-accent/50",
+                  isActive && "bg-accent/60"
+                )}
+              >
+                <item.icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <div className="flex flex-col">
+                  <span className={cn("text-sm font-medium text-foreground", isActive && "text-primary")}>
+                    {item.title}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground leading-tight">{item.desc}</span>
+                </div>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 export function TopNav() {
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  const isMobile = useIsMobile();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -81,75 +146,186 @@ export function TopNav() {
   };
 
   return (
-    <header className="fixed top-0 w-full z-50 border-b border-border bg-background/80 backdrop-blur-md px-6 py-3 flex items-center justify-between">
-      {/* Left: Logo + Nav */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => navigate("/")}
-          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-        >
-          <img
-            src={isDark ? logoWhite : logoColored}
-            alt="The Forge"
-            className="h-7"
-          />
-        </button>
+    <>
+      <header className="fixed top-0 w-full z-50 h-14 border-b border-border/50 bg-background/70 backdrop-blur-xl flex items-center justify-between px-4 md:px-8">
+        {/* Left: Logo */}
+        <div className="flex items-center gap-6">
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity shrink-0"
+          >
+            <img
+              src={isDark ? logoWhite : logoColored}
+              alt="The Forge"
+              className="h-6"
+            />
+          </button>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground">
-              <Menu className="h-4 w-4" />
-              <span className="hidden sm:inline">Navigate</span>
-              <ChevronDown className="h-3 w-3" />
+          {/* Desktop: Home link */}
+          {!isMobile && (
+            <button
+              onClick={() => navigate("/")}
+              className={cn(
+                "text-xs font-medium transition-colors hover:text-foreground",
+                location.pathname === "/" ? "text-foreground" : "text-muted-foreground"
+              )}
+            >
+              Home
+            </button>
+          )}
+
+          {/* Desktop: Mega Menu */}
+          {!isMobile && (
+            <NavigationMenu
+              onValueChange={(val) => setIsMenuOpen(!!val)}
+            >
+              <NavigationMenuList className="gap-0">
+                {sections.map((section) => (
+                  <NavigationMenuItem key={section.label}>
+                    <NavigationMenuTrigger className="h-auto px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent data-[active]:bg-transparent">
+                      {section.label}
+                    </NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <MegaMenuContent
+                        section={section}
+                        navigate={navigate}
+                        location={location}
+                      />
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+                ))}
+              </NavigationMenuList>
+            </NavigationMenu>
+          )}
+        </div>
+
+        {/* Right side */}
+        <div className="flex items-center gap-2 md:gap-3">
+          {!isMobile && <TeamPresence />}
+          <ThemeToggle />
+          {!isMobile && <MyProfileDialog />}
+          {!isMobile && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleSignOut}
+              className="text-muted-foreground hover:text-destructive h-8 w-8"
+              title="Sign Out"
+            >
+              <LogOut className="h-4 w-4" />
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
-            {sections.map((section, sIdx) => (
-              <div key={section.label}>
-                {sIdx > 0 && <DropdownMenuSeparator />}
-                <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  {section.label}
-                </DropdownMenuLabel>
-                {section.items.map((item) => {
-                  const isActive =
-                    item.url === "/"
-                      ? location.pathname === "/"
-                      : location.pathname.startsWith(item.url);
-                  return (
-                    <DropdownMenuItem
-                      key={item.url}
-                      onClick={() => navigate(item.url)}
-                      className={cn(
-                        "gap-2 cursor-pointer",
-                        isActive && "bg-accent text-accent-foreground font-medium"
-                      )}
-                    >
-                      <item.icon className="h-4 w-4 shrink-0" />
-                      {item.title}
-                    </DropdownMenuItem>
-                  );
-                })}
-              </div>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+          )}
 
-      {/* Right: Team Presence + Theme + Profile + Sign Out */}
-      <div className="flex items-center gap-3">
-        <TeamPresence />
-        <ThemeToggle />
-        <MyProfileDialog />
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleSignOut}
-          className="text-muted-foreground hover:text-destructive"
-          title="Sign Out"
-        >
-          <LogOut className="h-5 w-5" />
-        </Button>
-      </div>
-    </header>
+          {/* Mobile hamburger */}
+          {isMobile && (
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-foreground">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="top" className="h-[100dvh] w-full p-0 border-0 bg-background/95 backdrop-blur-xl">
+                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                {/* Mobile header */}
+                <div className="flex items-center justify-between px-6 h-14 border-b border-border/30">
+                  <img
+                    src={isDark ? logoWhite : logoColored}
+                    alt="The Forge"
+                    className="h-6"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setMobileOpen(false)}
+                    className="h-8 w-8 text-foreground"
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
+
+                {/* Mobile nav content */}
+                <div className="px-6 py-6 overflow-y-auto max-h-[calc(100dvh-56px)]">
+                  {/* Home link */}
+                  <button
+                    onClick={() => { navigate("/"); setMobileOpen(false); }}
+                    className={cn(
+                      "flex items-center gap-3 w-full py-3 text-2xl font-semibold tracking-tight transition-colors",
+                      location.pathname === "/" ? "text-foreground" : "text-muted-foreground"
+                    )}
+                  >
+                    <LayoutDashboard className="h-5 w-5" />
+                    Home
+                  </button>
+
+                  <Accordion type="single" collapsible className="w-full">
+                    {sections.map((section) => (
+                      <AccordionItem key={section.label} value={section.label} className="border-border/30">
+                        <AccordionTrigger className="py-3 text-2xl font-semibold tracking-tight text-muted-foreground hover:text-foreground hover:no-underline">
+                          {section.label}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <div className="flex flex-col gap-1 pl-2 pb-2">
+                            {section.items.map((item) => {
+                              const isActive =
+                                item.url === "/" ? location.pathname === "/" : location.pathname.startsWith(item.url);
+                              return (
+                                <button
+                                  key={item.url}
+                                  onClick={() => { navigate(item.url); setMobileOpen(false); }}
+                                  className={cn(
+                                    "flex items-center justify-between w-full rounded-lg px-3 py-3 text-left transition-colors",
+                                    isActive ? "bg-accent/50 text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-accent/30"
+                                  )}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <item.icon className="h-4 w-4 shrink-0" />
+                                    <span className="text-base font-medium">{item.title}</span>
+                                  </div>
+                                  <ChevronRight className="h-4 w-4 opacity-40" />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+
+                  {/* Mobile footer actions */}
+                  <div className="mt-8 pt-6 border-t border-border/30 flex flex-col gap-3">
+                    <TeamPresence />
+                    <div className="flex items-center gap-2 pt-2">
+                      <MyProfileDialog />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => { handleSignOut(); setMobileOpen(false); }}
+                        className="text-muted-foreground hover:text-destructive gap-2"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Sign Out
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+          )}
+        </div>
+      </header>
+
+      {/* Desktop blur overlay */}
+      <AnimatePresence>
+        {isMenuOpen && !isMobile && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 top-14 z-40 bg-background/40 backdrop-blur-md"
+          />
+        )}
+      </AnimatePresence>
+    </>
   );
 }
