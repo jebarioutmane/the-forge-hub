@@ -137,6 +137,7 @@ export default function FoundersSource() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [viewing, setViewing] = useState<Founder | null>(null);
   const [form, setForm] = useState<FounderForm>(emptyForm);
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
   // Filters
   const [search, setSearch] = useState("");
