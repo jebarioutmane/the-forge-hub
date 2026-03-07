@@ -16,6 +16,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import TeamPresence from "@/components/TeamPresence";
 import logoWhite from "@/assets/Logo-THEFORGE_white.png";
 import logoColored from "@/assets/Logo-THEFORGE_colored.png";
+import { usePresence } from "@/hooks/usePresence";
 import { cn } from "@/lib/utils";
 import {
   NavigationMenu,
