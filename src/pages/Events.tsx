@@ -155,7 +155,10 @@ export default function Events() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Events</h1>
-        <Button onClick={() => { resetForm(); setEditing(null); setDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" /> New Event</Button>
+        <div className="flex items-center gap-3">
+          <ViewToggle viewMode={viewMode} onChange={setViewMode} />
+          <Button onClick={() => { resetForm(); setEditing(null); setDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" /> New Event</Button>
+        </div>
       </div>
 
       {/* Gantt Chart */}
