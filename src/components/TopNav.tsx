@@ -138,6 +138,7 @@ export function TopNav() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const isMobile = useIsMobile();
+  const { onlineUserIds } = usePresence();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
