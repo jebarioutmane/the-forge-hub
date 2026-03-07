@@ -20,6 +20,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { TagPicker } from "@/components/TagPicker";
 import { TagBadges } from "@/components/TagBadges";
+import { ExcelUploader } from "@/components/ui/excel-uploader";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -322,6 +323,31 @@ export default function FoundersSource() {
           <Plus className="mr-2 h-4 w-4" /> Add Founder
         </Button>
       </div>
+
+      {/* Excel/CSV Uploader */}
+      <ExcelUploader
+        onDataExtracted={(data) => {
+          if (data.length === 0) return;
+          const row = data[0] as Record<string, any>;
+          const mapped: FounderForm = {
+            ...emptyForm,
+            founder_name: row["Name"] || row["name"] || row["Founder Name"] || row["founder_name"] || "",
+            startup_name: row["Startup"] || row["startup"] || row["Startup Name"] || row["startup_name"] || row["Company"] || "",
+            email: row["Email"] || row["email"] || "",
+            phone: row["Phone"] || row["phone"] || "",
+            cohort: row["Cohort"] || row["cohort"] || "",
+            status: row["Status"] || row["status"] || "",
+            description: row["Description"] || row["description"] || row["Bio"] || "",
+            venture_associate: row["VA"] || row["Venture Associate"] || row["venture_associate"] || "",
+            cin_number: row["CIN"] || row["cin_number"] || "",
+            passport_number: row["Passport"] || row["passport_number"] || "",
+          };
+          setForm(mapped);
+          setEditing(null);
+          setDialogOpen(true);
+          toast.success(`Auto-filled form from "${row["Name"] || row["name"] || "Row 1"}". Review & save.`);
+        }}
+      />
 
       {/* Filter Bar */}
       <Card className="border">
