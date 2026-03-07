@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { Plus, Settings, MoreHorizontal, Pencil, Trash2, X, Eye } from "lucide-react";
+import { ViewToggle } from "@/components/ViewToggle";
 import StatusPipeline from "@/components/StatusPipeline";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import type { Tables } from "@/integrations/supabase/types";
