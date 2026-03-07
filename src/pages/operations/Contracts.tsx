@@ -44,6 +44,7 @@ export default function OperationsContracts() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [viewing, setViewing] = useState<Contract | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "table">("table");
 
   const [form, setForm] = useState({ title: "", stakeholder_name: "", value: "", type: "External", start_date: "", end_date: "", tag_ids: [] as string[] });
 
