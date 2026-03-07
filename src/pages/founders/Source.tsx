@@ -25,6 +25,8 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { formatUrl } from "@/lib/formatUrl";
 import type { Tables } from "@/integrations/supabase/types";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { ViewToggle } from "@/components/ViewToggle";
 
 type Founder = Tables<"founders">;
 
