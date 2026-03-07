@@ -243,59 +243,97 @@ export default function OperationsContracts() {
         </div>
       )}
 
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-10"><Checkbox checked={contracts.length > 0 && selected.size === contracts.length} onCheckedChange={toggleAll} /></TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Stakeholder</TableHead>
-                <TableHead className="text-right">Value (MAD)</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Tags</TableHead>
-                <TableHead>Start</TableHead>
-                <TableHead>End</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
-              ) : contracts.length === 0 ? (
-                <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">No contracts yet</TableCell></TableRow>
-              ) : (
-                contracts.map((c) => (
-                  <TableRow key={c.id} className={selected.has(c.id) ? "bg-muted/50" : ""}>
-                    <TableCell><Checkbox checked={selected.has(c.id)} onCheckedChange={() => toggleSelect(c.id)} /></TableCell>
-                    <TableCell className="font-medium">{c.title}</TableCell>
-                    <TableCell>{c.stakeholder_name}</TableCell>
-                    <TableCell className="text-right">{c.value ? Number(c.value).toLocaleString() : "—"}</TableCell>
-                    <TableCell>
-                      <StatusPipeline stages={stages} currentStage={c.status || stages[0]} onStageClick={(s) => statusMutation.mutate({ id: c.id, status: s })} />
-                    </TableCell>
-                    <TableCell><TagBadges tagIds={c.tag_ids as string[] | null} /></TableCell>
-                    <TableCell className="text-muted-foreground text-sm">{c.start_date || "—"}</TableCell>
-                    <TableCell className="text-muted-foreground text-sm">{c.end_date || "—"}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setViewing(c)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openEdit(c)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(c.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {viewMode === "table" ? (
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-10"><Checkbox checked={contracts.length > 0 && selected.size === contracts.length} onCheckedChange={toggleAll} /></TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Stakeholder</TableHead>
+                  <TableHead className="text-right">Value (MAD)</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Tags</TableHead>
+                  <TableHead>Start</TableHead>
+                  <TableHead>End</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
+                ) : contracts.length === 0 ? (
+                  <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">No contracts yet</TableCell></TableRow>
+                ) : (
+                  contracts.map((c) => (
+                    <TableRow key={c.id} className={selected.has(c.id) ? "bg-muted/50" : ""}>
+                      <TableCell><Checkbox checked={selected.has(c.id)} onCheckedChange={() => toggleSelect(c.id)} /></TableCell>
+                      <TableCell className="font-medium">{c.title}</TableCell>
+                      <TableCell>{c.stakeholder_name}</TableCell>
+                      <TableCell className="text-right">{c.value ? Number(c.value).toLocaleString() : "—"}</TableCell>
+                      <TableCell>
+                        <StatusPipeline stages={stages} currentStage={c.status || stages[0]} onStageClick={(s) => statusMutation.mutate({ id: c.id, status: s })} />
+                      </TableCell>
+                      <TableCell><TagBadges tagIds={c.tag_ids as string[] | null} /></TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{c.start_date || "—"}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm">{c.end_date || "—"}</TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => setViewing(c)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openEdit(c)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(c.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      ) : (
+        /* Grid View */
+        isLoading ? (
+          <p className="text-muted-foreground text-center py-12">Loading contracts...</p>
+        ) : contracts.length === 0 ? (
+          <p className="text-muted-foreground text-center py-12">No contracts yet</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {contracts.map((c) => (
+              <Card key={c.id} className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 border">
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <Badge variant="outline" className="text-[10px]">{c.type || "External"}</Badge>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="icon" variant="ghost" className="h-7 w-7"><MoreHorizontal className="h-3.5 w-3.5" /></Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setViewing(c)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openEdit(c)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(c.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <h3 className="font-bold text-sm mb-1 truncate">{c.title}</h3>
+                  <p className="text-xs text-muted-foreground mb-2 truncate">{c.stakeholder_name}</p>
+                  <p className="text-lg font-semibold mb-2">{c.value ? `${Number(c.value).toLocaleString()} MAD` : "—"}</p>
+                  <StatusPipeline stages={stages} currentStage={c.status || stages[0]} onStageClick={(s) => statusMutation.mutate({ id: c.id, status: s })} />
+                  <div className="mt-2">
+                    <TagBadges tagIds={c.tag_ids as string[] | null} />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )
+      )}
 
       <Dialog open={contractDialog} onOpenChange={setContractDialog}>
         <DialogContent>
