@@ -203,7 +203,7 @@ export function TopNav() {
 
         {/* Right side */}
         <div className="flex items-center gap-2 md:gap-3">
-          {!isMobile && <TeamPresence />}
+          {!isMobile && <TeamPresence onlineUserIds={onlineUserIds} />}
           <ThemeToggle />
           {!isMobile && <MyProfileDialog />}
           {!isMobile && (
