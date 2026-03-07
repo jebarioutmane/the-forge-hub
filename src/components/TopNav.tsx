@@ -288,7 +288,7 @@ export function TopNav() {
 
                   {/* Mobile footer actions */}
                   <div className="mt-8 pt-6 border-t border-border/30 flex flex-col gap-3">
-                    <TeamPresence />
+                    <TeamPresence onlineUserIds={onlineUserIds} />
                     <div className="flex items-center gap-2 pt-2">
                       <MyProfileDialog />
                       <Button
