@@ -37,6 +37,7 @@ export default function Events() {
   const [editing, setEditing] = useState<EventWithProfile | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", start_date: "", end_date: "", status: "Planning", needs: [] as string[], tag_ids: [] as string[] });
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["events"],
