@@ -22,7 +22,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen relative">
       <RetroGrid />
       <TopNav />
-      <main className="relative z-10 pt-16">
+      <main className="relative z-10 pt-14">
         {children}
       </main>
     </div>
