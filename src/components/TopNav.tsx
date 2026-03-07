@@ -16,6 +16,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import TeamPresence from "@/components/TeamPresence";
 import logoWhite from "@/assets/Logo-THEFORGE_white.png";
 import logoColored from "@/assets/Logo-THEFORGE_colored.png";
+import { usePresence } from "@/hooks/usePresence";
 import { cn } from "@/lib/utils";
 import {
   NavigationMenu,
@@ -137,6 +138,7 @@ export function TopNav() {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const isMobile = useIsMobile();
+  const { onlineUserIds } = usePresence();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -201,7 +203,7 @@ export function TopNav() {
 
         {/* Right side */}
         <div className="flex items-center gap-2 md:gap-3">
-          {!isMobile && <TeamPresence />}
+          {!isMobile && <TeamPresence onlineUserIds={onlineUserIds} />}
           <ThemeToggle />
           {!isMobile && <MyProfileDialog />}
           {!isMobile && (
@@ -233,14 +235,7 @@ export function TopNav() {
                     alt="The Forge"
                     className="h-6"
                   />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setMobileOpen(false)}
-                    className="h-8 w-8 text-foreground"
-                  >
-                    <X className="h-5 w-5" />
-                  </Button>
+                  {/* Default SheetContent close button is used */}
                 </div>
 
                 {/* Mobile nav content */}
@@ -293,7 +288,7 @@ export function TopNav() {
 
                   {/* Mobile footer actions */}
                   <div className="mt-8 pt-6 border-t border-border/30 flex flex-col gap-3">
-                    <TeamPresence />
+                    <TeamPresence onlineUserIds={onlineUserIds} />
                     <div className="flex items-center gap-2 pt-2">
                       <MyProfileDialog />
                       <Button

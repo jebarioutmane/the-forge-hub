@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePresence } from "@/hooks/usePresence";
 import { AnimatedTooltip, TooltipItem } from "@/components/ui/animated-tooltip";
 
-export default function TeamPresence() {
-  const { onlineUserIds } = usePresence();
+export default function TeamPresence({ onlineUserIds: externalIds }: { onlineUserIds?: Set<string> } = {}) {
+  const { onlineUserIds: localIds } = usePresence();
+  const onlineUserIds = externalIds ?? localIds;
 
   const { data: profiles = [] } = useQuery({
     queryKey: ["team-profiles"],
