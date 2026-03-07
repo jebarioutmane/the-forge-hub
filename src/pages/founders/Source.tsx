@@ -25,6 +25,8 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { formatUrl } from "@/lib/formatUrl";
 import type { Tables } from "@/integrations/supabase/types";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { ViewToggle } from "@/components/ViewToggle";
 
 type Founder = Tables<"founders">;
 
@@ -135,6 +137,7 @@ export default function FoundersSource() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [viewing, setViewing] = useState<Founder | null>(null);
   const [form, setForm] = useState<FounderForm>(emptyForm);
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
   // Filters
   const [search, setSearch] = useState("");
@@ -318,9 +321,12 @@ export default function FoundersSource() {
           <h1 className="text-3xl font-bold">Founders Directory</h1>
           <p className="text-sm text-muted-foreground">Manage founders and track their progress</p>
         </div>
-        <Button onClick={() => { setForm(emptyForm); setEditing(null); setDialogOpen(true); }}>
-          <Plus className="mr-2 h-4 w-4" /> Add Founder
-        </Button>
+        <div className="flex items-center gap-3">
+          <ViewToggle viewMode={viewMode} onChange={setViewMode} />
+          <Button onClick={() => { setForm(emptyForm); setEditing(null); setDialogOpen(true); }}>
+            <Plus className="mr-2 h-4 w-4" /> Add Founder
+          </Button>
+        </div>
       </div>
 
       {/* Filter Bar */}
@@ -359,7 +365,7 @@ export default function FoundersSource() {
 
       <p className="text-xs text-muted-foreground">{filtered.length} founder{filtered.length !== 1 ? "s" : ""} found</p>
 
-      {/* Grid */}
+      {/* Grid / Table View */}
       {isLoading ? (
         <p className="text-muted-foreground text-center py-12">Loading founders...</p>
       ) : filtered.length === 0 ? (
@@ -367,6 +373,30 @@ export default function FoundersSource() {
           <GraduationCap className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
           <p className="text-muted-foreground">No founders match your filters.</p>
         </div>
+      ) : viewMode === "table" ? (
+        <DataTable
+          data={filtered}
+          columns={[
+            { key: "founder_name", label: "Name" },
+            { key: "startup_name", label: "Startup" },
+            { key: "cohort", label: "Cohort" },
+            { key: "status", label: "Status", render: (f: Founder) => f.status ? <Badge className="text-[10px] bg-module-founders/10 text-module-founders border-module-founders/20">{f.status}</Badge> : "—" },
+            { key: "venture_associate", label: "Venture Associate" },
+          ] as DataTableColumn<Founder>[]}
+          searchable={false}
+          actionColumn={(f: Founder) => (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost" className="h-7 w-7"><MoreHorizontal className="h-3.5 w-3.5" /></Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setViewing(f)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openEdit(f)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
+                <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(f.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map((f) => {

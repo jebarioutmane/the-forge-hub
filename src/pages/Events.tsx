@@ -20,6 +20,8 @@ import { TagBadges } from "@/components/TagBadges";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { ViewToggle } from "@/components/ViewToggle";
 
 type EventWithProfile = Tables<"events"> & {
   profiles?: { full_name: string | null; avatar_url: string | null } | null;
@@ -35,6 +37,7 @@ export default function Events() {
   const [editing, setEditing] = useState<EventWithProfile | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", start_date: "", end_date: "", status: "Planning", needs: [] as string[], tag_ids: [] as string[] });
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["events"],
@@ -152,77 +155,104 @@ export default function Events() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Events</h1>
-        <Button onClick={() => { resetForm(); setEditing(null); setDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" /> New Event</Button>
+        <div className="flex items-center gap-3">
+          <ViewToggle viewMode={viewMode} onChange={setViewMode} />
+          <Button onClick={() => { resetForm(); setEditing(null); setDialogOpen(true); }}><Plus className="mr-2 h-4 w-4" /> New Event</Button>
+        </div>
       </div>
 
-      {/* Gantt Chart */}
-      <Card>
-        <CardHeader><CardTitle className="text-lg">Timeline</CardTitle></CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <p className="text-muted-foreground text-sm text-center py-8">Loading...</p>
-          ) : !gantt ? (
-            <p className="text-muted-foreground text-sm text-center py-8">No events with dates yet.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              {/* Date headers */}
-              <div className="grid gap-px mb-1" style={{ gridTemplateColumns: `160px repeat(${gantt.cols}, minmax(28px, 1fr))` }}>
-                <div className="text-xs text-muted-foreground px-1">Event</div>
-                {Array.from({ length: gantt.cols }).map((_, i) => (
-                  <div key={i} className="text-[10px] text-muted-foreground text-center truncate">
-                    {i % Math.max(1, Math.floor(gantt.cols / 10)) === 0 ? format(addDays(gantt.ganttStart, i), "MMM d") : ""}
-                  </div>
-                ))}
-              </div>
-              {/* Event rows */}
-              {gantt.dated.map((ev) => {
-                const startOff = differenceInDays(parseISO(ev.start_date!), gantt.ganttStart) + 1;
-                const span = differenceInDays(parseISO(ev.end_date!), parseISO(ev.start_date!)) + 1;
-                return (
-                  <div key={ev.id} className="grid gap-px items-center min-h-[32px]" style={{ gridTemplateColumns: `160px repeat(${gantt.cols}, minmax(28px, 1fr))` }}>
-                    <div className="text-sm font-medium truncate px-1 flex items-center gap-2">
-                      {ev.profiles && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Avatar className="h-6 w-6 shrink-0">
-                                <AvatarImage src={ev.profiles.avatar_url ? `${ev.profiles.avatar_url}?t=${Date.now()}` : undefined} />
-                                <AvatarFallback className="text-[10px] bg-muted">{ev.profiles.full_name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "?"}</AvatarFallback>
-                              </Avatar>
-                            </TooltipTrigger>
-                            <TooltipContent>Created by {ev.profiles.full_name || "Unknown"}</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                      <span className="truncate">{ev.name}</span>
-                      <TagBadges tagIds={ev.tag_ids as string[] | null} />
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0"><MoreHorizontal className="h-3 w-3" /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start">
-                          <DropdownMenuItem onClick={() => openEdit(ev)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(ev.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                    {/* Empty cells + bar */}
-                    {Array.from({ length: gantt.cols }).map((_, i) => {
-                      const col = i + 1;
-                      const isInBar = col >= startOff && col < startOff + span;
-                      const isStart = col === startOff;
-                      const isEnd = col === startOff + span - 1;
-                      return (
-                        <div key={i} className={`h-6 ${isInBar ? `${statusColor(ev.status || "Planning")} border ${isStart ? "rounded-l" : ""} ${isEnd ? "rounded-r" : ""}` : ""}`} />
-                      );
-                    })}
-                  </div>
-                );
-              })}
-            </div>
+      {viewMode === "table" ? (
+        <DataTable
+          data={events}
+          columns={[
+            { key: "name", label: "Event Name" },
+            { key: "start_date", label: "Start Date", render: (ev: EventWithProfile) => ev.start_date ? format(parseISO(ev.start_date), "MMM d, yyyy") : "—" },
+            { key: "end_date", label: "End Date", render: (ev: EventWithProfile) => ev.end_date ? format(parseISO(ev.end_date), "MMM d, yyyy") : "—" },
+            { key: "status", label: "Status", render: (ev: EventWithProfile) => <Badge className={statusColor(ev.status || "Planning")}>{ev.status || "Planning"}</Badge> },
+            { key: "tag_ids", label: "Tags", sortable: false, render: (ev: EventWithProfile) => <TagBadges tagIds={ev.tag_ids as string[] | null} /> },
+          ] as DataTableColumn<EventWithProfile>[]}
+          actionColumn={(ev: EventWithProfile) => (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost" className="h-7 w-7"><MoreHorizontal className="h-3.5 w-3.5" /></Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => openEdit(ev)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
+                <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(ev.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
-        </CardContent>
-      </Card>
+        />
+      ) : (
+        /* Gantt Chart */
+        <Card>
+          <CardHeader><CardTitle className="text-lg">Timeline</CardTitle></CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <p className="text-muted-foreground text-sm text-center py-8">Loading...</p>
+            ) : !gantt ? (
+              <p className="text-muted-foreground text-sm text-center py-8">No events with dates yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                {/* Date headers */}
+                <div className="grid gap-px mb-1" style={{ gridTemplateColumns: `160px repeat(${gantt.cols}, minmax(28px, 1fr))` }}>
+                  <div className="text-xs text-muted-foreground px-1">Event</div>
+                  {Array.from({ length: gantt.cols }).map((_, i) => (
+                    <div key={i} className="text-[10px] text-muted-foreground text-center truncate">
+                      {i % Math.max(1, Math.floor(gantt.cols / 10)) === 0 ? format(addDays(gantt.ganttStart, i), "MMM d") : ""}
+                    </div>
+                  ))}
+                </div>
+                {/* Event rows */}
+                {gantt.dated.map((ev) => {
+                  const startOff = differenceInDays(parseISO(ev.start_date!), gantt.ganttStart) + 1;
+                  const span = differenceInDays(parseISO(ev.end_date!), parseISO(ev.start_date!)) + 1;
+                  return (
+                    <div key={ev.id} className="grid gap-px items-center min-h-[32px]" style={{ gridTemplateColumns: `160px repeat(${gantt.cols}, minmax(28px, 1fr))` }}>
+                      <div className="text-sm font-medium truncate px-1 flex items-center gap-2">
+                        {ev.profiles && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Avatar className="h-6 w-6 shrink-0">
+                                  <AvatarImage src={ev.profiles.avatar_url ? `${ev.profiles.avatar_url}?t=${Date.now()}` : undefined} />
+                                  <AvatarFallback className="text-[10px] bg-muted">{ev.profiles.full_name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "?"}</AvatarFallback>
+                                </Avatar>
+                              </TooltipTrigger>
+                              <TooltipContent>Created by {ev.profiles.full_name || "Unknown"}</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                        <span className="truncate">{ev.name}</span>
+                        <TagBadges tagIds={ev.tag_ids as string[] | null} />
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0"><MoreHorizontal className="h-3 w-3" /></Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start">
+                            <DropdownMenuItem onClick={() => openEdit(ev)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(ev.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      {/* Empty cells + bar */}
+                      {Array.from({ length: gantt.cols }).map((_, i) => {
+                        const col = i + 1;
+                        const isInBar = col >= startOff && col < startOff + span;
+                        const isStart = col === startOff;
+                        const isEnd = col === startOff + span - 1;
+                        return (
+                          <div key={i} className={`h-6 ${isInBar ? `${statusColor(ev.status || "Planning")} border ${isStart ? "rounded-l" : ""} ${isEnd ? "rounded-r" : ""}` : ""}`} />
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Event Dialog */}
       <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o) { setDialogOpen(false); setEditing(null); } }}>
