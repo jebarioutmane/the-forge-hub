@@ -222,6 +222,7 @@ export default function OperationsContracts() {
           <p className="text-sm text-muted-foreground">Manage contract lifecycle and vendors</p>
         </div>
         <div className="flex items-center gap-2">
+          <ViewToggle viewMode={viewMode} onChange={setViewMode} />
           <Button variant="ghost" size="icon" onClick={() => { setTempStages([...stages]); setSettingsOpen(true); }}>
             <Settings className="h-4 w-4" />
           </Button>
