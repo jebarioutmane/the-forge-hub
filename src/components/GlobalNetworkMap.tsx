@@ -9,9 +9,9 @@ import {
 } from "react-simple-maps";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cleanCountryName } from "@/lib/cleanCountryName";
 import { getCountryCoordinates } from "@/lib/countryCoordinates";
+import { Search } from "lucide-react";
 
 const GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 const MOROCCO: [number, number] = [-6.8, 33.9];
