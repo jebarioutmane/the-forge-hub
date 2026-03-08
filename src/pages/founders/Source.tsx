@@ -239,7 +239,7 @@ export default function FoundersSource() {
       if (!matchesFilter(f.venture_associate, filterVA)) return false;
       return true;
     });
-  }, [founders, search, filterCohort, filterCountries, filterStatus, filterVA]);
+  }, [founders, search, filterCohortYear, filterCountries, filterStatus, filterVA]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
