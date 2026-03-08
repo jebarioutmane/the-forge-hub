@@ -57,7 +57,12 @@ export function TagPicker({ value, onChange, className }: TagPickerProps) {
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        // Don't close if clicking inside a popover portal
+        const target = e.target as HTMLElement;
+        if (target.closest("[data-radix-popper-content-wrapper]")) return;
+        setOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
