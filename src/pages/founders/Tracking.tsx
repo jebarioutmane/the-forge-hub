@@ -18,6 +18,7 @@ import { Plus, MoreHorizontal, Pencil, Trash2, ExternalLink, Link as LinkIcon, X
 import { logAction } from "@/lib/logAction";
 import { format, parseISO } from "date-fns";
 import { formatUrl } from "@/lib/formatUrl";
+import { FounderSparkline } from "@/components/FounderSparkline";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Founder = Tables<"founders">;
