@@ -410,8 +410,8 @@ export default function FoundersTracking() {
                 />
                 <SectionLinkEditor
                   sectionKey={area.key}
-                  links={form.section_links[area.key] || []}
-                  onChange={(links) => setForm((f) => ({ ...f, section_links: { ...f.section_links, [area.key]: links } }))}
+                  links={(form.section_links || {})[area.key] || []}
+                  onChange={(links) => setForm((f) => ({ ...f, section_links: { ...(f.section_links || {}), [area.key]: links } }))}
                 />
               </div>
             ))}
