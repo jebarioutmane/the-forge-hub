@@ -500,8 +500,10 @@ export type Database = {
           market_presence_rating: number | null
           market_presence_update: string | null
           other_updates: string | null
+          overall_score: number | null
           product_dev_rating: number | null
           product_dev_update: string | null
+          section_links: Json | null
           team_structure_rating: number | null
           team_structure_update: string | null
           tracking_date: string | null
@@ -518,8 +520,10 @@ export type Database = {
           market_presence_rating?: number | null
           market_presence_update?: string | null
           other_updates?: string | null
+          overall_score?: number | null
           product_dev_rating?: number | null
           product_dev_update?: string | null
+          section_links?: Json | null
           team_structure_rating?: number | null
           team_structure_update?: string | null
           tracking_date?: string | null
@@ -536,8 +540,10 @@ export type Database = {
           market_presence_rating?: number | null
           market_presence_update?: string | null
           other_updates?: string | null
+          overall_score?: number | null
           product_dev_rating?: number | null
           product_dev_update?: string | null
+          section_links?: Json | null
           team_structure_rating?: number | null
           team_structure_update?: string | null
           tracking_date?: string | null
