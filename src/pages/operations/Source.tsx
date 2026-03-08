@@ -19,6 +19,7 @@ import type { Tables } from "@/integrations/supabase/types";
 type Budget = Tables<"budgets">;
 
 export default function Source() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<Budget | null>(null);
