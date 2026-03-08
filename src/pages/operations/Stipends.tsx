@@ -50,6 +50,7 @@ export default function Stipends() {
       if (error) throw error;
     },
     onSuccess: () => {
+      logAction("Operations-Stipends", "INSERT", "new", null, { founder_name: form.founder_name, base_amount: form.base_amount }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["stipends"] });
       setAddOpen(false);
       resetForm();
