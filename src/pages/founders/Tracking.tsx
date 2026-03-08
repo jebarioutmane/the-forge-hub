@@ -105,11 +105,16 @@ export default function FoundersTracking() {
       };
 
       if (form.id) {
+        const oldEntry = allTracking.find((t) => t.id === form.id);
         const { error } = await supabase.from("founders_tracking").update(payload).eq("id", form.id);
         if (error) throw error;
+        const userName = user?.email || "Unknown";
+        await logAction("Founders-Tracking", "UPDATE", form.id, oldEntry as any, payload, userName);
       } else {
-        const { error } = await supabase.from("founders_tracking").insert(payload);
+        const { data, error } = await supabase.from("founders_tracking").insert(payload).select().single();
         if (error) throw error;
+        const userName = user?.email || "Unknown";
+        await logAction("Founders-Tracking", "INSERT", data.id, null, payload, userName);
       }
     },
     onSuccess: () => {
