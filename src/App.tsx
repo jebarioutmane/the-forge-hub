@@ -24,6 +24,7 @@ import Library from "./pages/Library";
 import SystemProfiles from "./pages/system/Profiles";
 import HistoryLog from "./pages/system/HistoryLog";
 import NotFound from "./pages/NotFound";
+import { InstallPrompt } from "./components/InstallPrompt";
 
 const queryClient = new QueryClient();
 
@@ -53,8 +54,9 @@ const App = () => (
           <Route path="/library" element={<MainLayout><Library moduleName="All" /></MainLayout>} />
           <Route path="/system/profiles" element={<MainLayout><SystemProfiles /></MainLayout>} />
           <Route path="/system/history" element={<MainLayout><HistoryLog /></MainLayout>} />
-          <Route path="*" element={<NotFound />} />
+        <Route path="*" element={<NotFound />} />
         </Routes>
+        <InstallPrompt />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
