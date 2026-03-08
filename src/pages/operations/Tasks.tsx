@@ -120,7 +120,9 @@ export default function OperationsTasks() {
       const { error } = await supabase.from("tasks").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = tasks.find(t => t.id === id);
+      logAction("Operations-Tasks", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setDeleteId(null);
       toast.success("Task deleted");
