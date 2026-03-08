@@ -18,7 +18,7 @@ interface FounderCardProps {
   highlightId?: string | null;
 }
 
-export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, onDelete }: FounderCardProps) {
+export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, onDelete, highlightId }: FounderCardProps) {
   const [imgError, setImgError] = useState(false);
   const initials = founder.founder_name
     .split(" ")
@@ -28,7 +28,7 @@ export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, o
     .slice(0, 2);
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl bg-card border border-border shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out">
+    <div className={`group relative flex flex-col overflow-hidden rounded-2xl bg-card border border-border shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out ${highlightId === founder.id ? "animate-target-flash" : ""}`}>
       {/* Visual header area */}
       <div className="relative h-28 bg-gradient-to-br from-secondary to-muted flex items-end justify-center">
         {/* Subtle decorative circle */}
