@@ -435,12 +435,12 @@ export default function FoundersSource() {
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Full Name *</Label>
-                <Input value={form.founder_name} onChange={(e) => set("founder_name", e.target.value)} />
+                <Label htmlFor="founder-name">Full Name *</Label>
+                <Input id="founder-name" name="founder_name" value={form.founder_name} onChange={(e) => set("founder_name", e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>Startup Name *</Label>
-                <Input value={form.startup_name} onChange={(e) => set("startup_name", e.target.value)} />
+                <Label htmlFor="startup-name">Startup Name *</Label>
+                <Input id="startup-name" name="startup_name" value={form.startup_name} onChange={(e) => set("startup_name", e.target.value)} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
