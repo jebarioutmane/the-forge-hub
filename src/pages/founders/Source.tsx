@@ -404,51 +404,19 @@ export default function FoundersSource() {
           )}
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filtered.map((f) => {
-            const score = getLatestScore(f.id);
             const nats = getFounderNationalities(f);
             return (
-              <Card key={f.id} className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 border relative overflow-hidden">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="h-11 w-11 rounded-full bg-module-founders/10 flex items-center justify-center text-module-founders font-bold text-base">
-                      {f.founder_name.charAt(0).toUpperCase()}
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button size="icon" variant="ghost" className="h-7 w-7"><MoreHorizontal className="h-3.5 w-3.5" /></Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setViewing(f)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openEdit(f)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(f.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  <h3 className="font-bold text-sm mb-0.5 truncate">{f.founder_name}</h3>
-                  {nats.length > 0 && (
-                    <p className="text-[11px] text-muted-foreground mb-1 truncate">
-                      {nats.map(n => `${getFlag(n)} ${n}`).join(", ")}
-                    </p>
-                  )}
-                  <p className="text-xs text-muted-foreground mb-2 truncate">{f.startup_name}</p>
-                  <div className="flex flex-wrap items-center gap-1.5 mb-3">
-                    {f.cohort && <Badge variant="outline" className="text-[10px] font-medium">{f.cohort}</Badge>}
-                    {f.status && (
-                      <Badge className="text-[10px] bg-module-founders/10 text-module-founders border-module-founders/20 hover:bg-module-founders/20">{f.status}</Badge>
-                    )}
-                  </div>
-                  <div className="space-y-1.5 mb-3">
-                    <div className="flex items-center justify-between text-[10px]">
-                      <span className="text-muted-foreground">Progress Score</span>
-                      <span className="font-semibold">{score}%</span>
-                    </div>
-                    <Progress value={score} className="h-1.5" />
-                  </div>
-                  <TagBadges tagIds={f.tag_ids as string[] | null} />
-                </CardContent>
-              </Card>
+              <FounderCard
+                key={f.id}
+                founder={f}
+                nationalities={nats}
+                getFlag={getFlag}
+                onView={setViewing}
+                onEdit={openEdit}
+                onDelete={(id) => setDeleteId(id)}
+              />
             );
           })}
         </div>
