@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { getUniqueFilterValues, matchesFilter, matchesMultiFilter } from "@/lib/normalizeFilter";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -185,14 +186,14 @@ export default function FoundersSource() {
     },
   });
 
-  // Derive unique values for filter dropdowns
-  const uniqueCohorts = useMemo(() => [...new Set(founders.map(f => f.cohort).filter(Boolean))].sort(), [founders]);
+  // Derive unique values for filter dropdowns (case-insensitive dedup)
+  const uniqueCohorts = useMemo(() => getUniqueFilterValues(founders.map(f => f.cohort)), [founders]);
   const uniqueCountries = useMemo(() => {
     const all = founders.flatMap(f => (f.nationalities as string[] | null) || (f.nationality ? [f.nationality] : []));
-    return [...new Set(all.filter(Boolean))].sort();
+    return getUniqueFilterValues(all);
   }, [founders]);
-  const uniqueStatuses = useMemo(() => [...new Set(founders.map(f => f.status).filter(Boolean))].sort(), [founders]);
-  const uniqueVAs = useMemo(() => [...new Set(founders.map(f => f.venture_associate).filter(Boolean))].sort(), [founders]);
+  const uniqueStatuses = useMemo(() => getUniqueFilterValues(founders.map(f => f.status)), [founders]);
+  const uniqueVAs = useMemo(() => getUniqueFilterValues(founders.map(f => f.venture_associate)), [founders]);
 
   function getFounderNationalities(f: Founder): string[] {
     const arr = (f.nationalities as string[] | null);
@@ -204,22 +205,19 @@ export default function FoundersSource() {
   function getFounderLinks(f: Founder): LinkItem[] {
     const linksJson = f.links as unknown;
     if (Array.isArray(linksJson) && linksJson.length > 0) return linksJson as LinkItem[];
-    // Fallback: legacy single link
     if (f.link_title || f.link_url) return [{ title: f.link_title || "", url: f.link_url || "" }];
     return [];
   }
+
 
   const filtered = useMemo(() => {
     return founders.filter((f) => {
       const q = search.toLowerCase();
       if (q && !f.founder_name.toLowerCase().includes(q) && !f.startup_name.toLowerCase().includes(q)) return false;
-      if (filterCohort !== "all" && f.cohort !== filterCohort) return false;
-      if (filterCountries.length > 0) {
-        const nats = getFounderNationalities(f);
-        if (!filterCountries.some(c => nats.includes(c))) return false;
-      }
-      if (filterStatus !== "all" && f.status !== filterStatus) return false;
-      if (filterVA !== "all" && f.venture_associate !== filterVA) return false;
+      if (!matchesFilter(f.cohort, filterCohort)) return false;
+      if (!matchesMultiFilter(getFounderNationalities(f), filterCountries)) return false;
+      if (!matchesFilter(f.status, filterStatus)) return false;
+      if (!matchesFilter(f.venture_associate, filterVA)) return false;
       return true;
     });
   }, [founders, search, filterCohort, filterCountries, filterStatus, filterVA]);

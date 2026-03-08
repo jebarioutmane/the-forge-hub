@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { getUniqueFilterValues, matchesFilter, matchesMultiFilter } from "@/lib/normalizeFilter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { logAction } from "@/lib/logAction";
@@ -159,24 +160,21 @@ export default function StakeholdersDirectory() {
     return [];
   }
 
-  // Unique filter values
-  const uniqueSectors = useMemo(() => [...new Set(stakeholders.map(s => s.sector).filter(Boolean))].sort(), [stakeholders]);
-  const uniqueTypes = useMemo(() => [...new Set(stakeholders.map(s => s.type).filter(Boolean))].sort(), [stakeholders]);
-  const uniquePOCs = useMemo(() => [...new Set(stakeholders.map(s => s.point_of_contact).filter(Boolean))].sort(), [stakeholders]);
-  const uniqueStatuses = useMemo(() => [...new Set(stakeholders.map(s => s.status).filter(Boolean))].sort(), [stakeholders]);
+  // Unique filter values (case-insensitive dedup)
+  const uniqueSectors = useMemo(() => getUniqueFilterValues(stakeholders.map(s => s.sector)), [stakeholders]);
+  const uniqueTypes = useMemo(() => getUniqueFilterValues(stakeholders.map(s => s.type)), [stakeholders]);
+  const uniquePOCs = useMemo(() => getUniqueFilterValues(stakeholders.map(s => s.point_of_contact)), [stakeholders]);
+  const uniqueStatuses = useMemo(() => getUniqueFilterValues(stakeholders.map(s => s.status)), [stakeholders]);
 
   const filtered = useMemo(() => {
     return stakeholders.filter(s => {
       const q = search.toLowerCase();
       if (q && !s.full_name.toLowerCase().includes(q) && !(s.title || "").toLowerCase().includes(q)) return false;
-      if (filterSector !== "all" && s.sector !== filterSector) return false;
-      if (filterType !== "all" && s.type !== filterType) return false;
-      if (filterPOC !== "all" && s.point_of_contact !== filterPOC) return false;
-      if (filterStatus !== "all" && s.status !== filterStatus) return false;
-      if (filterCountries.length > 0) {
-        const nats = getNationalities(s);
-        if (!filterCountries.some(c => nats.includes(c))) return false;
-      }
+      if (!matchesFilter(s.sector, filterSector)) return false;
+      if (!matchesFilter(s.type, filterType)) return false;
+      if (!matchesFilter(s.point_of_contact, filterPOC)) return false;
+      if (!matchesFilter(s.status, filterStatus)) return false;
+      if (!matchesMultiFilter(getNationalities(s), filterCountries)) return false;
       return true;
     });
   }, [stakeholders, search, filterSector, filterType, filterPOC, filterStatus, filterCountries]);

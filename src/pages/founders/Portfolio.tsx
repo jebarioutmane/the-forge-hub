@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { getUniqueFilterValues, matchesFilter } from "@/lib/normalizeFilter";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,11 +44,11 @@ export default function PortfolioDashboard() {
     },
   });
 
-  const cohorts = useMemo(() => [...new Set(founders.map((f) => f.cohort).filter(Boolean))], [founders]);
+  const cohorts = useMemo(() => getUniqueFilterValues(founders.map((f) => f.cohort)), [founders]);
 
   const filteredFounderIds = useMemo(() => {
     if (cohortFilter === "all") return founders.map((f) => f.id);
-    return founders.filter((f) => f.cohort === cohortFilter).map((f) => f.id);
+    return founders.filter((f) => matchesFilter(f.cohort, cohortFilter)).map((f) => f.id);
   }, [founders, cohortFilter]);
 
   const filteredEvals = useMemo(() => {
