@@ -80,6 +80,7 @@ export default function Library({ moduleName }: LibraryProps) {
       if (error) throw error;
     },
     onSuccess: () => {
+      logAction(`${moduleName}-Library`, "UPDATE", editing?.id || "", editing as any, { resource_name: name, url }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["resource_library", moduleName] });
       setEditing(null);
       setName("");
