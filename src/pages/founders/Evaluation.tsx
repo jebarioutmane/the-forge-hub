@@ -50,6 +50,7 @@ function initMetricData(block: BlockConfig): Record<string, MetricData> {
 }
 
 export default function FounderEvaluation() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [selectedFounder, setSelectedFounder] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
