@@ -23,6 +23,7 @@ function getLabels(): string[] {
 }
 
 export default function Settings() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [labels, setLabels] = useState(getLabels);
   const [newLabel, setNewLabel] = useState("");
