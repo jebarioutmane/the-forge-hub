@@ -104,6 +104,7 @@ export default function Mentoring() {
       }
     },
     onSuccess: () => {
+      logAction("Events-Mentoring", editing ? "UPDATE" : "INSERT", editing?.id || "new", editing ? (editing as any) : null, { title: form.title, mentor_name: form.mentor_name }, user?.email || "Unknown");
       qc.invalidateQueries({ queryKey: ["mentoring_sessions"] });
       setDialogOpen(false);
       setEditing(null);
