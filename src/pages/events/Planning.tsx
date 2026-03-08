@@ -163,6 +163,7 @@ export default function Planning() {
       }
     },
     onSuccess: () => {
+      logAction("Events-Planning", editing ? "UPDATE" : "INSERT", editing?.id || "new", editing ? (editing as any) : null, { name: form.name, event_type: form.event_type }, user?.email || "Unknown");
       qc.invalidateQueries({ queryKey: ["events"] });
       setDialogOpen(false);
       setEditing(null);
