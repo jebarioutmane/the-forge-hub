@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { canEditProfiles, isSuperAdminEmail, updateProfileRole } from "@/lib/rbac";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,20 +11,71 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Pencil, Eye, Mail, Phone, User } from "lucide-react";
+import { Plus, Pencil, Eye, User, CalendarIcon, Link2, X, Trash2, Shield, ShieldCheck, ShieldAlert } from "lucide-react";
 import { logAction } from "@/lib/logAction";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Profile = Tables<"profiles">;
+type LinkItem = { title: string; url: string };
+
+const DEPARTMENTS = [
+  "Founders Directory",
+  "Progress Tracker",
+  "System Profiles",
+  "Events",
+  "Operations",
+];
+
+const STATUS_OPTIONS = ["Active", "On Leave", "Inactive"];
+const ROLE_OPTIONS = [
+  { value: "super_admin", label: "Super Admin" },
+  { value: "admin", label: "Admin" },
+  { value: "user", label: "User" },
+];
+
+const emptyForm = {
+  full_name: "",
+  email: "",
+  phone: "",
+  birthday: null as string | null,
+  date_joined: null as string | null,
+  cin_number: "",
+  passport_number: "",
+  status: "Active",
+  nationalities: [] as string[],
+  tags: [] as string[],
+  description: "",
+  assigned_departments: [] as string[],
+  links: [] as LinkItem[],
+  avatar_url: "",
+  title: "",
+};
+
+function parseLinks(raw: unknown): LinkItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((l: any) => l && typeof l === "object" && (l.title || l.url)).map((l: any) => ({
+    title: l.title || "",
+    url: l.url || "",
+  }));
+}
 
 export default function SystemProfiles() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
+  const [isNew, setIsNew] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
-  const [form, setForm] = useState({ full_name: "", title: "", avatar_url: "" });
+  const [form, setForm] = useState({ ...emptyForm });
+  const [natInput, setNatInput] = useState("");
+  const [tagInput, setTagInput] = useState("");
 
   const { data: profiles = [] } = useQuery({
     queryKey: ["profiles"],
@@ -34,33 +86,88 @@ export default function SystemProfiles() {
     },
   });
 
-  const updateMutation = useMutation({
+  const currentProfile = profiles.find((p) => p.id === user?.id);
+  const hasEditRights = canEditProfiles(user?.email, currentProfile?.role);
+
+  // Upsert mutation (add or edit)
+  const saveMutation = useMutation({
     mutationFn: async () => {
-      if (!user) throw new Error("Not authenticated");
-      const payload = {
+      if (!selectedProfile && !isNew) throw new Error("No profile selected");
+      const targetId = isNew ? undefined : selectedProfile?.id;
+      const payload: any = {
         full_name: form.full_name || null,
-        title: form.title || null,
+        email: form.email || null,
+        phone: form.phone || null,
+        birthday: form.birthday || null,
+        date_joined: form.date_joined || null,
+        cin_number: form.cin_number || null,
+        passport_number: form.passport_number || null,
+        status: form.status || "Active",
+        nationalities: form.nationalities.length ? form.nationalities : null,
+        tags: form.tags.length ? form.tags : null,
+        description: form.description || null,
+        assigned_departments: form.assigned_departments.length ? form.assigned_departments : null,
+        links: form.links.length ? form.links : [],
         avatar_url: form.avatar_url || null,
+        title: form.title || null,
       };
-      const { error } = await supabase.from("profiles").update(payload).eq("id", user.id);
-      if (error) throw error;
+
+      if (isNew) {
+        // For new members, we update existing profile by email match or just insert
+        // Since profiles are auth-linked, we update the matching profile
+        throw new Error("New members must be created via Supabase Auth. Use this form to edit existing profiles.");
+      } else {
+        const isOwnProfile = targetId === user?.id;
+        const isAdmin = hasEditRights;
+        if (!isOwnProfile && !isAdmin) throw new Error("No permission");
+        const { error } = await supabase.from("profiles").update(payload).eq("id", targetId!);
+        if (error) throw error;
+      }
       return payload;
     },
     onSuccess: async (payload) => {
       queryClient.invalidateQueries({ queryKey: ["profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["presence"] });
       setEditOpen(false);
-      toast.success("Profile updated");
-      await logAction("System-Profiles", "UPDATE", user!.id, selectedProfile as any, payload, form.full_name || user!.email || "Unknown");
+      toast.success("Profile saved");
+      if (selectedProfile) {
+        await logAction("System-Profiles", "UPDATE", selectedProfile.id, selectedProfile as any, payload, form.full_name || user!.email || "Unknown");
+      }
     },
     onError: (e) => toast.error(e.message),
   });
 
+  const roleMutation = useMutation({
+    mutationFn: async ({ profileId, role }: { profileId: string; role: string }) => {
+      await updateProfileRole(profileId, role);
+      return { profileId, role };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
+      toast.success("Role updated");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   function openEdit(profile: Profile) {
+    setIsNew(false);
     setSelectedProfile(profile);
     setForm({
       full_name: profile.full_name || "",
-      title: profile.title || "",
+      email: profile.email || "",
+      phone: profile.phone || "",
+      birthday: profile.birthday || null,
+      date_joined: profile.date_joined || null,
+      cin_number: profile.cin_number || "",
+      passport_number: profile.passport_number || "",
+      status: profile.status || "Active",
+      nationalities: (profile.nationalities as string[]) || [],
+      tags: (profile.tags as string[]) || [],
+      description: profile.description || "",
+      assigned_departments: (profile.assigned_departments as string[]) || [],
+      links: parseLinks(profile.links),
       avatar_url: profile.avatar_url || "",
+      title: profile.title || "",
     });
     setEditOpen(true);
   }
@@ -70,16 +177,61 @@ export default function SystemProfiles() {
     setViewOpen(true);
   }
 
+  function addLink() {
+    setForm((f) => ({ ...f, links: [...f.links, { title: "", url: "" }] }));
+  }
+
+  function removeLink(idx: number) {
+    setForm((f) => ({ ...f, links: f.links.filter((_, i) => i !== idx) }));
+  }
+
+  function updateLink(idx: number, field: "title" | "url", value: string) {
+    setForm((f) => ({
+      ...f,
+      links: f.links.map((l, i) => (i === idx ? { ...l, [field]: value } : l)),
+    }));
+  }
+
+  function addNationality() {
+    const val = natInput.trim();
+    if (val && !form.nationalities.includes(val)) {
+      setForm((f) => ({ ...f, nationalities: [...f.nationalities, val] }));
+    }
+    setNatInput("");
+  }
+
+  function addTag() {
+    const val = tagInput.trim();
+    if (val && !form.tags.includes(val)) {
+      setForm((f) => ({ ...f, tags: [...f.tags, val] }));
+    }
+    setTagInput("");
+  }
+
   const initials = (name: string | null) => {
     if (!name) return "?";
     return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
   };
 
+  const getRoleBadge = (role: string | null) => {
+    switch (role) {
+      case "super_admin":
+        return { label: "Super Admin", icon: ShieldAlert, className: "bg-destructive/10 text-destructive border-destructive/20" };
+      case "admin":
+        return { label: "Admin", icon: ShieldCheck, className: "bg-primary/10 text-primary border-primary/20" };
+      default:
+        return { label: "User", icon: Shield, className: "bg-muted text-muted-foreground border-border" };
+    }
+  };
+
   return (
-    <div className="p-6 lg:p-10 space-y-6 max-w-5xl mx-auto">
-      <div>
-        <h1 className="text-3xl font-bold">Team Profiles</h1>
-        <p className="text-sm text-muted-foreground">Directory of team members with accounts</p>
+    <div className="p-6 lg:p-10 space-y-6 max-w-6xl mx-auto">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Team Profiles</h1>
+          <p className="text-sm text-muted-foreground">Directory of team members with accounts</p>
+        </div>
+        {/* Note: New members must be provisioned through auth, but admins can edit all */}
       </div>
 
       {profiles.length === 0 ? (
@@ -92,34 +244,87 @@ export default function SystemProfiles() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {profiles.map((profile) => {
             const isOwn = user?.id === profile.id;
+            const canEdit = isOwn || hasEditRights;
+            const roleBadge = getRoleBadge(profile.role);
+            const RoleIcon = roleBadge.icon;
+            const profileLinks = parseLinks(profile.links);
+            const departments = (profile.assigned_departments as string[]) || [];
+
             return (
-              <Card key={profile.id} className="relative group">
-                <CardHeader className="flex flex-row items-center gap-4 pb-2">
-                  <Avatar className="h-14 w-14">
+              <Card key={profile.id} className="relative overflow-hidden border-border/60 shadow-sm hover:shadow-md transition-shadow">
+                <CardHeader className="flex flex-row items-start gap-3 pb-3">
+                  <Avatar className="h-12 w-12 shrink-0">
                     <AvatarImage src={profile.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
                       {initials(profile.full_name)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base truncate">{profile.full_name || "Unnamed"}</CardTitle>
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <CardTitle className="text-sm truncate leading-tight">{profile.full_name || "Unnamed"}</CardTitle>
                     {profile.title && (
-                      <p className="text-sm text-muted-foreground truncate">{profile.title}</p>
+                      <p className="text-xs text-muted-foreground truncate">{profile.title}</p>
                     )}
-                    {isOwn && <Badge variant="outline" className="mt-1 text-[10px]">You</Badge>}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 h-5 gap-1 font-medium", roleBadge.className)}>
+                        <RoleIcon className="h-2.5 w-2.5" />
+                        {roleBadge.label}
+                      </Badge>
+                      {isOwn && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">You</Badge>
+                      )}
+                      {profile.status && profile.status !== "Active" && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-amber-500/10 text-amber-600 border-amber-500/20">
+                          {profile.status}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="flex gap-2 justify-end">
-                    <Button size="sm" variant="outline" onClick={() => openView(profile)}>
+                <CardContent className="pt-0 space-y-3">
+                  {departments.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {departments.slice(0, 3).map((d) => (
+                        <Badge key={d} variant="secondary" className="text-[10px] px-1.5 py-0 h-4 font-normal">
+                          {d}
+                        </Badge>
+                      ))}
+                      {departments.length > 3 && (
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 font-normal">
+                          +{departments.length - 3}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 justify-end pt-1">
+                    <Button size="sm" variant="outline" onClick={() => openView(profile)} className="h-7 text-xs">
                       <Eye className="mr-1 h-3 w-3" /> View
                     </Button>
-                    {isOwn && (
-                      <Button size="sm" onClick={() => openEdit(profile)}>
+                    {canEdit && (
+                      <Button size="sm" onClick={() => openEdit(profile)} className="h-7 text-xs">
                         <Pencil className="mr-1 h-3 w-3" /> Edit
                       </Button>
                     )}
                   </div>
+
+                  {/* Role quick-change for Super Admin / Admin */}
+                  {hasEditRights && !isOwn && (
+                    <Select
+                      value={profile.role || "user"}
+                      onValueChange={(val) => roleMutation.mutate({ profileId: profile.id, role: val })}
+                    >
+                      <SelectTrigger className="h-7 text-[11px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ROLE_OPTIONS.map((r) => (
+                          <SelectItem key={r.value} value={r.value} className="text-xs">
+                            {r.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </CardContent>
               </Card>
             );
@@ -127,59 +332,229 @@ export default function SystemProfiles() {
         </div>
       )}
 
-      {/* View Dialog */}
+      {/* ── View Dialog ── */}
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Profile Details</DialogTitle>
           </DialogHeader>
           {selectedProfile && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src={selectedProfile.avatar_url || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-xl font-semibold">
-                    {initials(selectedProfile.full_name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-lg font-semibold">{selectedProfile.full_name || "Unnamed"}</p>
-                  {selectedProfile.title && <p className="text-sm text-muted-foreground">{selectedProfile.title}</p>}
-                </div>
-              </div>
-              <div className="text-sm text-muted-foreground space-y-1">
-                <p><User className="inline h-3 w-3 mr-1" />ID: {selectedProfile.id.slice(0, 8)}...</p>
-                {selectedProfile.updated_at && (
-                  <p>Last updated: {new Date(selectedProfile.updated_at).toLocaleDateString()}</p>
-                )}
-              </div>
-            </div>
+            <ViewProfileContent profile={selectedProfile} initials={initials} />
           )}
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
+      {/* ── Edit Dialog ── */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Your Profile</DialogTitle>
+            <DialogTitle>Edit Profile</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>Full Name</Label>
+          <div className="grid gap-4 py-2 sm:grid-cols-2">
+            {/* Full Name */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">Full Name</Label>
               <Input value={form.full_name} onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))} />
             </div>
-            <div className="space-y-2">
-              <Label>Title / Role</Label>
+            {/* Title */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">Title / Role</Label>
               <Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="e.g. Program Manager" />
             </div>
-            <div className="space-y-2">
-              <Label>Avatar URL</Label>
+            {/* Email */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">Email</Label>
+              <Input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+            </div>
+            {/* Phone */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">Phone</Label>
+              <Input value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
+            </div>
+            {/* Birthday */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">Birthday</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-9 text-sm", !form.birthday && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                    {form.birthday ? format(new Date(form.birthday), "PPP") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={form.birthday ? new Date(form.birthday) : undefined}
+                    onSelect={(d) => setForm((f) => ({ ...f, birthday: d ? format(d, "yyyy-MM-dd") : null }))}
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            {/* Date Joined */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">Date Joined</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-9 text-sm", !form.date_joined && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                    {form.date_joined ? format(new Date(form.date_joined), "PPP") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={form.date_joined ? new Date(form.date_joined) : undefined}
+                    onSelect={(d) => setForm((f) => ({ ...f, date_joined: d ? format(d, "yyyy-MM-dd") : null }))}
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            {/* CIN */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">CIN Number</Label>
+              <Input value={form.cin_number} onChange={(e) => setForm((f) => ({ ...f, cin_number: e.target.value }))} />
+            </div>
+            {/* Passport */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">Passport Number</Label>
+              <Input value={form.passport_number} onChange={(e) => setForm((f) => ({ ...f, passport_number: e.target.value }))} />
+            </div>
+            {/* Status */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">Status</Label>
+              <Select value={form.status} onValueChange={(val) => setForm((f) => ({ ...f, status: val }))}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {STATUS_OPTIONS.map((s) => (
+                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {/* Avatar URL */}
+            <div className="space-y-1.5">
+              <Label className="text-xs">Avatar URL</Label>
               <Input value={form.avatar_url} onChange={(e) => setForm((f) => ({ ...f, avatar_url: e.target.value }))} placeholder="https://..." />
+            </div>
+
+            {/* Nationalities - full width */}
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label className="text-xs">Nationalities</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={natInput}
+                  onChange={(e) => setNatInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addNationality(); } }}
+                  placeholder="Type and press Enter"
+                  className="flex-1"
+                />
+                <Button type="button" variant="outline" size="sm" onClick={addNationality}>Add</Button>
+              </div>
+              {form.nationalities.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {form.nationalities.map((n) => (
+                    <Badge key={n} variant="secondary" className="text-xs gap-1 pr-1">
+                      {n}
+                      <X className="h-3 w-3 cursor-pointer" onClick={() => setForm((f) => ({ ...f, nationalities: f.nationalities.filter((x) => x !== n) }))} />
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Tags - full width */}
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label className="text-xs">Tags</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
+                  placeholder="Type and press Enter"
+                  className="flex-1"
+                />
+                <Button type="button" variant="outline" size="sm" onClick={addTag}>Add</Button>
+              </div>
+              {form.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {form.tags.map((t) => (
+                    <Badge key={t} variant="secondary" className="text-xs gap-1 pr-1">
+                      {t}
+                      <X className="h-3 w-3 cursor-pointer" onClick={() => setForm((f) => ({ ...f, tags: f.tags.filter((x) => x !== t) }))} />
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Assigned Departments - full width */}
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label className="text-xs">Assigned Departments</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {DEPARTMENTS.map((dept) => (
+                  <label key={dept} className="flex items-center gap-2 text-xs cursor-pointer">
+                    <Checkbox
+                      checked={form.assigned_departments.includes(dept)}
+                      onCheckedChange={(checked) => {
+                        setForm((f) => ({
+                          ...f,
+                          assigned_departments: checked
+                            ? [...f.assigned_departments, dept]
+                            : f.assigned_departments.filter((d) => d !== dept),
+                        }));
+                      }}
+                    />
+                    {dept}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Description - full width */}
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label className="text-xs">Description</Label>
+              <Textarea
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                rows={3}
+                placeholder="Short bio..."
+              />
+            </div>
+
+            {/* Dynamic Links - full width */}
+            <div className="space-y-2 sm:col-span-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Links</Label>
+                <Button type="button" variant="outline" size="sm" onClick={addLink} className="h-6 text-[11px] gap-1">
+                  <Plus className="h-3 w-3" /> Add Link
+                </Button>
+              </div>
+              {form.links.map((link, idx) => (
+                <div key={idx} className="flex gap-2 items-center">
+                  <Input
+                    value={link.title}
+                    onChange={(e) => updateLink(idx, "title", e.target.value)}
+                    placeholder="Title"
+                    className="flex-1"
+                  />
+                  <Input
+                    value={link.url}
+                    onChange={(e) => updateLink(idx, "url", e.target.value)}
+                    placeholder="https://..."
+                    className="flex-1"
+                  />
+                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-destructive" onClick={() => removeLink(idx)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ))}
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+            <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
               Save Changes
             </Button>
           </DialogFooter>
@@ -187,4 +562,120 @@ export default function SystemProfiles() {
       </Dialog>
     </div>
   );
+}
+
+/* ── View Profile Sub-component ── */
+function ViewProfileContent({ profile, initials }: { profile: Profile; initials: (n: string | null) => string }) {
+  const links = parseLinks(profile.links);
+  const departments = (profile.assigned_departments as string[]) || [];
+  const nationalities = (profile.nationalities as string[]) || [];
+  const tags = (profile.tags as string[]) || [];
+  const roleBadge = getRoleBadgeStatic(profile.role);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-4">
+        <Avatar className="h-16 w-16">
+          <AvatarImage src={profile.avatar_url || undefined} />
+          <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
+            {initials(profile.full_name)}
+          </AvatarFallback>
+        </Avatar>
+        <div className="space-y-1">
+          <p className="text-base font-semibold">{profile.full_name || "Unnamed"}</p>
+          {profile.title && <p className="text-xs text-muted-foreground">{profile.title}</p>}
+          <Badge variant="outline" className={cn("text-[10px] font-medium", roleBadge.className)}>
+            {roleBadge.label}
+          </Badge>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+        <DetailRow label="Email" value={profile.email} />
+        <DetailRow label="Phone" value={profile.phone} />
+        <DetailRow label="Birthday" value={profile.birthday ? format(new Date(profile.birthday), "PPP") : null} />
+        <DetailRow label="Date Joined" value={profile.date_joined ? format(new Date(profile.date_joined), "PPP") : null} />
+        <DetailRow label="CIN" value={profile.cin_number} />
+        <DetailRow label="Passport" value={profile.passport_number} />
+        <DetailRow label="Status" value={profile.status} />
+      </div>
+
+      {nationalities.length > 0 && (
+        <div>
+          <p className="text-xs font-medium text-muted-foreground mb-1">Nationalities</p>
+          <div className="flex flex-wrap gap-1">
+            {nationalities.map((n) => <Badge key={n} variant="secondary" className="text-xs">{n}</Badge>)}
+          </div>
+        </div>
+      )}
+
+      {tags.length > 0 && (
+        <div>
+          <p className="text-xs font-medium text-muted-foreground mb-1">Tags</p>
+          <div className="flex flex-wrap gap-1">
+            {tags.map((t) => <Badge key={t} variant="outline" className="text-xs">{t}</Badge>)}
+          </div>
+        </div>
+      )}
+
+      {departments.length > 0 && (
+        <div>
+          <p className="text-xs font-medium text-muted-foreground mb-1">Assigned Departments</p>
+          <div className="flex flex-wrap gap-1">
+            {departments.map((d) => <Badge key={d} variant="secondary" className="text-xs">{d}</Badge>)}
+          </div>
+        </div>
+      )}
+
+      {profile.description && (
+        <div>
+          <p className="text-xs font-medium text-muted-foreground mb-1">Description</p>
+          <p className="text-sm">{profile.description}</p>
+        </div>
+      )}
+
+      {links.length > 0 && (
+        <div>
+          <p className="text-xs font-medium text-muted-foreground mb-1">Links</p>
+          <div className="space-y-1">
+            {links.map((l, i) => (
+              <a key={i} href={l.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-primary hover:underline">
+                <Link2 className="h-3 w-3" />
+                {l.title || l.url}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: string | null | undefined }) {
+  if (!value) return null;
+  return (
+    <div>
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className="text-sm truncate">{value}</p>
+    </div>
+  );
+}
+
+function getRoleBadgeStatic(role: string | null) {
+  switch (role) {
+    case "super_admin":
+      return { label: "Super Admin", className: "bg-destructive/10 text-destructive border-destructive/20" };
+    case "admin":
+      return { label: "Admin", className: "bg-primary/10 text-primary border-primary/20" };
+    default:
+      return { label: "User", className: "bg-muted text-muted-foreground border-border" };
+  }
+}
+
+function parseLinksStatic(raw: unknown): LinkItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((l: any) => l && typeof l === "object").map((l: any) => ({
+    title: l.title || "",
+    url: l.url || "",
+  }));
 }
