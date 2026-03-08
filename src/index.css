@@ -56,8 +56,8 @@
     --module-events: 211 100% 44%;
     --module-founders: 271 65% 55%;
 
-    --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
-    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    --font-display: 'Inter', 'Twemoji Country Flags', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    --font-body: 'Inter', 'Twemoji Country Flags', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
   }
 }
 
