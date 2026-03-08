@@ -464,12 +464,12 @@ export default function FoundersSource() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Status</Label>
-                <Input value={form.status} onChange={(e) => set("status", e.target.value)} placeholder="e.g. Active, Dismissed" />
+                <Label htmlFor="founder-status">Status</Label>
+                <Input id="founder-status" name="status" value={form.status} onChange={(e) => set("status", e.target.value)} placeholder="e.g. Active, Dismissed" />
               </div>
               <div className="space-y-2">
-                <Label>Email</Label>
-                <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
+                <Label htmlFor="founder-email">Email</Label>
+                <Input id="founder-email" name="email" type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
