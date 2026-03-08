@@ -110,7 +110,16 @@ export default function FoundersLeaderboard() {
               No evaluation data yet.
             </p>
           ) : (
-            leaderboard.map((entry, i) => (
+            <>
+              {/* Column headers */}
+              <div className="flex items-center gap-3 px-3 pb-1.5 mb-1">
+                <div className="h-7 w-7 shrink-0" />
+                <div className="h-9 w-9 shrink-0" />
+                <div className="flex-1 min-w-0" />
+                <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider w-[80px] text-center">Progress</span>
+                <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider shrink-0 text-center min-w-[50px]">Evaluation</span>
+              </div>
+              {leaderboard.map((entry, i) => (
               <div
                 key={entry.id}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-accent/50 transition-colors"
@@ -139,19 +148,14 @@ export default function FoundersLeaderboard() {
                   </p>
                 </div>
 
-                <div className="flex flex-col items-center gap-0.5">
-                  <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider">Progress</span>
-                  <FounderSparkline scores={sparklineMap.scores[entry.id] || []} dates={sparklineMap.dates[entry.id] || []} />
-                </div>
+                <FounderSparkline scores={sparklineMap.scores[entry.id] || []} dates={sparklineMap.dates[entry.id] || []} />
 
-                <div className="flex flex-col items-center gap-0.5 shrink-0">
-                  <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider">Evaluation</span>
-                  <span className="text-[13px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg">
-                    {entry.avgScore}
-                  </span>
-                </div>
+                <span className="text-[13px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg shrink-0 min-w-[50px] text-center">
+                  {entry.avgScore}
+                </span>
               </div>
-            ))
+            ))}
+            </>
           )}
         </div>
       </ScrollArea>
