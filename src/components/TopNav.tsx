@@ -159,21 +159,7 @@ export function TopNav() {
               alt="The Forge"
               className="h-8 w-8 object-contain rounded-md shadow-sm"
             />
-            <span className="font-semibold text-foreground text-sm tracking-tight">The Forge</span>
           </button>
-
-          {/* Desktop: Home link */}
-          {!isMobile && (
-            <button
-              onClick={() => navigate("/")}
-              className={cn(
-                "text-[13px] font-medium transition-colors duration-200 hover:text-foreground",
-                location.pathname === "/" ? "text-foreground" : "text-muted-foreground"
-              )}
-            >
-              Home
-            </button>
-          )}
 
           {/* Desktop: Mega Menu */}
           {!isMobile && (
@@ -223,7 +209,7 @@ export function TopNav() {
               <Search className="h-4 w-4" />
             </button>
           )}
-          {!isMobile && <TeamPresence onlineUserIds={onlineUserIds} />}
+          {!isMobile && !isHome && <TeamPresence onlineUserIds={onlineUserIds} />}
           {!isMobile && <MyProfileDialog />}
           {!isMobile && (
             <Button
