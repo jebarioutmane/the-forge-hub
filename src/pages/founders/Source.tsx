@@ -486,12 +486,12 @@ export default function FoundersSource() {
             {/* Identity Fields */}
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>CIN Number</Label>
-                <Input value={form.cin_number} onChange={(e) => set("cin_number", e.target.value)} placeholder="e.g. AB123456" />
+                <Label htmlFor="cin-number">CIN Number</Label>
+                <Input id="cin-number" name="cin_number" value={form.cin_number} onChange={(e) => set("cin_number", e.target.value)} placeholder="e.g. AB123456" />
               </div>
               <div className="space-y-2">
-                <Label>Passport Number</Label>
-                <Input value={form.passport_number} onChange={(e) => set("passport_number", e.target.value)} placeholder="e.g. AB1234567" />
+                <Label htmlFor="passport-number">Passport Number</Label>
+                <Input id="passport-number" name="passport_number" value={form.passport_number} onChange={(e) => set("passport_number", e.target.value)} placeholder="e.g. AB1234567" />
               </div>
               <div className="space-y-2">
                 <Label>Birthday</Label>
