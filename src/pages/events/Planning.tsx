@@ -65,9 +65,9 @@ const emptyForm: PlanningForm = {
 };
 
 const statusBadgeClass = (s: string) => {
-  if (s === "Active") return "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400";
+  if (s === "Active") return "bg-emerald-100 text-emerald-700";
   if (s === "Completed") return "bg-muted text-muted-foreground";
-  return "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400";
+  return "bg-blue-100 text-blue-700";
 };
 
 export default function Planning() {
