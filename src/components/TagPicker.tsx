@@ -1,10 +1,13 @@
 import { useState, useRef, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, ChevronDown } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { X, ChevronDown, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface TagPickerProps {
   value: string[];
@@ -12,9 +15,15 @@ interface TagPickerProps {
   className?: string;
 }
 
+const PRESET_COLORS = ["#f97316", "#ef4444", "#22c55e", "#3b82f6", "#8b5cf6", "#ec4899", "#14b8a6", "#f59e0b", "#64748b"];
+
 export function TagPicker({ value, onChange, className }: TagPickerProps) {
   const [open, setOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newColor, setNewColor] = useState("#f97316");
   const ref = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
 
   const { data: tags = [] } = useQuery({
     queryKey: ["tags"],
@@ -23,6 +32,27 @@ export function TagPicker({ value, onChange, className }: TagPickerProps) {
       if (error) throw error;
       return data;
     },
+  });
+
+  const createTagMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase
+        .from("tags")
+        .insert({ name: newName.trim(), color: newColor })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (newTag) => {
+      queryClient.invalidateQueries({ queryKey: ["tags"] });
+      onChange([...value, newTag.id]);
+      setNewName("");
+      setNewColor("#f97316");
+      setCreateOpen(false);
+      toast.success("Tag created & selected");
+    },
+    onError: (e) => toast.error(e.message),
   });
 
   useEffect(() => {
@@ -71,7 +101,7 @@ export function TagPicker({ value, onChange, className }: TagPickerProps) {
       {open && (
         <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md max-h-48 overflow-auto">
           {tags.length === 0 && (
-            <p className="text-sm text-muted-foreground p-3">No tags created yet. Go to Settings → Tags.</p>
+            <p className="text-sm text-muted-foreground p-3">No tags yet — create one below.</p>
           )}
           {tags.map((t) => {
             const isSelected = value.includes(t.id);
@@ -91,6 +121,63 @@ export function TagPicker({ value, onChange, className }: TagPickerProps) {
               </button>
             );
           })}
+
+          {/* Inline create sticky footer */}
+          <div className="sticky bottom-0 border-t bg-popover p-1.5">
+            <Popover open={createOpen} onOpenChange={setCreateOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="flex items-center gap-2 w-full px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded transition-colors"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Create new tag
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                side="top"
+                align="start"
+                className="w-64 p-3 space-y-3"
+                onOpenAutoFocus={(e) => e.preventDefault()}
+              >
+                <Input
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="New tag name..."
+                  className="h-8 text-sm"
+                  onKeyDown={(e) => e.key === "Enter" && newName.trim() && createTagMutation.mutate()}
+                />
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="color"
+                    value={newColor}
+                    onChange={(e) => setNewColor(e.target.value)}
+                    className="h-6 w-6 rounded cursor-pointer border-0 p-0"
+                  />
+                  {PRESET_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className={cn(
+                        "h-5 w-5 rounded-full border-2 transition-all",
+                        newColor === c ? "border-foreground scale-110" : "border-transparent"
+                      )}
+                      style={{ backgroundColor: c }}
+                      onClick={() => setNewColor(c)}
+                    />
+                  ))}
+                </div>
+                <Button
+                  size="sm"
+                  className="w-full h-8 text-xs"
+                  onClick={() => createTagMutation.mutate()}
+                  disabled={!newName.trim() || createTagMutation.isPending}
+                >
+                  <Plus className="mr-1 h-3 w-3" /> Add Tag
+                </Button>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
       )}
     </div>
