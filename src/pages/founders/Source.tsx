@@ -422,6 +422,7 @@ export default function FoundersSource() {
                 onView={setViewing}
                 onEdit={openEdit}
                 onDelete={(id) => setDeleteId(id)}
+                highlightId={highlightId}
               />
             );
           })}
