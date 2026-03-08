@@ -209,7 +209,7 @@ export function TopNav() {
               <Search className="h-4 w-4" />
             </button>
           )}
-          {!isMobile && <TeamPresence onlineUserIds={onlineUserIds} />}
+          {!isMobile && !isHome && <TeamPresence onlineUserIds={onlineUserIds} />}
           {!isMobile && <MyProfileDialog />}
           {!isMobile && (
             <Button
