@@ -17,7 +17,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import logoWhite from "@/assets/Logo-THEFORGE_white.png";
+const appIcon = "/pwa-512x512.png";
 
 const sections = [
   {
@@ -75,7 +75,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <div className="px-5 py-5">
-          <img src={logoWhite} alt="The Forge" className="h-8" />
+          <img src={appIcon} alt="The Forge" className="h-8 w-8 object-contain rounded-md shadow-sm" />
         </div>
         {sections.map((section) => (
           <Collapsible key={section.label} defaultOpen>

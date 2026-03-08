@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import logoColored from "@/assets/Logo-THEFORGE_colored.png";
+const appIcon = "/pwa-512x512.png";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -57,7 +57,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <Card className="w-full max-w-md shadow-2xl border-0">
         <CardHeader className="text-center pb-2">
-          <img src={logoColored} alt="The Forge" className="h-14 mx-auto mb-3" />
+          <img src={appIcon} alt="The Forge" className="h-16 w-16 object-contain rounded-xl shadow-sm mx-auto mb-3" />
           <CardTitle className="text-2xl tracking-tight">THE FORGE HUB</CardTitle>
           <CardDescription>Sign in to your account</CardDescription>
         </CardHeader>
