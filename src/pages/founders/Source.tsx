@@ -250,6 +250,7 @@ export default function FoundersSource() {
       }
     },
     onSuccess: () => {
+      logAction("Founders-Directory", editing ? "UPDATE" : "INSERT", editing?.id || "new", editing ? (editing as any) : null, { founder_name: form.founder_name, startup_name: form.startup_name }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["founders"] });
       setDialogOpen(false);
       setEditing(null);
