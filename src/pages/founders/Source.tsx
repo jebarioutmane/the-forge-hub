@@ -537,8 +537,8 @@ export default function FoundersSource() {
             </div>
 
             <div className="space-y-2">
-              <Label>Profile Photo URL</Label>
-              <Input value={form.photo_url} onChange={(e) => set("photo_url", e.target.value)} placeholder="https://linkedin.com/in/..." />
+              <Label htmlFor="photo-url">Profile Photo URL</Label>
+              <Input id="photo-url" name="photo_url" value={form.photo_url} onChange={(e) => set("photo_url", e.target.value)} placeholder="https://linkedin.com/in/..." />
             </div>
             <div className="space-y-2">
               <Label>Description / Business Idea</Label>
