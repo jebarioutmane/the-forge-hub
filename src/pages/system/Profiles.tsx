@@ -64,6 +64,8 @@ function parseLinks(raw: unknown): LinkItem[] {
 
 export default function SystemProfiles() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const highlightId = searchParams.get("highlight");
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
