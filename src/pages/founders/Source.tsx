@@ -541,8 +541,8 @@ export default function FoundersSource() {
               <Input id="photo-url" name="photo_url" value={form.photo_url} onChange={(e) => set("photo_url", e.target.value)} placeholder="https://linkedin.com/in/..." />
             </div>
             <div className="space-y-2">
-              <Label>Description / Business Idea</Label>
-              <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={3} placeholder="Brief description of the startup..." />
+              <Label htmlFor="founder-description">Description / Business Idea</Label>
+              <Textarea id="founder-description" name="description" value={form.description} onChange={(e) => set("description", e.target.value)} rows={3} placeholder="Brief description of the startup..." />
             </div>
           </div>
           <DialogFooter className="gap-2">
