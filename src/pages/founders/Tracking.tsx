@@ -277,7 +277,8 @@ export default function FoundersTracking() {
   }
 
   function getSectionLinks(entry: Tracking, areaKey: string): EvidenceLink[] {
-    const links = (entry.section_links || {}) as SectionLinks;
+    if (!entry.section_links || typeof entry.section_links !== "object") return [];
+    const links = entry.section_links as SectionLinks;
     return links[areaKey] || [];
   }
 
