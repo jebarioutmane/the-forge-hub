@@ -192,7 +192,7 @@ export function TopNav() {
               className="w-full max-w-md h-10 bg-secondary rounded-xl flex items-center px-4 text-muted-foreground cursor-text hover:bg-accent transition-colors gap-2"
             >
               <Search className="h-4 w-4 shrink-0" />
-              <span className="text-sm">Search founders, team, events...</span>
+              <span className="text-sm">Search anything...</span>
             </button>
           )}
         </div>
