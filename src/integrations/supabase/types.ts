@@ -666,23 +666,62 @@ export type Database = {
       }
       profiles: {
         Row: {
+          assigned_departments: string[] | null
           avatar_url: string | null
+          birthday: string | null
+          cin_number: string | null
+          date_joined: string | null
+          description: string | null
+          email: string | null
           full_name: string | null
           id: string
+          links: Json | null
+          nationalities: string[] | null
+          passport_number: string | null
+          phone: string | null
+          role: string | null
+          status: string | null
+          tags: string[] | null
           title: string | null
           updated_at: string | null
         }
         Insert: {
+          assigned_departments?: string[] | null
           avatar_url?: string | null
+          birthday?: string | null
+          cin_number?: string | null
+          date_joined?: string | null
+          description?: string | null
+          email?: string | null
           full_name?: string | null
           id: string
+          links?: Json | null
+          nationalities?: string[] | null
+          passport_number?: string | null
+          phone?: string | null
+          role?: string | null
+          status?: string | null
+          tags?: string[] | null
           title?: string | null
           updated_at?: string | null
         }
         Update: {
+          assigned_departments?: string[] | null
           avatar_url?: string | null
+          birthday?: string | null
+          cin_number?: string | null
+          date_joined?: string | null
+          description?: string | null
+          email?: string | null
           full_name?: string | null
           id?: string
+          links?: Json | null
+          nationalities?: string[] | null
+          passport_number?: string | null
+          phone?: string | null
+          role?: string | null
+          status?: string | null
+          tags?: string[] | null
           title?: string | null
           updated_at?: string | null
         }
