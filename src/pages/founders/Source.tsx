@@ -474,8 +474,8 @@ export default function FoundersSource() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Phone</Label>
-                <Input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+212..." />
+                <Label htmlFor="founder-phone">Phone</Label>
+                <Input id="founder-phone" name="phone" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+212..." />
               </div>
               <div className="space-y-2">
                 <Label>Tags</Label>
