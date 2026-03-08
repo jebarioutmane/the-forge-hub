@@ -199,7 +199,17 @@ export function TopNav() {
 
         {/* Right side */}
         <div className="flex items-center gap-2">
-          {/* Non-home: subtle search icon */}
+          {/* Mobile: always show search icon */}
+          {isMobile && (
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="h-9 w-9 rounded-full hover:bg-secondary flex items-center justify-center transition-colors text-foreground active:scale-95"
+              title="Search"
+            >
+              <Search className="h-[18px] w-[18px]" />
+            </button>
+          )}
+          {/* Desktop non-home: subtle search icon */}
           {!isMobile && !isHome && (
             <button
               onClick={() => setSearchOpen(true)}
