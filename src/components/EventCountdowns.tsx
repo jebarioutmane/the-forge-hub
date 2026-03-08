@@ -40,44 +40,42 @@ function CountdownCard({ name, date, creator }: { name: string; date: string; cr
   if (!timeLeft) return null;
 
   return (
-    <Card className="border border-border/40 shadow-sm min-w-[260px] shrink-0">
-      <CardContent className="p-6 space-y-3">
-        <div className="flex items-center gap-2">
-          {creator && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Avatar className="h-6 w-6 shrink-0">
-                    <AvatarImage src={creator.avatar_url ? `${creator.avatar_url}?t=${Date.now()}` : undefined} />
-                    <AvatarFallback className="text-[9px] bg-muted">{creator.full_name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "?"}</AvatarFallback>
-                  </Avatar>
-                </TooltipTrigger>
-                <TooltipContent>Created by {creator.full_name || "Unknown"}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-          <p className="font-bold text-sm text-foreground truncate">{name}</p>
-        </div>
-        <p className="text-[11px] text-muted-foreground">{format(target, "MMM d, yyyy")}</p>
-        <div className="flex items-center justify-center gap-3 sm:gap-4">
-          {[
-            { value: timeLeft.days, label: "Days" },
-            { value: timeLeft.hours, label: "Hrs" },
-            { value: timeLeft.mins, label: "Min" },
-            { value: timeLeft.secs, label: "Sec" },
-          ].map((block) => (
-            <div key={block.label} className="flex flex-col items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-secondary rounded-xl border border-border/30">
-              <span className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
-                {String(block.value).padStart(2, "0")}
-              </span>
-              <span className="text-[9px] sm:text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                {block.label}
-              </span>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="border border-border/40 rounded-xl bg-card shadow-sm min-w-[200px] shrink-0 px-4 py-3 space-y-2">
+      <div className="flex items-center gap-2">
+        {creator && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Avatar className="h-5 w-5 shrink-0">
+                  <AvatarImage src={creator.avatar_url ? `${creator.avatar_url}?t=${Date.now()}` : undefined} />
+                  <AvatarFallback className="text-[8px] bg-muted">{creator.full_name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "?"}</AvatarFallback>
+                </Avatar>
+              </TooltipTrigger>
+              <TooltipContent>Created by {creator.full_name || "Unknown"}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+        <p className="font-semibold text-[13px] text-foreground truncate leading-tight">{name}</p>
+      </div>
+      <p className="text-[10px] text-muted-foreground leading-none">{format(target, "MMM d, yyyy")}</p>
+      <div className="flex items-center gap-2">
+        {[
+          { value: timeLeft.days, label: "D" },
+          { value: timeLeft.hours, label: "H" },
+          { value: timeLeft.mins, label: "M" },
+          { value: timeLeft.secs, label: "S" },
+        ].map((block) => (
+          <div key={block.label} className="flex flex-col items-center justify-center w-10 h-10 bg-secondary rounded-lg border border-border/30">
+            <span className="text-sm font-semibold tracking-tight text-foreground leading-none">
+              {String(block.value).padStart(2, "0")}
+            </span>
+            <span className="text-[8px] font-medium text-muted-foreground uppercase tracking-wider leading-none mt-0.5">
+              {block.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
