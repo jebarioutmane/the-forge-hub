@@ -139,7 +139,7 @@ export default function FoundersLeaderboard() {
                   </p>
                 </div>
 
-                <FounderSparkline scores={sparklineMap[entry.id] || []} />
+                <FounderSparkline scores={sparklineMap.scores[entry.id] || []} dates={sparklineMap.dates[entry.id] || []} />
 
                 <span className="text-[13px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg shrink-0">
                   {entry.avgScore}
