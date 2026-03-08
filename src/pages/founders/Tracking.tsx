@@ -417,7 +417,8 @@ export default function FoundersTracking() {
             </Accordion>
           )}
         </div>
-      )}
+        );
+      })()}
 
       {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
