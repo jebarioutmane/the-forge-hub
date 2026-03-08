@@ -139,12 +139,18 @@ export function TagPicker({ value, onChange, className }: TagPickerProps) {
                 align="start"
                 className="w-64 p-3 space-y-3"
                 onOpenAutoFocus={(e) => e.preventDefault()}
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
               >
                 <Input
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="New tag name..."
                   className="h-8 text-sm"
+                  onClick={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
                   onKeyDown={(e) => e.key === "Enter" && newName.trim() && createTagMutation.mutate()}
                 />
                 <div className="flex items-center gap-1.5">
