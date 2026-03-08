@@ -66,6 +66,7 @@ export default function Source() {
       if (error) throw error;
     },
     onSuccess: () => {
+      logAction("Operations-Budgets", "UPDATE", editing?.id || "", editing as any, { category: form.category, total_amount: form.total_amount }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
       setEditing(null);
       resetForm();
