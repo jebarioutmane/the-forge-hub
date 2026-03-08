@@ -83,7 +83,9 @@ export default function Stipends() {
       const { error } = await supabase.from("stipends").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = stipends.find(s => s.id === id);
+      logAction("Operations-Stipends", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["stipends"] });
       setDeleteId(null);
       toast.success("Stipend deleted");
