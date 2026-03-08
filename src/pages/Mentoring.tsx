@@ -44,6 +44,7 @@ const emptyForm: FormState = {
 };
 
 export default function Mentoring() {
+  const { user } = useAuth();
   const qc = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Session | null>(null);
