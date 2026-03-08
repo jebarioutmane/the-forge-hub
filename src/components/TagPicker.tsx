@@ -57,7 +57,12 @@ export function TagPicker({ value, onChange, className }: TagPickerProps) {
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        // Don't close if clicking inside a popover portal
+        const target = e.target as HTMLElement;
+        if (target.closest("[data-radix-popper-content-wrapper]")) return;
+        setOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
@@ -139,20 +144,29 @@ export function TagPicker({ value, onChange, className }: TagPickerProps) {
                 align="start"
                 className="w-64 p-3 space-y-3"
                 onOpenAutoFocus={(e) => e.preventDefault()}
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
               >
                 <Input
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="New tag name..."
                   className="h-8 text-sm"
+                  onClick={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
                   onKeyDown={(e) => e.key === "Enter" && newName.trim() && createTagMutation.mutate()}
                 />
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
                   <input
                     type="color"
                     value={newColor}
                     onChange={(e) => setNewColor(e.target.value)}
                     className="h-6 w-6 rounded cursor-pointer border-0 p-0"
+                    onClick={(e) => e.stopPropagation()}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
                   />
                   {PRESET_COLORS.map((c) => (
                     <button
