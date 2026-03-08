@@ -181,8 +181,8 @@ export default function FoundersTracking() {
       // Auto-calculate score from star ratings (5 areas × 5 stars = 25 max → scale to 100)
       const totalStars = (form.product_dev_rating || 0) + (form.clients_traction_rating || 0) + (form.team_structure_rating || 0) + (form.market_presence_rating || 0) + (form.funding_update_rating || 0);
       const calculatedScore = Math.round((totalStars / 25) * 100);
-      // Use manual score if user set one > 0, otherwise use auto-calculated
-      const finalScore = form.overall_score > 0 ? form.overall_score : calculatedScore;
+      // Always use star-based calculation; manual field is display-only
+      const finalScore = calculatedScore;
 
       const payload = {
         founder_id: form.founder_id,
