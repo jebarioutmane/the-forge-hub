@@ -129,7 +129,7 @@ export default function GlobalNetworkMap() {
         <span className="text-lg">🌍</span>
         <h3 className="text-[15px] font-semibold text-foreground tracking-tight">Global Network</h3>
       </div>
-      <div className="flex-1 relative">
+      <div className="flex-1 relative min-h-0">
         {/* Scroll trap overlay */}
         {!isInteractive && (
           <div
@@ -149,13 +149,13 @@ export default function GlobalNetworkMap() {
           <Search className={`h-4 w-4 transition-colors ${isInteractive ? "text-muted-foreground" : "text-primary"}`} />
         </button>
 
-        <div className="bg-[hsl(var(--card))] h-full">
+        <div className="h-full w-full bg-background">
           <ComposableMap
             projection="geoMercator"
-            projectionConfig={{ scale: 130, center: [10, 30] }}
+            projectionConfig={{ scale: 140, center: [15, 35] }}
             width={800}
-            height={420}
-            style={{ width: "100%", height: "auto" }}
+            height={450}
+            style={{ width: "100%", height: "100%" }}
           >
             <ZoomableGroup zoom={1} minZoom={1} maxZoom={isInteractive ? 8 : 1}>
               <Geographies geography={GEO_URL}>
@@ -164,12 +164,12 @@ export default function GlobalNetworkMap() {
                     <Geography
                       key={geo.rpiKey}
                       geography={geo}
-                      fill="hsl(var(--muted))"
-                      stroke="hsl(var(--border))"
-                      strokeWidth={0.5}
+                      fill="#E8E8ED"
+                      stroke="#FFFFFF"
+                      strokeWidth={0.75}
                       style={{
                         default: { outline: "none" },
-                        hover: { outline: "none", fill: "hsl(var(--muted-foreground) / 0.2)" },
+                        hover: { outline: "none", fill: "#D2D2D7" },
                         pressed: { outline: "none" },
                       }}
                     />
@@ -177,48 +177,30 @@ export default function GlobalNetworkMap() {
                 }
               </Geographies>
 
-              {/* Founder lines (orange) */}
-              {founderCountries.map((d) => {
+              {/* Connection lines */}
+              {[...founderCountries, ...expertCountries].map((d) => {
                 const coords = getCountryCoordinates(d.country);
                 if (!coords) return null;
                 return (
                   <Line
-                    key={`fl-${d.country}`}
+                    key={`line-${d.country}`}
                     from={coords}
                     to={MOROCCO}
-                    stroke="hsl(var(--primary))"
-                    strokeWidth={1.5}
+                    stroke="#0071E3"
+                    strokeWidth={1}
                     strokeLinecap="round"
-                    strokeDasharray="4 2"
-                    strokeOpacity={0.5}
+                    strokeOpacity={0.3}
                   />
                 );
               })}
 
-              {/* Expert lines (blue) */}
-              {expertCountries.map((d) => {
-                const coords = getCountryCoordinates(d.country);
-                if (!coords) return null;
-                return (
-                  <Line
-                    key={`el-${d.country}`}
-                    from={coords}
-                    to={MOROCCO}
-                    stroke="hsl(var(--module-events))"
-                    strokeWidth={1.5}
-                    strokeLinecap="round"
-                    strokeDasharray="4 2"
-                    strokeOpacity={0.5}
-                  />
-                );
-              })}
-
-              {/* Morocco hub emoji */}
+              {/* Morocco hub dot */}
               <Marker coordinates={MOROCCO}>
-                <text
-                  textAnchor="middle"
-                  dominantBaseline="central"
-                  fontSize={18}
+                <circle
+                  r={6}
+                  fill="#0071E3"
+                  stroke="#FFFFFF"
+                  strokeWidth={2.5}
                   className="cursor-pointer"
                   onMouseEnter={(e) =>
                     handleMarkerHover(e, {
@@ -229,55 +211,24 @@ export default function GlobalNetworkMap() {
                     })
                   }
                   onMouseLeave={() => setTooltip(null)}
-                >
-                  🏢
-                </text>
+                />
               </Marker>
 
-              {/* Founder emoji markers */}
-              {founderCountries.map((d) => {
+              {/* Country dots */}
+              {mapData.map((d) => {
                 const coords = getCountryCoordinates(d.country);
                 if (!coords) return null;
-                const hasExpert = d.expertCount > 0;
                 return (
-                  <Marker
-                    key={`fm-${d.country}`}
-                    coordinates={hasExpert ? [coords[0] - 1.5, coords[1] - 1] : coords}
-                  >
-                    <text
-                      textAnchor="middle"
-                      dominantBaseline="central"
-                      fontSize={Math.min(12 + d.founderCount * 2, 20)}
+                  <Marker key={`dot-${d.country}`} coordinates={coords}>
+                    <circle
+                      r={4}
+                      fill="#0071E3"
+                      stroke="#FFFFFF"
+                      strokeWidth={2}
                       className="cursor-pointer"
                       onMouseEnter={(e) => handleMarkerHover(e, d)}
                       onMouseLeave={() => setTooltip(null)}
-                    >
-                      🧑‍💻
-                    </text>
-                  </Marker>
-                );
-              })}
-
-              {/* Expert emoji markers */}
-              {expertCountries.map((d) => {
-                const coords = getCountryCoordinates(d.country);
-                if (!coords) return null;
-                const hasFounder = d.founderCount > 0;
-                return (
-                  <Marker
-                    key={`em-${d.country}`}
-                    coordinates={hasFounder ? [coords[0] + 1.5, coords[1] + 1] : coords}
-                  >
-                    <text
-                      textAnchor="middle"
-                      dominantBaseline="central"
-                      fontSize={Math.min(12 + d.expertCount * 2, 20)}
-                      className="cursor-pointer"
-                      onMouseEnter={(e) => handleMarkerHover(e, d)}
-                      onMouseLeave={() => setTooltip(null)}
-                    >
-                      👔
-                    </text>
+                    />
                   </Marker>
                 );
               })}
@@ -294,7 +245,7 @@ export default function GlobalNetworkMap() {
                 <p className="text-xs text-primary">Founders: {tooltip.data.founderCount}</p>
               )}
               {tooltip.data.expertCount > 0 && (
-                <p className="text-xs text-module-events">Experts: {tooltip.data.expertCount}</p>
+                <p className="text-xs text-muted-foreground">Experts: {tooltip.data.expertCount}</p>
               )}
               {tooltip.data.institutions.length > 0 && (
                 <ul className="text-xs text-muted-foreground mt-1 list-disc list-inside">
@@ -306,20 +257,16 @@ export default function GlobalNetworkMap() {
             </div>
           )}
         </div>
+      </div>
 
-        <div className="flex items-center gap-6 px-4 py-3 border-t bg-muted/30">
-          <div className="flex items-center gap-2">
-            <span className="text-sm">🧑‍💻</span>
-            <span className="text-xs text-muted-foreground">Founder Nationalities</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm">👔</span>
-            <span className="text-xs text-muted-foreground">Expert / Institution</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm">🏢</span>
-            <span className="text-xs text-muted-foreground">Morocco (Hub)</span>
-          </div>
+      <div className="flex items-center gap-6 px-4 py-2.5 border-t border-border/40 bg-muted/30">
+        <div className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#0071E3]" />
+          <span className="text-xs text-muted-foreground">Network Nodes</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#0071E3] ring-2 ring-[#0071E3]/20" />
+          <span className="text-xs text-muted-foreground">Morocco Hub</span>
         </div>
       </div>
     </div>
