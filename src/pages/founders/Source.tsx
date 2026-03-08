@@ -367,11 +367,11 @@ export default function FoundersSource() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Search name or startup..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
             </div>
-            <Select value={filterCohort} onValueChange={setFilterCohort}>
-              <SelectTrigger><SelectValue placeholder="All Cohorts" /></SelectTrigger>
+            <Select value={filterCohortYear} onValueChange={setFilterCohortYear}>
+              <SelectTrigger className="w-[140px] bg-secondary border-none rounded-lg font-medium"><SelectValue placeholder="Cohort Year" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Cohorts</SelectItem>
-                {uniqueCohorts.map((c) => <SelectItem key={c} value={c!}>{c}</SelectItem>)}
+                <SelectItem value="all">All Years</SelectItem>
+                {uniqueCohortYears.map((y) => <SelectItem key={y} value={y!}>{y}</SelectItem>)}
               </SelectContent>
             </Select>
             <CountryMultiSelect value={filterCountries} onChange={setFilterCountries} placeholder="Filter countries..." />
