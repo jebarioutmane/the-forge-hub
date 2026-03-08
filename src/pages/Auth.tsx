@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import logoColored from "@/assets/Logo-THEFORGE_colored.png";
+const appIcon = "/pwa-512x512.png";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
