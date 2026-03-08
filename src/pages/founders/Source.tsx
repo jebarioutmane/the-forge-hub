@@ -434,6 +434,7 @@ export default function FoundersSource() {
                 onEdit={openEdit}
                 onDelete={(id) => setDeleteId(id)}
                 highlightId={highlightId}
+                sparklineScores={sparklineMap[f.id]}
               />
             );
           })}
