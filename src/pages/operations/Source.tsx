@@ -47,6 +47,7 @@ export default function Source() {
       if (error) throw error;
     },
     onSuccess: () => {
+      logAction("Operations-Budgets", "INSERT", "new", null, { category: form.category, total_amount: form.total_amount }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
       setAddOpen(false);
       resetForm();
