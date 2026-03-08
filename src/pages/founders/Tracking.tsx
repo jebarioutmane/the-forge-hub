@@ -151,6 +151,8 @@ function ScoreBadge({ score }: { score: number | null }) {
 export default function FoundersTracking() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const currentYear = new Date().getFullYear().toString();
+  const [selectedCohortYear, setSelectedCohortYear] = useState(currentYear);
   const [selectedFounder, setSelectedFounder] = useState<string>("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
