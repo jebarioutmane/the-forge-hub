@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,94 +6,52 @@
 
 @layer base {
   :root {
+    /* Apple-inspired light-only palette */
     --background: 0 0% 98%;
-    --foreground: 222 47% 11%;
+    --foreground: 0 0% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 0 0% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 0 0% 11%;
 
-    --primary: 24 95% 53%;
+    --primary: 211 100% 44%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 0 0% 11%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 24 95% 53%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 24 95% 53%;
-
-    --radius: 0.75rem;
-
-    --sidebar-background: 220 25% 14%;
-    --sidebar-foreground: 215 20% 65%;
-    --sidebar-primary: 24 95% 53%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 18%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 220 15% 20%;
-    --sidebar-ring: 24 95% 53%;
-
-    --module-operations: 160 84% 39%;
-    --module-events: 210 100% 50%;
-    --module-founders: 271 91% 65%;
-
-    --font-display: 'Plus Jakarta Sans', sans-serif;
-    --font-body: 'Inter', sans-serif;
-  }
-
-  .dark {
-    --background: 224 30% 6%;
-    --foreground: 210 40% 92%;
-
-    --card: 222 25% 10%;
-    --card-foreground: 210 40% 92%;
-
-    --popover: 222 25% 10%;
-    --popover-foreground: 210 40% 92%;
-
-    --primary: 24 95% 53%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 222 20% 16%;
-    --secondary-foreground: 210 30% 80%;
-
-    --muted: 222 20% 14%;
-    --muted-foreground: 215 15% 55%;
-
-    --accent: 24 95% 53%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 240 5% 96%;
+    --accent-foreground: 0 0% 11%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 222 15% 18%;
-    --input: 222 15% 18%;
-    --ring: 24 95% 53%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 211 100% 44%;
 
-    --sidebar-background: 224 30% 6%;
-    --sidebar-foreground: 215 20% 55%;
-    --sidebar-primary: 24 95% 53%;
+    --radius: 0.625rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 45%;
+    --sidebar-primary: 211 100% 44%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 20% 12%;
-    --sidebar-accent-foreground: 210 40% 92%;
-    --sidebar-border: 222 15% 14%;
-    --sidebar-ring: 24 95% 53%;
+    --sidebar-accent: 240 5% 96%;
+    --sidebar-accent-foreground: 0 0% 11%;
+    --sidebar-border: 0 0% 92%;
+    --sidebar-ring: 211 100% 44%;
 
     --module-operations: 160 84% 39%;
-    --module-events: 210 100% 50%;
-    --module-founders: 271 91% 65%;
+    --module-events: 211 100% 44%;
+    --module-founders: 271 65% 55%;
+
+    --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
   }
 }
 
@@ -101,12 +59,42 @@
   * {
     @apply border-border;
   }
+  
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-body);
+    font-feature-settings: 'kern' 1, 'liga' 1;
   }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    font-weight: 700;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: hsl(0 0% 11%);
+  }
+
+  h1 {
+    @apply text-3xl md:text-4xl font-semibold tracking-tight;
+  }
+
+  h2 {
+    @apply text-xl md:text-2xl font-semibold tracking-tight;
+  }
+
+  h3 {
+    @apply text-lg font-semibold;
+  }
+}
+
+/* Smooth transitions globally */
+@layer utilities {
+  .transition-apple {
+    transition: all 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
   }
 }

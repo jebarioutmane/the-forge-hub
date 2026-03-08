@@ -1,7 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
 import { TopNav } from "@/components/TopNav";
-import { RetroGrid } from "@/components/ui/retro-grid";
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -19,10 +18,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen relative">
-      <RetroGrid />
+    <div className="min-h-screen bg-background">
       <TopNav />
-      <main className="relative z-10 pt-14">
+      <main className="pt-12">
         {children}
       </main>
     </div>
