@@ -106,6 +106,7 @@ export default function OperationsTasks() {
       if (error) throw error;
     },
     onSuccess: () => {
+      logAction("Operations-Tasks", "UPDATE", editingTask?.id || "", editingTask as any, { title: form.title, priority: form.priority }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setEditingTask(null);
       resetForm();
