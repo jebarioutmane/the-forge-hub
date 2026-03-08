@@ -16,11 +16,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Plus, Pencil, Eye, User, CalendarIcon, Link2, X, Trash2, Shield, ShieldCheck, ShieldAlert, Search, Check } from "lucide-react";
+import { Plus, Pencil, Eye, User, CalendarIcon, Link2, X, Trash2, Shield, ShieldCheck, ShieldAlert, Search, Check, Mail, Phone, ExternalLink } from "lucide-react";
 import { logAction } from "@/lib/logAction";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { COUNTRIES, getFlag } from "@/lib/countries";
+import { formatUrl } from "@/lib/formatUrl";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Profile = Tables<"profiles">;
@@ -241,45 +242,76 @@ export default function SystemProfiles() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {profiles.map((profile) => {
             const isOwn = user?.id === profile.id;
             const canEdit = isOwn || hasEditRights;
             const roleBadge = getRoleBadge(profile.role);
             const RoleIcon = roleBadge.icon;
+            const nationalities = (profile.nationalities as string[]) || [];
+            const tags = (profile.tags as string[]) || [];
 
             return (
-              <Card key={profile.id} className="relative overflow-hidden border-border/60 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-start gap-3 pb-3">
-                  <Avatar className="h-12 w-12 shrink-0">
-                    <AvatarImage src={profile.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                      {initials(profile.full_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <CardTitle className="text-sm truncate leading-tight">{profile.full_name || "Unnamed"}</CardTitle>
-                    {profile.title && (
-                      <p className="text-xs text-muted-foreground truncate">{profile.title}</p>
-                    )}
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 h-5 gap-1 font-medium", roleBadge.className)}>
-                        <RoleIcon className="h-2.5 w-2.5" />
-                        {roleBadge.label}
-                      </Badge>
-                      {isOwn && (
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">You</Badge>
-                      )}
-                      {profile.status && profile.status !== "Active" && (
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-accent text-accent-foreground border-border">
-                          {profile.status}
-                        </Badge>
-                      )}
-                    </div>
+              <Card key={profile.id} className="group relative flex flex-col overflow-hidden border-border/60 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+                {/* Header gradient area */}
+                <div className="relative h-24 bg-gradient-to-br from-secondary to-muted flex items-end justify-center">
+                  <div className="absolute top-3 right-3 h-14 w-14 rounded-full bg-primary/[0.04]" />
+                  {/* Avatar overlapping */}
+                  <div className="absolute -bottom-7 left-1/2 -translate-x-1/2">
+                    <Avatar className="h-14 w-14 border-[3px] border-card shadow-md">
+                      <AvatarImage src={profile.avatar_url || undefined} />
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                        {initials(profile.full_name)}
+                      </AvatarFallback>
+                    </Avatar>
                   </div>
-                </CardHeader>
-                <CardContent className="pt-0 space-y-3">
-                  <div className="flex gap-2 justify-end pt-1">
+                </div>
+
+                {/* Content */}
+                <div className="flex flex-col flex-1 px-5 pt-10 pb-4 text-center">
+                  <h3 className="text-[15px] font-semibold text-foreground leading-tight truncate">
+                    {profile.full_name || "Unnamed"}
+                  </h3>
+                  {profile.title && (
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate">{profile.title}</p>
+                  )}
+
+                  {/* Country flags */}
+                  {nationalities.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1.5 truncate">
+                      {nationalities.map((n) => `${getFlag(n)} ${n}`).join(" · ")}
+                    </p>
+                  )}
+
+                  {/* Badges row */}
+                  <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2.5">
+                    <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 h-5 gap-1 font-medium", roleBadge.className)}>
+                      <RoleIcon className="h-2.5 w-2.5" />
+                      {roleBadge.label}
+                    </Badge>
+                    {isOwn && (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">You</Badge>
+                    )}
+                    {profile.status && profile.status !== "Active" && (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-accent text-accent-foreground border-border">
+                        {profile.status}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Tags as Apple-style badges */}
+                  {tags.length > 0 && (
+                    <div className="flex flex-wrap items-center justify-center gap-1 mt-2.5">
+                      {tags.map((t) => (
+                        <span key={t} className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium bg-secondary text-muted-foreground">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex gap-2 justify-center mt-3 pt-3 border-t border-border/40">
                     <Button size="sm" variant="outline" onClick={() => openView(profile)} className="h-7 text-xs">
                       <Eye className="mr-1 h-3 w-3" /> View
                     </Button>
@@ -290,24 +322,27 @@ export default function SystemProfiles() {
                     )}
                   </div>
 
+                  {/* Role selector for admins */}
                   {hasEditRights && !isOwn && (
-                    <Select
-                      value={profile.role || "user"}
-                      onValueChange={(val) => roleMutation.mutate({ profileId: profile.id, role: val })}
-                    >
-                      <SelectTrigger className="h-7 text-[11px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ROLE_OPTIONS.map((r) => (
-                          <SelectItem key={r.value} value={r.value} className="text-xs">
-                            {r.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="mt-2">
+                      <Select
+                        value={profile.role || "user"}
+                        onValueChange={(val) => roleMutation.mutate({ profileId: profile.id, role: val })}
+                      >
+                        <SelectTrigger className="h-7 text-[11px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ROLE_OPTIONS.map((r) => (
+                            <SelectItem key={r.value} value={r.value} className="text-xs">
+                              {r.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
-                </CardContent>
+                </div>
               </Card>
             );
           })}
@@ -567,74 +602,120 @@ function ViewProfileContent({ profile, initials }: { profile: Profile; initials:
   const tags = (profile.tags as string[]) || [];
   const roleBadge = getRoleBadgeStatic(profile.role);
 
+  const statusColor = profile.status === "Active"
+    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+    : profile.status === "Inactive"
+    ? "bg-muted text-muted-foreground border-border"
+    : "bg-amber-500/10 text-amber-600 border-amber-500/20";
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+      {/* Header */}
       <div className="flex items-center gap-4">
-        <Avatar className="h-16 w-16">
+        <Avatar className="h-16 w-16 border-2 border-border shadow-sm">
           <AvatarImage src={profile.avatar_url || undefined} />
           <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
             {initials(profile.full_name)}
           </AvatarFallback>
         </Avatar>
-        <div className="space-y-1">
-          <p className="text-base font-semibold">{profile.full_name || "Unnamed"}</p>
-          {profile.title && <p className="text-xs text-muted-foreground">{profile.title}</p>}
-          <Badge variant="outline" className={cn("text-[10px] font-medium", roleBadge.className)}>
-            {roleBadge.label}
-          </Badge>
+        <div className="space-y-1.5">
+          <p className="text-lg font-semibold leading-tight">{profile.full_name || "Unnamed"}</p>
+          {profile.title && <p className="text-sm text-muted-foreground">{profile.title}</p>}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Badge variant="outline" className={cn("text-[10px] font-medium", roleBadge.className)}>
+              {roleBadge.label}
+            </Badge>
+            {profile.status && (
+              <Badge variant="outline" className={cn("text-[10px] font-medium", statusColor)}>
+                {profile.status}
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-        <DetailRow label="Email" value={profile.email} />
-        <DetailRow label="Phone" value={profile.phone} />
-        <DetailRow label="Birthday" value={profile.birthday ? format(new Date(profile.birthday), "PPP") : null} />
-        <DetailRow label="Date Joined" value={profile.date_joined ? format(new Date(profile.date_joined), "PPP") : null} />
-        <DetailRow label="CIN" value={profile.cin_number} />
-        <DetailRow label="Passport" value={profile.passport_number} />
-        <DetailRow label="Status" value={profile.status} />
-        {profile.status === "On leave" && profile.status_until && (
-          <DetailRow label="Until" value={format(new Date(profile.status_until), "PPP")} />
-        )}
-        {profile.status_note && (
-          <div className="col-span-2">
-            <DetailRow label="Status Note" value={profile.status_note} />
-          </div>
-        )}
+      {/* Status details */}
+      {(profile.status === "On leave" && profile.status_until) && (
+        <div className="rounded-lg bg-amber-50 border border-amber-200/50 px-3 py-2 text-sm text-amber-700">
+          On leave until <span className="font-medium">{format(new Date(profile.status_until), "PPP")}</span>
+        </div>
+      )}
+      {profile.status_note && (
+        <div className="rounded-lg bg-secondary px-3 py-2 text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">Note:</span> {profile.status_note}
+        </div>
+      )}
+
+      {/* Contact Info */}
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Contact</p>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+          <DetailRow label="Email" value={profile.email} icon={<Mail className="h-3 w-3" />} />
+          <DetailRow label="Phone" value={profile.phone} icon={<Phone className="h-3 w-3" />} />
+        </div>
       </div>
 
+      {/* HR Data */}
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">HR Details</p>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+          <DetailRow label="CIN Number" value={profile.cin_number} />
+          <DetailRow label="Passport" value={profile.passport_number} />
+          <DetailRow label="Birthday" value={profile.birthday ? format(new Date(profile.birthday), "PPP") : null} />
+          <DetailRow label="Date Joined" value={profile.date_joined ? format(new Date(profile.date_joined), "PPP") : null} />
+        </div>
+      </div>
+
+      {/* Nationalities */}
       {nationalities.length > 0 && (
         <div>
-          <p className="text-xs font-medium text-muted-foreground mb-1">Nationalities</p>
-          <div className="flex flex-wrap gap-1">
-            {nationalities.map((n) => <Badge key={n} variant="secondary" className="text-xs">{getFlag(n)} {n}</Badge>)}
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Nationalities</p>
+          <div className="flex flex-wrap gap-1.5">
+            {nationalities.map((n) => (
+              <Badge key={n} variant="secondary" className="text-xs gap-1">
+                {getFlag(n)} {n}
+              </Badge>
+            ))}
           </div>
         </div>
       )}
 
+      {/* Tags */}
       {tags.length > 0 && (
         <div>
-          <p className="text-xs font-medium text-muted-foreground mb-1">Tags</p>
-          <div className="flex flex-wrap gap-1">
-            {tags.map((t) => <Badge key={t} variant="outline" className="text-xs">{t}</Badge>)}
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Tags</p>
+          <div className="flex flex-wrap gap-1.5">
+            {tags.map((t) => (
+              <span key={t} className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-secondary text-muted-foreground">
+                {t}
+              </span>
+            ))}
           </div>
         </div>
       )}
 
+      {/* Bio */}
       {profile.description && (
         <div>
-          <p className="text-xs font-medium text-muted-foreground mb-1">Description</p>
-          <p className="text-sm">{profile.description}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Bio</p>
+          <p className="text-sm leading-relaxed">{profile.description}</p>
         </div>
       )}
 
+      {/* Links */}
       {links.length > 0 && (
         <div>
-          <p className="text-xs font-medium text-muted-foreground mb-1">Links</p>
-          <div className="space-y-1">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Links</p>
+          <div className="space-y-1.5">
             {links.map((l, i) => (
-              <a key={i} href={l.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-primary hover:underline">
-                <Link2 className="h-3 w-3" />
+              <a
+                key={i}
+                href={formatUrl(l.url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm text-primary hover:underline transition-colors"
+              >
+                <ExternalLink className="h-3 w-3 shrink-0" />
                 {l.title || l.url}
               </a>
             ))}
@@ -645,12 +726,15 @@ function ViewProfileContent({ profile, initials }: { profile: Profile; initials:
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string | null | undefined }) {
+function DetailRow({ label, value, icon }: { label: string; value: string | null | undefined; icon?: React.ReactNode }) {
   if (!value) return null;
   return (
     <div>
       <p className="text-[11px] text-muted-foreground">{label}</p>
-      <p className="text-sm truncate">{value}</p>
+      <p className="text-sm truncate flex items-center gap-1.5">
+        {icon && <span className="text-muted-foreground">{icon}</span>}
+        {value}
+      </p>
     </div>
   );
 }
