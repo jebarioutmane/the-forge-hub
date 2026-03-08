@@ -277,7 +277,8 @@ export default function FoundersTracking() {
   }
 
   function getSectionLinks(entry: Tracking, areaKey: string): EvidenceLink[] {
-    const links = (entry.section_links || {}) as SectionLinks;
+    if (!entry.section_links || typeof entry.section_links !== "object") return [];
+    const links = entry.section_links as SectionLinks;
     return links[areaKey] || [];
   }
 
@@ -409,8 +410,8 @@ export default function FoundersTracking() {
                 />
                 <SectionLinkEditor
                   sectionKey={area.key}
-                  links={form.section_links[area.key] || []}
-                  onChange={(links) => setForm((f) => ({ ...f, section_links: { ...f.section_links, [area.key]: links } }))}
+                  links={(form.section_links || {})[area.key] || []}
+                  onChange={(links) => setForm((f) => ({ ...f, section_links: { ...(f.section_links || {}), [area.key]: links } }))}
                 />
               </div>
             ))}
