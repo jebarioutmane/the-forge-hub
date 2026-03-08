@@ -4,7 +4,7 @@ import {
   ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
   Settings, Wallet, PiggyBank, ListTodo,
   ClipboardList, BarChart3, Users2, Truck,
-  LogOut, Menu, ChevronRight,
+  LogOut, Menu, ChevronRight, Search,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import TeamPresence from "@/components/TeamPresence";
 const appIcon = "/pwa-512x512.png";
 import { usePresence } from "@/hooks/usePresence";
 import { cn } from "@/lib/utils";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import {
   NavigationMenu,
   NavigationMenuContent,
