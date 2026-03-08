@@ -19,7 +19,6 @@ import { addDays, differenceInDays, format, parseISO, min, max } from "date-fns"
 import type { Tables } from "@/integrations/supabase/types";
 import { TagPicker } from "@/components/TagPicker";
 import { TagBadges } from "@/components/TagBadges";
-import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
