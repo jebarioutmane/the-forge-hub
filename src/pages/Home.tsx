@@ -129,8 +129,15 @@ export default function Home() {
       {/* Event Countdowns */}
       <EventCountdowns />
 
-      {/* Global Network Map */}
-      <GlobalNetworkMap />
+      {/* Split Layout: Leaderboard + Map */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1 bg-card rounded-2xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-[500px]">
+          <FoundersLeaderboard />
+        </div>
+        <div className="lg:col-span-2 bg-card rounded-2xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-[500px]">
+          <GlobalNetworkMap />
+        </div>
+      </div>
     </div>
   );
 }
