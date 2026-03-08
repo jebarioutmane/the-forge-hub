@@ -18,6 +18,7 @@ interface FounderCardProps {
 }
 
 export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, onDelete }: FounderCardProps) {
+  const [imgError, setImgError] = useState(false);
   const initials = founder.founder_name
     .split(" ")
     .map((w) => w[0])
