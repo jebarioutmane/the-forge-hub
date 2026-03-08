@@ -14,9 +14,10 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { StarRating } from "@/components/StarRating";
 import { toast } from "sonner";
-import { Plus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Trash2, ExternalLink, Link as LinkIcon, X } from "lucide-react";
 import { logAction } from "@/lib/logAction";
 import { format, parseISO } from "date-fns";
+import { formatUrl } from "@/lib/formatUrl";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Founder = Tables<"founders">;
@@ -29,6 +30,9 @@ const AREAS = [
   { key: "market_presence", label: "Market Presence" },
   { key: "funding_update", label: "Funding Update" },
 ] as const;
+
+type EvidenceLink = { title: string; url: string };
+type SectionLinks = Record<string, EvidenceLink[]>;
 
 type FormState = {
   id?: string;
@@ -45,6 +49,8 @@ type FormState = {
   funding_update_rating: number;
   funding_update: string;
   other_updates: string;
+  section_links: SectionLinks;
+  overall_score: number;
 };
 
 const emptyForm = (founderId: string): FormState => ({
@@ -56,7 +62,90 @@ const emptyForm = (founderId: string): FormState => ({
   market_presence_rating: 0, market_presence_update: "",
   funding_update_rating: 0, funding_update: "",
   other_updates: "",
+  section_links: {},
+  overall_score: 0,
 });
+
+function SectionLinkEditor({ sectionKey, links, onChange }: { sectionKey: string; links: EvidenceLink[]; onChange: (links: EvidenceLink[]) => void }) {
+  const [adding, setAdding] = useState(false);
+
+  const addLink = () => {
+    onChange([...links, { title: "", url: "" }]);
+    setAdding(true);
+  };
+
+  const updateLink = (idx: number, field: "title" | "url", value: string) => {
+    const updated = links.map((l, i) => i === idx ? { ...l, [field]: value } : l);
+    onChange(updated);
+  };
+
+  const removeLink = (idx: number) => {
+    onChange(links.filter((_, i) => i !== idx));
+  };
+
+  return (
+    <div className="space-y-2">
+      {links.map((link, idx) => (
+        <div key={idx} className="flex items-center gap-2">
+          <Input
+            placeholder="Link title"
+            value={link.title}
+            onChange={(e) => updateLink(idx, "title", e.target.value)}
+            className="h-7 text-xs flex-1"
+          />
+          <Input
+            placeholder="https://..."
+            value={link.url}
+            onChange={(e) => updateLink(idx, "url", e.target.value)}
+            className="h-7 text-xs flex-1"
+          />
+          <button type="button" onClick={() => removeLink(idx)} className="text-muted-foreground hover:text-destructive transition-colors">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={addLink}
+        className="inline-flex items-center gap-1 text-xs text-[#0071E3] hover:underline"
+      >
+        <LinkIcon className="h-3 w-3" /> + Add Evidence Link
+      </button>
+    </div>
+  );
+}
+
+function EvidenceLinkDisplay({ links }: { links: EvidenceLink[] }) {
+  if (!links || links.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-1.5">
+      {links.map((link, idx) => (
+        <a
+          key={idx}
+          href={formatUrl(link.url)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-[13px] text-[#0071E3] bg-[#0071E3]/10 px-2 py-1 rounded-md hover:bg-[#0071E3]/20 transition-colors"
+        >
+          <ExternalLink className="h-3 w-3" />
+          {link.title || link.url}
+        </a>
+      ))}
+    </div>
+  );
+}
+
+function ScoreBadge({ score }: { score: number | null }) {
+  if (score === null || score === undefined) return null;
+  const colorClass = score >= 80 ? "text-emerald-600" : score >= 50 ? "text-amber-500" : "text-red-500";
+  return (
+    <div className="border-t pt-3 mt-3 flex items-center justify-end gap-2">
+      <span className="text-xs font-medium text-[#6E6E73]">Overall Score</span>
+      <span className={`text-2xl font-bold ${colorClass}`}>{score}</span>
+      <span className="text-sm font-medium text-[#6E6E73]">/100</span>
+    </div>
+  );
+}
 
 export default function FoundersTracking() {
   const { user } = useAuth();
@@ -102,6 +191,8 @@ export default function FoundersTracking() {
         funding_update_rating: form.funding_update_rating,
         funding_update: form.funding_update || null,
         other_updates: form.other_updates || null,
+        section_links: form.section_links as any,
+        overall_score: form.overall_score,
       };
 
       if (form.id) {
@@ -163,6 +254,7 @@ export default function FoundersTracking() {
   }
 
   function openEditTracking(entry: Tracking) {
+    const sectionLinks = (entry.section_links || {}) as SectionLinks;
     setForm({
       id: entry.id,
       founder_id: entry.founder_id || selectedFounder,
@@ -178,8 +270,15 @@ export default function FoundersTracking() {
       funding_update_rating: entry.funding_update_rating || 0,
       funding_update: entry.funding_update || "",
       other_updates: entry.other_updates || "",
+      section_links: sectionLinks,
+      overall_score: entry.overall_score || 0,
     });
     setDialogOpen(true);
+  }
+
+  function getSectionLinks(entry: Tracking, areaKey: string): EvidenceLink[] {
+    const links = (entry.section_links || {}) as SectionLinks;
+    return links[areaKey] || [];
   }
 
   return (
@@ -249,13 +348,19 @@ export default function FoundersTracking() {
                             {AREAS.map((area) => {
                               const rating = (entry as any)[`${area.key}_rating`];
                               const update = (entry as any)[area.key === "funding_update" ? "funding_update" : `${area.key}_update`];
+                              const links = getSectionLinks(entry, area.key);
                               return (
-                                <div key={area.key} className="flex items-start gap-3">
-                                  <div className="w-40 shrink-0">
-                                    <p className="text-xs font-medium text-muted-foreground">{area.label}</p>
-                                    <StarRating value={rating || 0} readOnly size={14} />
+                                <div key={area.key}>
+                                  <div className="flex items-start gap-3">
+                                    <div className="w-40 shrink-0">
+                                      <p className="text-xs font-medium text-muted-foreground">{area.label}</p>
+                                      <StarRating value={rating || 0} readOnly size={14} />
+                                    </div>
+                                    <div className="flex-1">
+                                      <p className="text-sm text-foreground/80">{update || "—"}</p>
+                                      <EvidenceLinkDisplay links={links} />
+                                    </div>
                                   </div>
-                                  <p className="text-sm text-foreground/80">{update || "—"}</p>
                                 </div>
                               );
                             })}
@@ -265,6 +370,7 @@ export default function FoundersTracking() {
                                 <p className="text-sm">{entry.other_updates}</p>
                               </div>
                             )}
+                            <ScoreBadge score={entry.overall_score} />
                           </CardContent>
                         </Card>
                       ))}
@@ -301,11 +407,27 @@ export default function FoundersTracking() {
                   value={(form as any)[area.key === "funding_update" ? "funding_update" : `${area.key}_update`]}
                   onChange={(e) => setForm((f) => ({ ...f, [area.key === "funding_update" ? "funding_update" : `${area.key}_update`]: e.target.value }))}
                 />
+                <SectionLinkEditor
+                  sectionKey={area.key}
+                  links={form.section_links[area.key] || []}
+                  onChange={(links) => setForm((f) => ({ ...f, section_links: { ...f.section_links, [area.key]: links } }))}
+                />
               </div>
             ))}
             <div className="space-y-2">
               <Label>Other Notes</Label>
               <Textarea rows={2} value={form.other_updates} onChange={(e) => setForm((f) => ({ ...f, other_updates: e.target.value }))} />
+            </div>
+            <div className="space-y-2 border-t pt-4">
+              <Label>Overall Score (0–100) <span className="text-destructive">*</span></Label>
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={form.overall_score}
+                onChange={(e) => setForm((f) => ({ ...f, overall_score: Math.min(100, Math.max(0, Number(e.target.value) || 0)) }))}
+                className="max-w-[120px]"
+              />
             </div>
           </div>
           <DialogFooter>
