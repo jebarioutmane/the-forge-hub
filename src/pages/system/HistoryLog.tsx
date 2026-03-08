@@ -29,8 +29,8 @@ const SECTION_TABLE_MAP: Record<string, string> = {
 };
 
 const actionColor: Record<string, string> = {
-  INSERT: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
-  UPDATE: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+  INSERT: "bg-emerald-500/15 text-emerald-700",
+  UPDATE: "bg-amber-500/15 text-amber-700",
   DELETE: "bg-destructive/15 text-destructive",
 };
 
