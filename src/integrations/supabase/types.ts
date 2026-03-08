@@ -681,6 +681,8 @@ export type Database = {
           phone: string | null
           role: string | null
           status: string | null
+          status_note: string | null
+          status_until: string | null
           tags: string[] | null
           title: string | null
           updated_at: string | null
@@ -701,6 +703,8 @@ export type Database = {
           phone?: string | null
           role?: string | null
           status?: string | null
+          status_note?: string | null
+          status_until?: string | null
           tags?: string[] | null
           title?: string | null
           updated_at?: string | null
@@ -721,6 +725,8 @@ export type Database = {
           phone?: string | null
           role?: string | null
           status?: string | null
+          status_note?: string | null
+          status_until?: string | null
           tags?: string[] | null
           title?: string | null
           updated_at?: string | null
