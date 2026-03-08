@@ -50,6 +50,7 @@ const parseCountryValues = (value: unknown): string[] => {
 };
 
 export default function GlobalNetworkMap() {
+  const [isInteractive, setIsInteractive] = useState(false);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; data: CountryData } | null>(null);
 
   const { data: founders = [] } = useQuery({
