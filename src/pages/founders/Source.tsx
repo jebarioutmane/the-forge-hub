@@ -428,7 +428,10 @@ export default function FoundersSource() {
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o) { setDialogOpen(false); setEditing(null); } }}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editing ? "Edit Founder" : "New Founder"}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{editing ? "Edit Founder" : "New Founder"}</DialogTitle>
+            <DialogDescription className="sr-only">Fill in the details to {editing ? "update" : "add"} a founder profile.</DialogDescription>
+          </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
