@@ -153,12 +153,15 @@ export function TagPicker({ value, onChange, className }: TagPickerProps) {
                   onMouseDown={(e) => e.stopPropagation()}
                   onKeyDown={(e) => e.key === "Enter" && newName.trim() && createTagMutation.mutate()}
                 />
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
                   <input
                     type="color"
                     value={newColor}
                     onChange={(e) => setNewColor(e.target.value)}
                     className="h-6 w-6 rounded cursor-pointer border-0 p-0"
+                    onClick={(e) => e.stopPropagation()}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
                   />
                   {PRESET_COLORS.map((c) => (
                     <button
