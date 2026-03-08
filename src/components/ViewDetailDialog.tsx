@@ -3,6 +3,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 export interface DetailField {
@@ -23,6 +24,7 @@ export default function ViewDetailDialog({ open, onClose, title, fields }: ViewD
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          <DialogDescription className="sr-only">Detailed view of {title}.</DialogDescription>
         </DialogHeader>
         <div className="space-y-3 py-2">
           {fields.map((f, i) => (

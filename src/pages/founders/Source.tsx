@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -428,16 +428,19 @@ export default function FoundersSource() {
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o) { setDialogOpen(false); setEditing(null); } }}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editing ? "Edit Founder" : "New Founder"}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{editing ? "Edit Founder" : "New Founder"}</DialogTitle>
+            <DialogDescription className="sr-only">Fill in the details to {editing ? "update" : "add"} a founder profile.</DialogDescription>
+          </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Full Name *</Label>
-                <Input value={form.founder_name} onChange={(e) => set("founder_name", e.target.value)} />
+                <Label htmlFor="founder-name">Full Name *</Label>
+                <Input id="founder-name" name="founder_name" value={form.founder_name} onChange={(e) => set("founder_name", e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>Startup Name *</Label>
-                <Input value={form.startup_name} onChange={(e) => set("startup_name", e.target.value)} />
+                <Label htmlFor="startup-name">Startup Name *</Label>
+                <Input id="startup-name" name="startup_name" value={form.startup_name} onChange={(e) => set("startup_name", e.target.value)} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -451,8 +454,8 @@ export default function FoundersSource() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Venture Associate</Label>
-                <Input value={form.venture_associate} onChange={(e) => set("venture_associate", e.target.value)} placeholder="Assigned VA" />
+                <Label htmlFor="venture-associate">Venture Associate</Label>
+                <Input id="venture-associate" name="venture_associate" value={form.venture_associate} onChange={(e) => set("venture_associate", e.target.value)} placeholder="Assigned VA" />
               </div>
             </div>
             <div className="space-y-2">
@@ -461,18 +464,18 @@ export default function FoundersSource() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Status</Label>
-                <Input value={form.status} onChange={(e) => set("status", e.target.value)} placeholder="e.g. Active, Dismissed" />
+                <Label htmlFor="founder-status">Status</Label>
+                <Input id="founder-status" name="status" value={form.status} onChange={(e) => set("status", e.target.value)} placeholder="e.g. Active, Dismissed" />
               </div>
               <div className="space-y-2">
-                <Label>Email</Label>
-                <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
+                <Label htmlFor="founder-email">Email</Label>
+                <Input id="founder-email" name="email" type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Phone</Label>
-                <Input value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+212..." />
+                <Label htmlFor="founder-phone">Phone</Label>
+                <Input id="founder-phone" name="phone" value={form.phone} onChange={(e) => set("phone", e.target.value)} placeholder="+212..." />
               </div>
               <div className="space-y-2">
                 <Label>Tags</Label>
@@ -483,12 +486,12 @@ export default function FoundersSource() {
             {/* Identity Fields */}
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>CIN Number</Label>
-                <Input value={form.cin_number} onChange={(e) => set("cin_number", e.target.value)} placeholder="e.g. AB123456" />
+                <Label htmlFor="cin-number">CIN Number</Label>
+                <Input id="cin-number" name="cin_number" value={form.cin_number} onChange={(e) => set("cin_number", e.target.value)} placeholder="e.g. AB123456" />
               </div>
               <div className="space-y-2">
-                <Label>Passport Number</Label>
-                <Input value={form.passport_number} onChange={(e) => set("passport_number", e.target.value)} placeholder="e.g. AB1234567" />
+                <Label htmlFor="passport-number">Passport Number</Label>
+                <Input id="passport-number" name="passport_number" value={form.passport_number} onChange={(e) => set("passport_number", e.target.value)} placeholder="e.g. AB1234567" />
               </div>
               <div className="space-y-2">
                 <Label>Birthday</Label>
@@ -534,12 +537,12 @@ export default function FoundersSource() {
             </div>
 
             <div className="space-y-2">
-              <Label>Profile Photo URL</Label>
-              <Input value={form.photo_url} onChange={(e) => set("photo_url", e.target.value)} placeholder="https://linkedin.com/in/..." />
+              <Label htmlFor="photo-url">Profile Photo URL</Label>
+              <Input id="photo-url" name="photo_url" value={form.photo_url} onChange={(e) => set("photo_url", e.target.value)} placeholder="https://linkedin.com/in/..." />
             </div>
             <div className="space-y-2">
-              <Label>Description / Business Idea</Label>
-              <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={3} placeholder="Brief description of the startup..." />
+              <Label htmlFor="founder-description">Description / Business Idea</Label>
+              <Textarea id="founder-description" name="description" value={form.description} onChange={(e) => set("description", e.target.value)} rows={3} placeholder="Brief description of the startup..." />
             </div>
           </div>
           <DialogFooter className="gap-2">

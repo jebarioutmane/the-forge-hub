@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -17,6 +18,7 @@ interface FounderCardProps {
 }
 
 export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, onDelete }: FounderCardProps) {
+  const [imgError, setImgError] = useState(false);
   const initials = founder.founder_name
     .split(" ")
     .map((w) => w[0])
@@ -57,8 +59,8 @@ export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, o
         {/* Avatar - overlapping the header/content boundary */}
         <div className="absolute -bottom-8 left-1/2 -translate-x-1/2">
           <div className="h-16 w-16 rounded-full bg-card border-[3px] border-card shadow-md flex items-center justify-center overflow-hidden">
-            {founder.photo_url ? (
-              <img src={founder.photo_url} alt={founder.founder_name} className="h-full w-full object-cover" />
+            {founder.photo_url && !imgError ? (
+              <img src={founder.photo_url} alt={founder.founder_name} className="h-full w-full object-cover" onError={() => setImgError(true)} />
             ) : (
               <span className="text-lg font-semibold text-primary select-none">{initials}</span>
             )}
