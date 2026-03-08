@@ -12,7 +12,7 @@ import { MyProfileDialog } from "@/components/MyProfileDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import TeamPresence from "@/components/TeamPresence";
-import logoColored from "@/assets/Logo-THEFORGE_colored.png";
+const appIcon = "/pwa-512x512.png";
 import { usePresence } from "@/hooks/usePresence";
 import { cn } from "@/lib/utils";
 import {
