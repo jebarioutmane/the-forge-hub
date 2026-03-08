@@ -41,7 +41,7 @@ export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, o
         {/* Sparkline - top left */}
         {sparklineScores && sparklineScores.length >= 2 && (
           <div className="absolute top-2.5 left-2.5">
-            <FounderSparkline scores={sparklineScores} />
+            <FounderSparkline scores={sparklineScores} dates={sparklineDates} />
           </div>
         )}
 
