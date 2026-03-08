@@ -127,8 +127,11 @@ export default function FoundersTracking() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      const oldEntry = allTracking.find((t) => t.id === id);
       const { error } = await supabase.from("founders_tracking").delete().eq("id", id);
       if (error) throw error;
+      const userName = user?.email || "Unknown";
+      await logAction("Founders-Tracking", "DELETE", id, oldEntry as any, null, userName);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["founders_tracking"] });
