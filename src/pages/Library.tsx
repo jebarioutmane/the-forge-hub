@@ -19,6 +19,7 @@ interface LibraryProps {
 
 export default function Library({ moduleName }: LibraryProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [name, setName] = useState("");
