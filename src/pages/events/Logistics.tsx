@@ -135,6 +135,7 @@ function PersonSelect({ value, people, onChange }: { value: string; people: stri
 }
 
 export default function Logistics() {
+  const { user } = useAuth();
   const qc = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
