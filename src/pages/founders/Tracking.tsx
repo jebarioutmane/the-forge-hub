@@ -198,7 +198,7 @@ export default function FoundersTracking() {
         funding_update: form.funding_update || null,
         other_updates: form.other_updates || null,
         section_links: form.section_links as any,
-        overall_score: form.overall_score,
+        overall_score: finalScore,
       };
 
       if (form.id) {
