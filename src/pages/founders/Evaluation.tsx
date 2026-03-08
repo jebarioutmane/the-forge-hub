@@ -52,6 +52,8 @@ function initMetricData(block: BlockConfig): Record<string, MetricData> {
 export default function FounderEvaluation() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const currentYear = new Date().getFullYear().toString();
+  const [selectedCohortYear, setSelectedCohortYear] = useState(currentYear);
   const [selectedFounder, setSelectedFounder] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState<string>("Block 1");
