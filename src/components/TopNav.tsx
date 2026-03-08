@@ -4,17 +4,14 @@ import {
   ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
   Settings, Wallet, PiggyBank, ListTodo,
   ClipboardList, BarChart3, Users2, Truck,
-  LogOut, Menu, X, ChevronRight,
+  LogOut, Menu, ChevronRight,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { MyProfileDialog } from "@/components/MyProfileDialog";
 import { useAuth } from "@/hooks/useAuth";
-import { useTheme } from "@/hooks/useTheme";
 import { useIsMobile } from "@/hooks/use-mobile";
 import TeamPresence from "@/components/TeamPresence";
-import logoWhite from "@/assets/Logo-THEFORGE_white.png";
 import logoColored from "@/assets/Logo-THEFORGE_colored.png";
 import { usePresence } from "@/hooks/usePresence";
 import { cn } from "@/lib/utils";
@@ -97,14 +94,12 @@ function MegaMenuContent({
   location: ReturnType<typeof useLocation>;
 }) {
   return (
-    <div className="grid w-[560px] gap-0 p-6 md:grid-cols-[200px_1fr]">
-      {/* Left: headline */}
-      <div className="flex flex-col justify-center pr-6 border-r border-border/40">
-        <p className="text-lg font-semibold text-foreground tracking-tight">{section.headline}</p>
+    <div className="grid w-[520px] gap-0 p-5 md:grid-cols-[180px_1fr]">
+      <div className="flex flex-col justify-center pr-5 border-r border-border">
+        <p className="text-base font-semibold text-foreground tracking-tight">{section.headline}</p>
         <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{section.description}</p>
       </div>
-      {/* Right: links */}
-      <ul className="flex flex-col gap-1 pl-6">
+      <ul className="flex flex-col gap-0.5 pl-5">
         {section.items.map((item) => {
           const isActive =
             item.url === "/" ? location.pathname === "/" : location.pathname.startsWith(item.url);
@@ -113,13 +108,13 @@ function MegaMenuContent({
               <button
                 onClick={() => navigate(item.url)}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-accent/50",
-                  isActive && "bg-accent/60"
+                  "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all duration-200 hover:bg-accent",
+                  isActive && "bg-accent"
                 )}
               >
                 <item.icon className="h-4 w-4 shrink-0 text-muted-foreground" />
                 <div className="flex flex-col">
-                  <span className={cn("text-sm font-medium text-foreground", isActive && "text-primary")}>
+                  <span className={cn("text-sm font-medium", isActive ? "text-primary" : "text-foreground")}>
                     {item.title}
                   </span>
                   <span className="text-[11px] text-muted-foreground leading-tight">{item.desc}</span>
@@ -137,8 +132,6 @@ export function TopNav() {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
   const isMobile = useIsMobile();
   const { onlineUserIds } = usePresence();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -151,17 +144,17 @@ export function TopNav() {
 
   return (
     <>
-      <header className="fixed top-0 w-full z-50 h-14 border-b border-border/50 bg-background/70 backdrop-blur-xl flex items-center justify-between px-4 md:px-8">
+      <header className="fixed top-0 w-full z-50 h-12 border-b border-border bg-card/80 backdrop-blur-xl flex items-center justify-between px-4 md:px-6">
         {/* Left: Logo */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-5">
           <button
             onClick={() => navigate("/")}
             className="flex items-center gap-2 hover:opacity-80 transition-opacity shrink-0"
           >
             <img
-              src={isDark ? logoWhite : logoColored}
+              src={logoColored}
               alt="The Forge"
-              className="h-6"
+              className="h-5"
             />
           </button>
 
@@ -170,7 +163,7 @@ export function TopNav() {
             <button
               onClick={() => navigate("/")}
               className={cn(
-                "text-xs font-medium transition-colors hover:text-foreground",
+                "text-[13px] font-medium transition-colors duration-200 hover:text-foreground",
                 location.pathname === "/" ? "text-foreground" : "text-muted-foreground"
               )}
             >
@@ -186,7 +179,7 @@ export function TopNav() {
               <NavigationMenuList className="gap-0">
                 {sections.map((section) => (
                   <NavigationMenuItem key={section.label}>
-                    <NavigationMenuTrigger className="h-auto px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent data-[active]:bg-transparent">
+                    <NavigationMenuTrigger className="h-auto px-2.5 py-1.5 text-[13px] font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent data-[active]:bg-transparent">
                       {section.label}
                     </NavigationMenuTrigger>
                     <NavigationMenuContent>
@@ -204,9 +197,8 @@ export function TopNav() {
         </div>
 
         {/* Right side */}
-        <div className="flex items-center gap-2 md:gap-3">
+        <div className="flex items-center gap-2">
           {!isMobile && <TeamPresence onlineUserIds={onlineUserIds} />}
-          <ThemeToggle />
           {!isMobile && <MyProfileDialog />}
           {!isMobile && (
             <Button
@@ -228,25 +220,21 @@ export function TopNav() {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="top" className="h-[100dvh] w-full p-0 border-0 bg-background/95 backdrop-blur-xl">
+              <SheetContent side="top" className="h-[100dvh] w-full p-0 border-0 bg-background">
                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                {/* Mobile header */}
-                <div className="flex items-center justify-between px-6 h-14 border-b border-border/30">
+                <div className="flex items-center justify-between px-5 h-12 border-b border-border">
                   <img
-                    src={isDark ? logoWhite : logoColored}
+                    src={logoColored}
                     alt="The Forge"
-                    className="h-6"
+                    className="h-5"
                   />
-                  {/* Default SheetContent close button is used */}
                 </div>
 
-                {/* Mobile nav content */}
-                <div className="px-6 py-6 overflow-y-auto max-h-[calc(100dvh-56px)]">
-                  {/* Home link */}
+                <div className="px-5 py-5 overflow-y-auto max-h-[calc(100dvh-48px)]">
                   <button
                     onClick={() => { navigate("/"); setMobileOpen(false); }}
                     className={cn(
-                      "flex items-center gap-3 w-full py-3 text-2xl font-semibold tracking-tight transition-colors",
+                      "flex items-center gap-3 w-full py-3 text-xl font-semibold tracking-tight transition-colors duration-200",
                       location.pathname === "/" ? "text-foreground" : "text-muted-foreground"
                     )}
                   >
@@ -256,12 +244,12 @@ export function TopNav() {
 
                   <Accordion type="single" collapsible className="w-full">
                     {sections.map((section) => (
-                      <AccordionItem key={section.label} value={section.label} className="border-border/30">
-                        <AccordionTrigger className="py-3 text-2xl font-semibold tracking-tight text-muted-foreground hover:text-foreground hover:no-underline">
+                      <AccordionItem key={section.label} value={section.label} className="border-border">
+                        <AccordionTrigger className="py-3 text-xl font-semibold tracking-tight text-muted-foreground hover:text-foreground hover:no-underline">
                           {section.label}
                         </AccordionTrigger>
                         <AccordionContent>
-                          <div className="flex flex-col gap-1 pl-2 pb-2">
+                          <div className="flex flex-col gap-0.5 pl-1 pb-2">
                             {section.items.map((item) => {
                               const isActive =
                                 item.url === "/" ? location.pathname === "/" : location.pathname.startsWith(item.url);
@@ -270,15 +258,15 @@ export function TopNav() {
                                   key={item.url}
                                   onClick={() => { navigate(item.url); setMobileOpen(false); }}
                                   className={cn(
-                                    "flex items-center justify-between w-full rounded-lg px-3 py-3 text-left transition-colors",
-                                    isActive ? "bg-accent/50 text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-accent/30"
+                                    "flex items-center justify-between w-full rounded-lg px-3 py-2.5 text-left transition-colors duration-200",
+                                    isActive ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-accent"
                                   )}
                                 >
                                   <div className="flex items-center gap-3">
                                     <item.icon className="h-4 w-4 shrink-0" />
-                                    <span className="text-base font-medium">{item.title}</span>
+                                    <span className="text-[15px] font-medium">{item.title}</span>
                                   </div>
-                                  <ChevronRight className="h-4 w-4 opacity-40" />
+                                  <ChevronRight className="h-4 w-4 opacity-30" />
                                 </button>
                               );
                             })}
@@ -288,8 +276,7 @@ export function TopNav() {
                     ))}
                   </Accordion>
 
-                  {/* Mobile footer actions */}
-                  <div className="mt-8 pt-6 border-t border-border/30 flex flex-col gap-3">
+                  <div className="mt-6 pt-5 border-t border-border flex flex-col gap-3">
                     <TeamPresence onlineUserIds={onlineUserIds} />
                     <div className="flex items-center gap-2 pt-2">
                       <MyProfileDialog />
@@ -318,8 +305,8 @@ export function TopNav() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 top-14 z-40 bg-background/40 backdrop-blur-md"
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 top-12 z-40 bg-background/60 backdrop-blur-sm"
           />
         )}
       </AnimatePresence>

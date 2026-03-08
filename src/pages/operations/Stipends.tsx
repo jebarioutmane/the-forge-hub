@@ -137,7 +137,7 @@ export default function Stipends() {
     else setSelected(new Set(stipends.map((s) => s.id)));
   }
 
-  const statusColor = (s: string) => s === "Paid" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border-0" : "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 border-0";
+  const statusColor = (s: string) => s === "Paid" ? "bg-emerald-100 text-emerald-700 border-0" : "bg-orange-100 text-orange-700 border-0";
 
   const stipendFormContent = (
     <div className="space-y-4 py-2">
