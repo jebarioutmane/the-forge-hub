@@ -51,12 +51,14 @@ export default function FoundersLeaderboard() {
 
   const sparklineMap = useMemo(() => {
     const map: Record<string, number[]> = {};
+    const dateMap: Record<string, string[]> = {};
     tracking.forEach((t) => {
       if (!t.founder_id || t.overall_score == null) return;
-      if (!map[t.founder_id]) map[t.founder_id] = [];
+      if (!map[t.founder_id]) { map[t.founder_id] = []; dateMap[t.founder_id] = []; }
       map[t.founder_id].push(t.overall_score);
+      dateMap[t.founder_id].push(t.tracking_date || "");
     });
-    return map;
+    return { scores: map, dates: dateMap };
   }, [tracking]);
 
   const leaderboard: LeaderboardEntry[] = useMemo(() => {
