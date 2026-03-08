@@ -36,6 +36,7 @@ function getStages(): string[] {
 }
 
 export default function OperationsContracts() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [stages, setStages] = useState(getStages);
   const [contractDialog, setContractDialog] = useState(false);
