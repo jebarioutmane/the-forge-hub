@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logAction } from "@/lib/logAction";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +36,7 @@ function getStages(): string[] {
 }
 
 export default function OperationsContracts() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [stages, setStages] = useState(getStages);
   const [contractDialog, setContractDialog] = useState(false);
@@ -75,6 +78,7 @@ export default function OperationsContracts() {
       if (error) throw error;
     },
     onSuccess: () => {
+      logAction("Operations-Contracts", "INSERT", "new", null, { title: form.title, stakeholder_name: form.stakeholder_name, value: form.value }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       setContractDialog(false);
       resetForm();
@@ -98,6 +102,7 @@ export default function OperationsContracts() {
       if (error) throw error;
     },
     onSuccess: () => {
+      logAction("Operations-Contracts", "UPDATE", editingContract?.id || "", editingContract as any, { title: form.title, stakeholder_name: form.stakeholder_name, value: form.value }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       setEditingContract(null);
       resetForm();
@@ -111,7 +116,9 @@ export default function OperationsContracts() {
       const { error } = await supabase.from("contracts").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = contracts.find(c => c.id === id);
+      logAction("Operations-Contracts", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       setDeleteId(null);
       toast.success("Contract deleted");
@@ -139,7 +146,10 @@ export default function OperationsContracts() {
       const { error } = await supabase.from("contracts").update({ status }).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["contracts"] }),
+    onSuccess: (_data, vars) => {
+      logAction("Operations-Contracts", "UPDATE", vars.id, { status: "previous" }, { status: vars.status }, user?.email || "Unknown");
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+    },
     onError: (e) => toast.error(e.message),
   });
 

@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logAction } from "@/lib/logAction";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,6 +50,7 @@ function initMetricData(block: BlockConfig): Record<string, MetricData> {
 }
 
 export default function FounderEvaluation() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [selectedFounder, setSelectedFounder] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -119,6 +122,7 @@ export default function FounderEvaluation() {
       }
     },
     onSuccess: () => {
+      logAction("Founders-Evaluations", editingEval ? "UPDATE" : "INSERT", editingEval?.id || "new", editingEval ? (editingEval as any) : null, { founder_id: selectedFounder, block_name: selectedBlock, total_score: scores.total }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["founder_evaluations"] });
       setDialogOpen(false);
       setEditingEval(null);
@@ -132,7 +136,9 @@ export default function FounderEvaluation() {
       const { error } = await supabase.from("founder_evaluations").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = founderEvals.find(e => e.id === id);
+      logAction("Founders-Evaluations", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["founder_evaluations"] });
       setDeleteEvalId(null);
       toast.success("Evaluation deleted");

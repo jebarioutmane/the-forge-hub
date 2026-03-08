@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logAction } from "@/lib/logAction";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -133,6 +135,7 @@ function PersonSelect({ value, people, onChange }: { value: string; people: stri
 }
 
 export default function Logistics() {
+  const { user } = useAuth();
   const qc = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
@@ -194,6 +197,7 @@ export default function Logistics() {
       }
     },
     onSuccess: () => {
+      logAction("Events-Logistics", editing ? "UPDATE" : "INSERT", editing?.id || "new", editing ? (editing as any) : null, { event_id: form.event_id, people_involved: form.people_involved }, user?.email || "Unknown");
       qc.invalidateQueries({ queryKey: ["event_logistics"] });
       setDialogOpen(false); setEditing(null); setForm({ ...emptyForm });
       toast.success(editing ? "Logistics updated" : "Logistics created");
@@ -206,7 +210,9 @@ export default function Logistics() {
       const { error } = await supabase.from("event_logistics").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = logistics.find(l => l.id === id);
+      logAction("Events-Logistics", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       qc.invalidateQueries({ queryKey: ["event_logistics"] });
       setDeleteId(null); toast.success("Logistics deleted");
     },

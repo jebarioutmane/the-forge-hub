@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logAction } from "@/lib/logAction";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +21,7 @@ import type { Tables } from "@/integrations/supabase/types";
 type Stipend = Tables<"stipends">;
 
 export default function Stipends() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
   const [editingStipend, setEditingStipend] = useState<Stipend | null>(null);
@@ -47,6 +50,7 @@ export default function Stipends() {
       if (error) throw error;
     },
     onSuccess: () => {
+      logAction("Operations-Stipends", "INSERT", "new", null, { founder_name: form.founder_name, base_amount: form.base_amount }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["stipends"] });
       setAddOpen(false);
       resetForm();
@@ -65,6 +69,7 @@ export default function Stipends() {
       if (error) throw error;
     },
     onSuccess: () => {
+      logAction("Operations-Stipends", "UPDATE", editingStipend?.id || "", editingStipend as any, { founder_name: form.founder_name, base_amount: form.base_amount }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["stipends"] });
       setEditingStipend(null);
       resetForm();
@@ -78,7 +83,9 @@ export default function Stipends() {
       const { error } = await supabase.from("stipends").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = stipends.find(s => s.id === id);
+      logAction("Operations-Stipends", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["stipends"] });
       setDeleteId(null);
       toast.success("Stipend deleted");
@@ -106,7 +113,8 @@ export default function Stipends() {
       const { error } = await supabase.from("stipends").update({ status: "Paid" }).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      logAction("Operations-Stipends", "UPDATE", id, { status: "Pending" }, { status: "Paid" }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["stipends"] });
       toast.success("Payment processed");
     },

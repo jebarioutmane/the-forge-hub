@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logAction } from "@/lib/logAction";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -131,6 +133,7 @@ function CountryMultiSelect({ value, onChange, placeholder = "Select countries..
 }
 
 export default function FoundersSource() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Founder | null>(null);
@@ -247,6 +250,7 @@ export default function FoundersSource() {
       }
     },
     onSuccess: () => {
+      logAction("Founders-Directory", editing ? "UPDATE" : "INSERT", editing?.id || "new", editing ? (editing as any) : null, { founder_name: form.founder_name, startup_name: form.startup_name }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["founders"] });
       setDialogOpen(false);
       setEditing(null);
@@ -261,7 +265,9 @@ export default function FoundersSource() {
       const { error } = await supabase.from("founders").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = founders.find(f => f.id === id);
+      logAction("Founders-Directory", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["founders"] });
       setDeleteId(null);
       toast.success("Founder deleted");

@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logAction } from "@/lib/logAction";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +41,7 @@ const statusBadge = (s: string) => {
 };
 
 export default function Timeline() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [view, setView] = useState<"gantt" | "calendar">("gantt");
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -59,7 +62,10 @@ export default function Timeline() {
       const { error } = await supabase.from("events").update({ checklist: checklist as unknown as Json }).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["events"] }),
+    onSuccess: (_data, vars) => {
+      logAction("Events-Timeline", "UPDATE", vars.id, null, { checklist: vars.checklist }, user?.email || "Unknown");
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+    },
     onError: (e) => toast.error(e.message),
   });
 

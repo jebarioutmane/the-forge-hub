@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logAction } from "@/lib/logAction";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -109,6 +111,7 @@ function CountryMultiSelect({ value, onChange, placeholder = "Select countries..
 }
 
 export default function StakeholdersDirectory() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Stakeholder | null>(null);
@@ -204,6 +207,7 @@ export default function StakeholdersDirectory() {
       }
     },
     onSuccess: () => {
+      logAction("Events-Stakeholders", editing ? "UPDATE" : "INSERT", editing?.id || "new", editing ? (editing as any) : null, { full_name: form.full_name, type: form.type }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["stakeholders"] });
       setDialogOpen(false);
       setEditing(null);
@@ -218,7 +222,9 @@ export default function StakeholdersDirectory() {
       const { error } = await supabase.from("stakeholders").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = stakeholders.find(s => s.id === id);
+      logAction("Events-Stakeholders", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["stakeholders"] });
       setDeleteId(null);
       toast.success("Stakeholder deleted");

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logAction } from "@/lib/logAction";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -21,6 +23,7 @@ function getLabels(): string[] {
 }
 
 export default function Settings() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [labels, setLabels] = useState(getLabels);
   const [newLabel, setNewLabel] = useState("");
@@ -48,6 +51,7 @@ export default function Settings() {
       if (error) throw error;
     },
     onSuccess: () => {
+      logAction("System-Tags", "INSERT", "new", null, { name: newTagName, color: newTagColor }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       setNewTagName("");
       setNewTagColor("#f97316");
@@ -63,6 +67,7 @@ export default function Settings() {
       if (error) throw error;
     },
     onSuccess: () => {
+      logAction("System-Tags", "UPDATE", editingTagId || "", null, { name: editTagName, color: editTagColor }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       setEditingTagId(null);
       toast.success("Tag updated");
@@ -75,7 +80,9 @@ export default function Settings() {
       const { error } = await supabase.from("tags").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = tags.find(t => t.id === id);
+      logAction("System-Tags", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       setDeleteTagId(null);
       toast.success("Tag deleted");

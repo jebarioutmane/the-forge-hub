@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logAction } from "@/lib/logAction";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,6 +44,7 @@ const emptyForm: FormState = {
 };
 
 export default function Mentoring() {
+  const { user } = useAuth();
   const qc = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Session | null>(null);
@@ -101,6 +104,7 @@ export default function Mentoring() {
       }
     },
     onSuccess: () => {
+      logAction("Events-Mentoring", editing ? "UPDATE" : "INSERT", editing?.id || "new", editing ? (editing as any) : null, { title: form.title, mentor_name: form.mentor_name }, user?.email || "Unknown");
       qc.invalidateQueries({ queryKey: ["mentoring_sessions"] });
       setDialogOpen(false);
       setEditing(null);
@@ -115,7 +119,11 @@ export default function Mentoring() {
       const { error } = await supabase.from("mentoring_sessions").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["mentoring_sessions"] }); setDeleteId(null); toast.success("Session deleted"); },
+    onSuccess: (_data, id) => {
+      const deleted = sessions.find(s => s.id === id);
+      logAction("Events-Mentoring", "DELETE", id, deleted as any, null, user?.email || "Unknown");
+      qc.invalidateQueries({ queryKey: ["mentoring_sessions"] }); setDeleteId(null); toast.success("Session deleted");
+    },
     onError: (e: any) => toast.error(e.message),
   });
 

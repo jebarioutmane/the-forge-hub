@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logAction } from "@/lib/logAction";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +19,7 @@ import type { Tables } from "@/integrations/supabase/types";
 type Budget = Tables<"budgets">;
 
 export default function Source() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<Budget | null>(null);
@@ -44,6 +47,7 @@ export default function Source() {
       if (error) throw error;
     },
     onSuccess: () => {
+      logAction("Operations-Budgets", "INSERT", "new", null, { category: form.category, total_amount: form.total_amount }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
       setAddOpen(false);
       resetForm();
@@ -62,6 +66,7 @@ export default function Source() {
       if (error) throw error;
     },
     onSuccess: () => {
+      logAction("Operations-Budgets", "UPDATE", editing?.id || "", editing as any, { category: form.category, total_amount: form.total_amount }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
       setEditing(null);
       resetForm();
@@ -75,7 +80,9 @@ export default function Source() {
       const { error } = await supabase.from("budgets").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = budgets.find(b => b.id === id);
+      logAction("Operations-Budgets", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
       setDeleteId(null);
       toast.success("Budget deleted");
