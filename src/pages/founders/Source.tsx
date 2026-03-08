@@ -295,6 +295,7 @@ export default function FoundersSource() {
       cin_number: f.cin_number || "",
       passport_number: f.passport_number || "",
       birthday: f.birthday ? new Date(f.birthday) : undefined,
+      photo_url: f.photo_url || "",
     });
     setEditing(f);
     setDialogOpen(true);
