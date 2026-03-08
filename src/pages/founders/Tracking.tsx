@@ -15,6 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { StarRating } from "@/components/StarRating";
 import { toast } from "sonner";
 import { Plus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { logAction } from "@/lib/logAction";
 import { format, parseISO } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 
