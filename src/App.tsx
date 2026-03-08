@@ -24,6 +24,7 @@ import Library from "./pages/Library";
 import SystemProfiles from "./pages/system/Profiles";
 import HistoryLog from "./pages/system/HistoryLog";
 import NotFound from "./pages/NotFound";
+import { InstallPrompt } from "./components/InstallPrompt";
 
 const queryClient = new QueryClient();
 
