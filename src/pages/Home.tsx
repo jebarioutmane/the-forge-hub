@@ -8,6 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import GlobalNetworkMap from "@/components/GlobalNetworkMap";
 import EventCountdowns from "@/components/EventCountdowns";
 import TeamPresence from "@/components/TeamPresence";
+import FoundersLeaderboard from "@/components/FoundersLeaderboard";
+import EventCountdowns from "@/components/EventCountdowns";
+import TeamPresence from "@/components/TeamPresence";
 
 const shortcuts = [
   {
