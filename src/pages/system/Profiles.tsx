@@ -255,7 +255,7 @@ export default function SystemProfiles() {
             const tags = (profile.tags as string[]) || [];
 
             return (
-              <Card key={profile.id} className="group relative flex flex-col overflow-hidden border-border/60 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+              <Card key={profile.id} className={cn("group relative flex flex-col overflow-hidden border-border/60 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300", highlightId === profile.id && "animate-target-flash")}>
                 {/* Header gradient area */}
                 <div className="relative h-24 bg-gradient-to-br from-secondary to-muted flex items-end justify-center">
                   <div className="absolute top-3 right-3 h-14 w-14 rounded-full bg-primary/[0.04]" />
