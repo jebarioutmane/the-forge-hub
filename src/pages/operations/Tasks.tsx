@@ -39,6 +39,7 @@ function getTaskLabels(): string[] {
 }
 
 export default function OperationsTasks() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [columnLabels, setColumnLabels] = useState(getColumnLabels);
   const [taskLabels, setTaskLabels] = useState(getTaskLabels);
