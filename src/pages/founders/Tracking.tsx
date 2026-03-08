@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { StarRating } from "@/components/StarRating";
 import { toast } from "sonner";
 import { Plus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { logAction } from "@/lib/logAction";
 import { format, parseISO } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -57,6 +59,7 @@ const emptyForm = (founderId: string): FormState => ({
 });
 
 export default function FoundersTracking() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [selectedFounder, setSelectedFounder] = useState<string>("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -102,11 +105,16 @@ export default function FoundersTracking() {
       };
 
       if (form.id) {
+        const oldEntry = allTracking.find((t) => t.id === form.id);
         const { error } = await supabase.from("founders_tracking").update(payload).eq("id", form.id);
         if (error) throw error;
+        const userName = user?.email || "Unknown";
+        await logAction("Founders-Tracking", "UPDATE", form.id, oldEntry as any, payload, userName);
       } else {
-        const { error } = await supabase.from("founders_tracking").insert(payload);
+        const { data, error } = await supabase.from("founders_tracking").insert(payload).select().single();
         if (error) throw error;
+        const userName = user?.email || "Unknown";
+        await logAction("Founders-Tracking", "INSERT", data.id, null, payload, userName);
       }
     },
     onSuccess: () => {
@@ -119,8 +127,11 @@ export default function FoundersTracking() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      const oldEntry = allTracking.find((t) => t.id === id);
       const { error } = await supabase.from("founders_tracking").delete().eq("id", id);
       if (error) throw error;
+      const userName = user?.email || "Unknown";
+      await logAction("Founders-Tracking", "DELETE", id, oldEntry as any, null, userName);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["founders_tracking"] });
