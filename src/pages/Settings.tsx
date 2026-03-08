@@ -67,6 +67,7 @@ export default function Settings() {
       if (error) throw error;
     },
     onSuccess: () => {
+      logAction("System-Tags", "UPDATE", editingTagId || "", null, { name: editTagName, color: editTagColor }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       setEditingTagId(null);
       toast.success("Tag updated");
