@@ -135,7 +135,10 @@ export default function OperationsTasks() {
       const { error } = await supabase.from("tasks").update({ status }).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
+    onSuccess: (_data, vars) => {
+      logAction("Operations-Tasks", "UPDATE", vars.id, { status: "previous" }, { status: vars.status }, user?.email || "Unknown");
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
     onError: (e) => toast.error(e.message),
   });
 

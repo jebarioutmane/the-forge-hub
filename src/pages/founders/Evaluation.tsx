@@ -136,7 +136,9 @@ export default function FounderEvaluation() {
       const { error } = await supabase.from("founder_evaluations").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = founderEvals.find(e => e.id === id);
+      logAction("Founders-Evaluations", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["founder_evaluations"] });
       setDeleteEvalId(null);
       toast.success("Evaluation deleted");

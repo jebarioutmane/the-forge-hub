@@ -178,7 +178,9 @@ export default function Planning() {
       const { error } = await supabase.from("events").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = events.find(e => e.id === id);
+      logAction("Events-Planning", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       qc.invalidateQueries({ queryKey: ["events"] });
       setDeleteId(null);
       toast.success("Event deleted");

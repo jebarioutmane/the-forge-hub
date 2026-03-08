@@ -265,7 +265,9 @@ export default function FoundersSource() {
       const { error } = await supabase.from("founders").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = founders.find(f => f.id === id);
+      logAction("Founders-Directory", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["founders"] });
       setDeleteId(null);
       toast.success("Founder deleted");
