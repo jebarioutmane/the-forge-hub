@@ -273,7 +273,7 @@ export default function SystemProfiles() {
                         <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">You</Badge>
                       )}
                       {profile.status && profile.status !== "Active" && (
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-amber-500/10 text-amber-600 border-amber-500/20">
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-accent text-accent-foreground border-border">
                           {profile.status}
                         </Badge>
                       )}
