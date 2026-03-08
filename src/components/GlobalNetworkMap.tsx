@@ -124,13 +124,32 @@ export default function GlobalNetworkMap() {
   };
 
   return (
-    <Card className="border overflow-hidden">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-bold">🌍 Global Network</CardTitle>
-        <p className="text-xs text-muted-foreground">The Forge's international reach — scroll to zoom, drag to pan</p>
-      </CardHeader>
-      <CardContent className="p-0 relative">
-        <div className="bg-[hsl(var(--card))]">
+    <div className="flex flex-col h-full">
+      <div className="px-5 py-4 border-b border-border/40 flex items-center gap-2.5">
+        <span className="text-lg">🌍</span>
+        <h3 className="text-[15px] font-semibold text-foreground tracking-tight">Global Network</h3>
+      </div>
+      <div className="flex-1 relative">
+        {/* Scroll trap overlay */}
+        {!isInteractive && (
+          <div
+            className="absolute inset-0 z-10 cursor-default"
+            onClick={() => setIsInteractive(true)}
+          />
+        )}
+
+        {/* Toggle button */}
+        <button
+          onClick={() => setIsInteractive(!isInteractive)}
+          className={`absolute top-3 right-3 z-20 h-9 w-9 rounded-full shadow-md flex items-center justify-center transition-all duration-200 bg-background/90 backdrop-blur-sm border border-border/40 hover:shadow-lg ${
+            isInteractive ? "ring-2 ring-primary/20" : ""
+          }`}
+          title={isInteractive ? "Lock map" : "Unlock map to interact"}
+        >
+          <Search className={`h-4 w-4 transition-colors ${isInteractive ? "text-muted-foreground" : "text-primary"}`} />
+        </button>
+
+        <div className="bg-[hsl(var(--card))] h-full">
           <ComposableMap
             projection="geoMercator"
             projectionConfig={{ scale: 130, center: [10, 30] }}
@@ -138,7 +157,7 @@ export default function GlobalNetworkMap() {
             height={420}
             style={{ width: "100%", height: "auto" }}
           >
-            <ZoomableGroup>
+            <ZoomableGroup zoom={1} minZoom={1} maxZoom={isInteractive ? 8 : 1}>
               <Geographies geography={GEO_URL}>
                 {({ geographies }) =>
                   geographies.map((geo) => (
