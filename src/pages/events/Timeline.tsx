@@ -62,7 +62,10 @@ export default function Timeline() {
       const { error } = await supabase.from("events").update({ checklist: checklist as unknown as Json }).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["events"] }),
+    onSuccess: (_data, vars) => {
+      logAction("Events-Timeline", "UPDATE", vars.id, null, { checklist: vars.checklist }, user?.email || "Unknown");
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+    },
     onError: (e) => toast.error(e.message),
   });
 
