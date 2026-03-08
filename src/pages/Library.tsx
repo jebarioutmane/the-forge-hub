@@ -58,6 +58,7 @@ export default function Library({ moduleName }: LibraryProps) {
       if (error) throw error;
     },
     onSuccess: () => {
+      logAction(`${moduleName}-Library`, "INSERT", "new", null, { resource_name: name, url }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["resource_library", moduleName] });
       setDialogOpen(false);
       setName("");
