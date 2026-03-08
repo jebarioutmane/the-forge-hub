@@ -210,7 +210,9 @@ export default function Logistics() {
       const { error } = await supabase.from("event_logistics").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = logistics.find(l => l.id === id);
+      logAction("Events-Logistics", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       qc.invalidateQueries({ queryKey: ["event_logistics"] });
       setDeleteId(null); toast.success("Logistics deleted");
     },

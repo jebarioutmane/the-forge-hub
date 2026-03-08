@@ -80,7 +80,9 @@ export default function Settings() {
       const { error } = await supabase.from("tags").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = tags.find(t => t.id === id);
+      logAction("System-Tags", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       setDeleteTagId(null);
       toast.success("Tag deleted");

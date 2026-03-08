@@ -100,7 +100,8 @@ export default function Events() {
       const { error } = await supabase.from("events").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      logAction("Events-Timeline", "DELETE", id, null, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["events"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setDeleteId(null);

@@ -119,7 +119,11 @@ export default function Mentoring() {
       const { error } = await supabase.from("mentoring_sessions").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["mentoring_sessions"] }); setDeleteId(null); toast.success("Session deleted"); },
+    onSuccess: (_data, id) => {
+      const deleted = sessions.find(s => s.id === id);
+      logAction("Events-Mentoring", "DELETE", id, deleted as any, null, user?.email || "Unknown");
+      qc.invalidateQueries({ queryKey: ["mentoring_sessions"] }); setDeleteId(null); toast.success("Session deleted");
+    },
     onError: (e: any) => toast.error(e.message),
   });
 

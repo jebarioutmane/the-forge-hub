@@ -222,7 +222,9 @@ export default function StakeholdersDirectory() {
       const { error } = await supabase.from("stakeholders").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = stakeholders.find(s => s.id === id);
+      logAction("Events-Stakeholders", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["stakeholders"] });
       setDeleteId(null);
       toast.success("Stakeholder deleted");

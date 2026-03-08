@@ -96,7 +96,9 @@ export default function Library({ moduleName }: LibraryProps) {
       const { error } = await supabase.from("resource_library").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = resources.find(r => r.id === id);
+      logAction(`${moduleName}-Library`, "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["resource_library", moduleName] });
       toast({ title: "Resource deleted" });
     },
