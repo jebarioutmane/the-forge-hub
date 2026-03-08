@@ -233,7 +233,7 @@ export default function FoundersSource() {
     return founders.filter((f) => {
       const q = search.toLowerCase();
       if (q && !f.founder_name.toLowerCase().includes(q) && !f.startup_name.toLowerCase().includes(q)) return false;
-      if (!matchesFilter(f.cohort, filterCohort)) return false;
+      if (filterCohortYear !== "all" && f.cohort_year !== filterCohortYear) return false;
       if (!matchesMultiFilter(getFounderNationalities(f), filterCountries)) return false;
       if (!matchesFilter(f.status, filterStatus)) return false;
       if (!matchesFilter(f.venture_associate, filterVA)) return false;
