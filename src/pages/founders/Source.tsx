@@ -148,8 +148,9 @@ export default function FoundersSource() {
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
   // Filters
+  const currentYear = new Date().getFullYear().toString();
   const [search, setSearch] = useState("");
-  const [filterCohort, setFilterCohort] = useState("all");
+  const [filterCohortYear, setFilterCohortYear] = useState(currentYear);
   const [filterCountries, setFilterCountries] = useState<string[]>([]);
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterVA, setFilterVA] = useState("all");
