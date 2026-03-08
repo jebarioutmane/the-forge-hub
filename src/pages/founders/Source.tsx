@@ -497,27 +497,12 @@ export default function FoundersSource() {
               </div>
               <div className="space-y-2">
                 <Label>Birthday</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.birthday && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {form.birthday ? format(form.birthday, "PPP") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={form.birthday}
-                      onSelect={(d) => set("birthday", d)}
-                      disabled={(date) => date > new Date()}
-                      initialFocus
-                      captionLayout="dropdown-buttons"
-                      fromYear={1940}
-                      toYear={new Date().getFullYear()}
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Input
+                  type="date"
+                  value={form.birthday ? format(form.birthday, "yyyy-MM-dd") : ""}
+                  onChange={(e) => set("birthday", e.target.value ? new Date(e.target.value) : undefined)}
+                  className="h-9"
+                />
               </div>
             </div>
 
