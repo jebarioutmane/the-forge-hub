@@ -78,6 +78,7 @@ export default function OperationsContracts() {
       if (error) throw error;
     },
     onSuccess: () => {
+      logAction("Operations-Contracts", "INSERT", "new", null, { title: form.title, stakeholder_name: form.stakeholder_name, value: form.value }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       setContractDialog(false);
       resetForm();
