@@ -137,6 +137,8 @@ export function TopNav() {
   const { onlineUserIds } = usePresence();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const isHome = location.pathname === "/";
 
   const handleSignOut = async () => {
     await signOut();
