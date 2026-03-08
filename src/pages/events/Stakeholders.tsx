@@ -111,6 +111,7 @@ function CountryMultiSelect({ value, onChange, placeholder = "Select countries..
 }
 
 export default function StakeholdersDirectory() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Stakeholder | null>(null);
