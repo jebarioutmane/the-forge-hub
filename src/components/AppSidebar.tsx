@@ -17,7 +17,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import logoWhite from "@/assets/Logo-THEFORGE_white.png";
+const appIcon = "/pwa-512x512.png";
 
 const sections = [
   {
