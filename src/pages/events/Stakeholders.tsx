@@ -207,6 +207,7 @@ export default function StakeholdersDirectory() {
       }
     },
     onSuccess: () => {
+      logAction("Events-Stakeholders", editing ? "UPDATE" : "INSERT", editing?.id || "new", editing ? (editing as any) : null, { full_name: form.full_name, type: form.type }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["stakeholders"] });
       setDialogOpen(false);
       setEditing(null);
