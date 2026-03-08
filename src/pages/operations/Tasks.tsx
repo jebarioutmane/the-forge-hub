@@ -85,6 +85,7 @@ export default function OperationsTasks() {
       if (error) throw error;
     },
     onSuccess: () => {
+      logAction("Operations-Tasks", "INSERT", "new", null, { title: form.title, priority: form.priority }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setTaskDialog(false);
       resetForm();
