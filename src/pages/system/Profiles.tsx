@@ -14,26 +14,19 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Plus, Pencil, Eye, User, CalendarIcon, Link2, X, Trash2, Shield, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Plus, Pencil, Eye, User, CalendarIcon, Link2, X, Trash2, Shield, ShieldCheck, ShieldAlert, Search, Check } from "lucide-react";
 import { logAction } from "@/lib/logAction";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { COUNTRIES, getFlag } from "@/lib/countries";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Profile = Tables<"profiles">;
 type LinkItem = { title: string; url: string };
 
-const DEPARTMENTS = [
-  "Founders Directory",
-  "Progress Tracker",
-  "System Profiles",
-  "Events",
-  "Operations",
-];
-
-const STATUS_OPTIONS = ["Active", "On Leave", "Inactive"];
+const STATUS_OPTIONS = ["Active", "Inactive", "On leave", "On a mission", "Sick leave"];
 const ROLE_OPTIONS = [
   { value: "super_admin", label: "Super Admin" },
   { value: "admin", label: "Admin" },
@@ -49,10 +42,11 @@ const emptyForm = {
   cin_number: "",
   passport_number: "",
   status: "Active",
+  status_until: null as string | null,
+  status_note: "",
   nationalities: [] as string[],
   tags: [] as string[],
   description: "",
-  assigned_departments: [] as string[],
   links: [] as LinkItem[],
   avatar_url: "",
   title: "",
@@ -74,8 +68,9 @@ export default function SystemProfiles() {
   const [isNew, setIsNew] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [form, setForm] = useState({ ...emptyForm });
-  const [natInput, setNatInput] = useState("");
   const [tagInput, setTagInput] = useState("");
+  const [natSearch, setNatSearch] = useState("");
+  const [natDropdownOpen, setNatDropdownOpen] = useState(false);
 
   const { data: profiles = [] } = useQuery({
     queryKey: ["profiles"],
@@ -89,7 +84,6 @@ export default function SystemProfiles() {
   const currentProfile = profiles.find((p) => p.id === user?.id);
   const hasEditRights = canEditProfiles(user?.email, currentProfile?.role);
 
-  // Upsert mutation (add or edit)
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!selectedProfile && !isNew) throw new Error("No profile selected");
@@ -103,18 +97,17 @@ export default function SystemProfiles() {
         cin_number: form.cin_number || null,
         passport_number: form.passport_number || null,
         status: form.status || "Active",
+        status_until: form.status === "On leave" ? (form.status_until || null) : null,
+        status_note: form.status_note || null,
         nationalities: form.nationalities.length ? form.nationalities : null,
         tags: form.tags.length ? form.tags : null,
         description: form.description || null,
-        assigned_departments: form.assigned_departments.length ? form.assigned_departments : null,
         links: form.links.length ? form.links : [],
         avatar_url: form.avatar_url || null,
         title: form.title || null,
       };
 
       if (isNew) {
-        // For new members, we update existing profile by email match or just insert
-        // Since profiles are auth-linked, we update the matching profile
         throw new Error("New members must be created via Supabase Auth. Use this form to edit existing profiles.");
       } else {
         const isOwnProfile = targetId === user?.id;
@@ -161,10 +154,11 @@ export default function SystemProfiles() {
       cin_number: profile.cin_number || "",
       passport_number: profile.passport_number || "",
       status: profile.status || "Active",
+      status_until: profile.status_until || null,
+      status_note: profile.status_note || "",
       nationalities: (profile.nationalities as string[]) || [],
       tags: (profile.tags as string[]) || [],
       description: profile.description || "",
-      assigned_departments: (profile.assigned_departments as string[]) || [],
       links: parseLinks(profile.links),
       avatar_url: profile.avatar_url || "",
       title: profile.title || "",
@@ -192,12 +186,13 @@ export default function SystemProfiles() {
     }));
   }
 
-  function addNationality() {
-    const val = natInput.trim();
-    if (val && !form.nationalities.includes(val)) {
-      setForm((f) => ({ ...f, nationalities: [...f.nationalities, val] }));
-    }
-    setNatInput("");
+  function toggleNationality(country: string) {
+    setForm((f) => ({
+      ...f,
+      nationalities: f.nationalities.includes(country)
+        ? f.nationalities.filter((n) => n !== country)
+        : [...f.nationalities, country],
+    }));
   }
 
   function addTag() {
@@ -207,6 +202,12 @@ export default function SystemProfiles() {
     }
     setTagInput("");
   }
+
+  const filteredCountries = useMemo(() => {
+    if (!natSearch) return COUNTRIES;
+    const q = natSearch.toLowerCase();
+    return COUNTRIES.filter((c) => c.toLowerCase().includes(q));
+  }, [natSearch]);
 
   const initials = (name: string | null) => {
     if (!name) return "?";
@@ -231,7 +232,6 @@ export default function SystemProfiles() {
           <h1 className="text-2xl font-bold tracking-tight">Team Profiles</h1>
           <p className="text-sm text-muted-foreground">Directory of team members with accounts</p>
         </div>
-        {/* Note: New members must be provisioned through auth, but admins can edit all */}
       </div>
 
       {profiles.length === 0 ? (
@@ -247,8 +247,6 @@ export default function SystemProfiles() {
             const canEdit = isOwn || hasEditRights;
             const roleBadge = getRoleBadge(profile.role);
             const RoleIcon = roleBadge.icon;
-            const profileLinks = parseLinks(profile.links);
-            const departments = (profile.assigned_departments as string[]) || [];
 
             return (
               <Card key={profile.id} className="relative overflow-hidden border-border/60 shadow-sm hover:shadow-md transition-shadow">
@@ -281,21 +279,6 @@ export default function SystemProfiles() {
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0 space-y-3">
-                  {departments.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {departments.slice(0, 3).map((d) => (
-                        <Badge key={d} variant="secondary" className="text-[10px] px-1.5 py-0 h-4 font-normal">
-                          {d}
-                        </Badge>
-                      ))}
-                      {departments.length > 3 && (
-                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 font-normal">
-                          +{departments.length - 3}
-                        </Badge>
-                      )}
-                    </div>
-                  )}
-
                   <div className="flex gap-2 justify-end pt-1">
                     <Button size="sm" variant="outline" onClick={() => openView(profile)} className="h-7 text-xs">
                       <Eye className="mr-1 h-3 w-3" /> View
@@ -307,7 +290,6 @@ export default function SystemProfiles() {
                     )}
                   </div>
 
-                  {/* Role quick-change for Super Admin / Admin */}
                   {hasEditRights && !isOwn && (
                     <Select
                       value={profile.role || "user"}
@@ -371,45 +353,25 @@ export default function SystemProfiles() {
               <Label className="text-xs">Phone</Label>
               <Input value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
             </div>
-            {/* Birthday */}
+            {/* Birthday - native date input */}
             <div className="space-y-1.5">
               <Label className="text-xs">Birthday</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-9 text-sm", !form.birthday && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-3.5 w-3.5" />
-                    {form.birthday ? format(new Date(form.birthday), "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={form.birthday ? new Date(form.birthday) : undefined}
-                    onSelect={(d) => setForm((f) => ({ ...f, birthday: d ? format(d, "yyyy-MM-dd") : null }))}
-                    className="p-3 pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                type="date"
+                value={form.birthday || ""}
+                onChange={(e) => setForm((f) => ({ ...f, birthday: e.target.value || null }))}
+                className="h-9"
+              />
             </div>
             {/* Date Joined */}
             <div className="space-y-1.5">
               <Label className="text-xs">Date Joined</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-9 text-sm", !form.date_joined && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-3.5 w-3.5" />
-                    {form.date_joined ? format(new Date(form.date_joined), "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={form.date_joined ? new Date(form.date_joined) : undefined}
-                    onSelect={(d) => setForm((f) => ({ ...f, date_joined: d ? format(d, "yyyy-MM-dd") : null }))}
-                    className="p-3 pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                type="date"
+                value={form.date_joined || ""}
+                onChange={(e) => setForm((f) => ({ ...f, date_joined: e.target.value || null }))}
+                className="h-9"
+              />
             </div>
             {/* CIN */}
             <div className="space-y-1.5">
@@ -424,7 +386,7 @@ export default function SystemProfiles() {
             {/* Status */}
             <div className="space-y-1.5">
               <Label className="text-xs">Status</Label>
-              <Select value={form.status} onValueChange={(val) => setForm((f) => ({ ...f, status: val }))}>
+              <Select value={form.status} onValueChange={(val) => setForm((f) => ({ ...f, status: val, status_until: val === "On leave" ? f.status_until : null }))}>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {STATUS_OPTIONS.map((s) => (
@@ -439,24 +401,81 @@ export default function SystemProfiles() {
               <Input value={form.avatar_url} onChange={(e) => setForm((f) => ({ ...f, avatar_url: e.target.value }))} placeholder="https://..." />
             </div>
 
-            {/* Nationalities - full width */}
+            {/* Conditional: Until date (only for "On leave") */}
+            {form.status === "On leave" && (
+              <div className="space-y-1.5">
+                <Label className="text-xs">Until</Label>
+                <Input
+                  type="date"
+                  value={form.status_until || ""}
+                  onChange={(e) => setForm((f) => ({ ...f, status_until: e.target.value || null }))}
+                  className="h-9"
+                />
+              </div>
+            )}
+
+            {/* Status Note - always shown when status is set */}
+            <div className={cn("space-y-1.5", form.status === "On leave" ? "" : "sm:col-span-1")}>
+              <Label className="text-xs">Status Note</Label>
+              <Textarea
+                value={form.status_note}
+                onChange={(e) => setForm((f) => ({ ...f, status_note: e.target.value }))}
+                rows={2}
+                placeholder="Details about status..."
+                className="min-h-[60px]"
+              />
+            </div>
+
+            {/* Nationalities - Country multi-select */}
             <div className="space-y-1.5 sm:col-span-2">
               <Label className="text-xs">Nationalities</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={natInput}
-                  onChange={(e) => setNatInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addNationality(); } }}
-                  placeholder="Type and press Enter"
-                  className="flex-1"
-                />
-                <Button type="button" variant="outline" size="sm" onClick={addNationality}>Add</Button>
-              </div>
+              <Popover open={natDropdownOpen} onOpenChange={setNatDropdownOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal h-9 text-sm">
+                    <Search className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+                    {form.nationalities.length > 0
+                      ? `${form.nationalities.length} selected`
+                      : "Select countries..."}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[320px] p-0 pointer-events-auto" align="start">
+                  <div className="p-2 border-b border-border">
+                    <Input
+                      value={natSearch}
+                      onChange={(e) => setNatSearch(e.target.value)}
+                      placeholder="Search countries..."
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <ScrollArea className="h-[250px]">
+                    <div className="p-1">
+                      {filteredCountries.map((country) => {
+                        const selected = form.nationalities.includes(country);
+                        return (
+                          <button
+                            key={country}
+                            type="button"
+                            onClick={() => toggleNationality(country)}
+                            className={cn(
+                              "flex items-center gap-2 w-full px-2 py-1.5 rounded-sm text-sm hover:bg-accent transition-colors text-left",
+                              selected && "bg-accent"
+                            )}
+                          >
+                            <span className="text-base leading-none">{getFlag(country)}</span>
+                            <span className="flex-1 truncate">{country}</span>
+                            {selected && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
+                </PopoverContent>
+              </Popover>
               {form.nationalities.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-1">
                   {form.nationalities.map((n) => (
                     <Badge key={n} variant="secondary" className="text-xs gap-1 pr-1">
-                      {n}
+                      {getFlag(n)} {n}
                       <X className="h-3 w-3 cursor-pointer" onClick={() => setForm((f) => ({ ...f, nationalities: f.nationalities.filter((x) => x !== n) }))} />
                     </Badge>
                   ))}
@@ -487,29 +506,6 @@ export default function SystemProfiles() {
                   ))}
                 </div>
               )}
-            </div>
-
-            {/* Assigned Departments - full width */}
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-xs">Assigned Departments</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {DEPARTMENTS.map((dept) => (
-                  <label key={dept} className="flex items-center gap-2 text-xs cursor-pointer">
-                    <Checkbox
-                      checked={form.assigned_departments.includes(dept)}
-                      onCheckedChange={(checked) => {
-                        setForm((f) => ({
-                          ...f,
-                          assigned_departments: checked
-                            ? [...f.assigned_departments, dept]
-                            : f.assigned_departments.filter((d) => d !== dept),
-                        }));
-                      }}
-                    />
-                    {dept}
-                  </label>
-                ))}
-              </div>
             </div>
 
             {/* Description - full width */}
@@ -567,7 +563,6 @@ export default function SystemProfiles() {
 /* ── View Profile Sub-component ── */
 function ViewProfileContent({ profile, initials }: { profile: Profile; initials: (n: string | null) => string }) {
   const links = parseLinks(profile.links);
-  const departments = (profile.assigned_departments as string[]) || [];
   const nationalities = (profile.nationalities as string[]) || [];
   const tags = (profile.tags as string[]) || [];
   const roleBadge = getRoleBadgeStatic(profile.role);
@@ -598,13 +593,21 @@ function ViewProfileContent({ profile, initials }: { profile: Profile; initials:
         <DetailRow label="CIN" value={profile.cin_number} />
         <DetailRow label="Passport" value={profile.passport_number} />
         <DetailRow label="Status" value={profile.status} />
+        {profile.status === "On leave" && profile.status_until && (
+          <DetailRow label="Until" value={format(new Date(profile.status_until), "PPP")} />
+        )}
+        {profile.status_note && (
+          <div className="col-span-2">
+            <DetailRow label="Status Note" value={profile.status_note} />
+          </div>
+        )}
       </div>
 
       {nationalities.length > 0 && (
         <div>
           <p className="text-xs font-medium text-muted-foreground mb-1">Nationalities</p>
           <div className="flex flex-wrap gap-1">
-            {nationalities.map((n) => <Badge key={n} variant="secondary" className="text-xs">{n}</Badge>)}
+            {nationalities.map((n) => <Badge key={n} variant="secondary" className="text-xs">{getFlag(n)} {n}</Badge>)}
           </div>
         </div>
       )}
@@ -614,15 +617,6 @@ function ViewProfileContent({ profile, initials }: { profile: Profile; initials:
           <p className="text-xs font-medium text-muted-foreground mb-1">Tags</p>
           <div className="flex flex-wrap gap-1">
             {tags.map((t) => <Badge key={t} variant="outline" className="text-xs">{t}</Badge>)}
-          </div>
-        </div>
-      )}
-
-      {departments.length > 0 && (
-        <div>
-          <p className="text-xs font-medium text-muted-foreground mb-1">Assigned Departments</p>
-          <div className="flex flex-wrap gap-1">
-            {departments.map((d) => <Badge key={d} variant="secondary" className="text-xs">{d}</Badge>)}
           </div>
         </div>
       )}
@@ -670,12 +664,4 @@ function getRoleBadgeStatic(role: string | null) {
     default:
       return { label: "User", className: "bg-muted text-muted-foreground border-border" };
   }
-}
-
-function parseLinksStatic(raw: unknown): LinkItem[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.filter((l: any) => l && typeof l === "object").map((l: any) => ({
-    title: l.title || "",
-    url: l.url || "",
-  }));
 }
