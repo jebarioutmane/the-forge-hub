@@ -40,9 +40,9 @@ function CountdownCard({ name, date, creator }: { name: string; date: string; cr
   if (!timeLeft) return null;
 
   return (
-    <Card className="border shadow-sm min-w-[220px] shrink-0">
-      <CardContent className="p-4 text-center space-y-2">
-        <div className="flex items-center justify-center gap-2">
+    <Card className="border border-border/40 shadow-sm min-w-[260px] shrink-0">
+      <CardContent className="p-6 space-y-3">
+        <div className="flex items-center gap-2">
           {creator && (
             <TooltipProvider>
               <Tooltip>
@@ -56,17 +56,25 @@ function CountdownCard({ name, date, creator }: { name: string; date: string; cr
               </Tooltip>
             </TooltipProvider>
           )}
-          <p className="font-bold text-sm truncate">{name}</p>
+          <p className="font-bold text-sm text-foreground truncate">{name}</p>
         </div>
         <p className="text-[11px] text-muted-foreground">{format(target, "MMM d, yyyy")}</p>
-        <div className="flex items-center justify-center gap-1.5 font-mono text-base font-semibold tracking-wide">
-          <span className="bg-muted rounded px-1.5 py-0.5">{timeLeft.days}d</span>
-          <span className="text-muted-foreground">:</span>
-          <span className="bg-muted rounded px-1.5 py-0.5">{String(timeLeft.hours).padStart(2, "0")}h</span>
-          <span className="text-muted-foreground">:</span>
-          <span className="bg-muted rounded px-1.5 py-0.5">{String(timeLeft.mins).padStart(2, "0")}m</span>
-          <span className="text-muted-foreground">:</span>
-          <span className="bg-muted rounded px-1.5 py-0.5">{String(timeLeft.secs).padStart(2, "0")}s</span>
+        <div className="flex items-center justify-center gap-3 sm:gap-4">
+          {[
+            { value: timeLeft.days, label: "Days" },
+            { value: timeLeft.hours, label: "Hrs" },
+            { value: timeLeft.mins, label: "Min" },
+            { value: timeLeft.secs, label: "Sec" },
+          ].map((block) => (
+            <div key={block.label} className="flex flex-col items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-secondary rounded-xl border border-border/30">
+              <span className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
+                {String(block.value).padStart(2, "0")}
+              </span>
+              <span className="text-[9px] sm:text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                {block.label}
+              </span>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>

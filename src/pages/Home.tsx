@@ -62,7 +62,7 @@ export default function Home() {
   const founderLabel = showAllFounders ? "All-Time Founders" : "Active Founders";
 
   return (
-    <div className="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto">
+    <div className="px-6 lg:px-10 py-8 space-y-8 max-w-7xl mx-auto">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight">Command Center</h1>
@@ -72,15 +72,15 @@ export default function Home() {
       </div>
 
       {/* Shortcut Buttons */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
         {shortcuts.map((s) => (
           <Button
             key={s.title}
             variant="outline"
-            className={`h-14 text-base font-semibold gap-3 border ${s.border} ${s.color} transition-all`}
+            className={`w-full h-14 rounded-xl bg-card border border-border/40 text-foreground hover:bg-secondary shadow-sm transition-all flex items-center justify-center gap-3 whitespace-nowrap text-base font-semibold`}
             onClick={() => navigate(s.route)}
           >
-            <s.icon className="h-5 w-5" />
+            <s.icon className="h-5 w-5 shrink-0" />
             {s.title}
           </Button>
         ))}
@@ -88,9 +88,8 @@ export default function Home() {
 
       {/* Two KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Active Founders with toggle */}
-        <Card className="border shadow-sm hover:shadow-md transition-shadow">
-          <CardContent className="p-4">
+        <Card className="border border-border/40 shadow-sm">
+          <CardContent className="p-6">
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-lg flex items-center justify-center bg-module-founders/10 text-module-founders">
                 <Users className="h-4 w-4" />
@@ -110,9 +109,8 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        {/* Active Events */}
-        <Card className="border shadow-sm hover:shadow-md transition-shadow">
-          <CardContent className="p-4">
+        <Card className="border border-border/40 shadow-sm">
+          <CardContent className="p-6">
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-lg flex items-center justify-center bg-module-events/10 text-module-events">
                 <CalendarDays className="h-4 w-4" />
