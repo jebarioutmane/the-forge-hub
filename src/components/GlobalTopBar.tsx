@@ -22,7 +22,8 @@ export function GlobalTopBar() {
   return (
     <header className="h-12 border-b border-border bg-card flex items-center justify-between px-6">
       <button onClick={() => navigate("/")} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-        <img src={logoColored} alt="The Forge" className="h-5" />
+        <img src={appIcon} alt="The Forge" className="h-8 w-8 object-contain rounded-md shadow-sm" />
+        <span className="font-semibold text-foreground text-sm tracking-tight">The Forge</span>
       </button>
 
       <div className="flex items-center gap-2">
