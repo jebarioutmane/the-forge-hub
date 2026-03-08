@@ -116,7 +116,9 @@ export default function OperationsContracts() {
       const { error } = await supabase.from("contracts").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = contracts.find(c => c.id === id);
+      logAction("Operations-Contracts", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       setDeleteId(null);
       toast.success("Contract deleted");
