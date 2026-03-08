@@ -195,6 +195,20 @@ export default function FoundersSource() {
   const uniqueStatuses = useMemo(() => getUniqueFilterValues(founders.map(f => f.status)), [founders]);
   const uniqueVAs = useMemo(() => getUniqueFilterValues(founders.map(f => f.venture_associate)), [founders]);
 
+  function getFounderNationalities(f: Founder): string[] {
+    const arr = (f.nationalities as string[] | null);
+    if (arr && arr.length > 0) return arr;
+    if (f.nationality) return [f.nationality];
+    return [];
+  }
+
+  function getFounderLinks(f: Founder): LinkItem[] {
+    const linksJson = f.links as unknown;
+    if (Array.isArray(linksJson) && linksJson.length > 0) return linksJson as LinkItem[];
+    if (f.link_title || f.link_url) return [{ title: f.link_title || "", url: f.link_url || "" }];
+    return [];
+  }
+
 
   const filtered = useMemo(() => {
     return founders.filter((f) => {

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { getUniqueFilterValues, matchesFilter, matchesMultiFilter } from "@/lib/normalizeFilter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { logAction } from "@/lib/logAction";
