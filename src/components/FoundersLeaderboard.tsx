@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Trophy } from "lucide-react";
+import { FounderSparkline } from "@/components/FounderSparkline";
 
 interface LeaderboardEntry {
   id: string;
@@ -35,6 +36,28 @@ export default function FoundersLeaderboard() {
       return data;
     },
   });
+
+  const { data: tracking = [] } = useQuery({
+    queryKey: ["founders_tracking_leaderboard"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("founders_tracking")
+        .select("founder_id, overall_score, tracking_date")
+        .order("tracking_date", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const sparklineMap = useMemo(() => {
+    const map: Record<string, number[]> = {};
+    tracking.forEach((t) => {
+      if (!t.founder_id || t.overall_score == null) return;
+      if (!map[t.founder_id]) map[t.founder_id] = [];
+      map[t.founder_id].push(t.overall_score);
+    });
+    return map;
+  }, [tracking]);
 
   const leaderboard: LeaderboardEntry[] = useMemo(() => {
     const scoreMap: Record<string, { total: number; count: number }> = {};
@@ -113,6 +136,8 @@ export default function FoundersLeaderboard() {
                     {entry.startup_name}
                   </p>
                 </div>
+
+                <FounderSparkline scores={sparklineMap[entry.id] || []} />
 
                 <span className="text-[13px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg shrink-0">
                   {entry.avgScore}

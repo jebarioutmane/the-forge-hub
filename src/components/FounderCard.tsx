@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
 import { TagBadges } from "@/components/TagBadges";
+import { FounderSparkline } from "@/components/FounderSparkline";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Founder = Tables<"founders">;
@@ -16,9 +17,10 @@ interface FounderCardProps {
   onEdit: (f: Founder) => void;
   onDelete: (id: string) => void;
   highlightId?: string | null;
+  sparklineScores?: number[];
 }
 
-export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, onDelete, highlightId }: FounderCardProps) {
+export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, onDelete, highlightId, sparklineScores }: FounderCardProps) {
   const [imgError, setImgError] = useState(false);
   const initials = founder.founder_name
     .split(" ")
@@ -34,6 +36,13 @@ export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, o
         {/* Subtle decorative circle */}
         <div className="absolute top-3 right-3 h-16 w-16 rounded-full bg-primary/[0.04]" />
         <div className="absolute bottom-2 left-4 h-8 w-8 rounded-full bg-primary/[0.03]" />
+
+        {/* Sparkline - top left */}
+        {sparklineScores && sparklineScores.length >= 2 && (
+          <div className="absolute top-2.5 left-2.5">
+            <FounderSparkline scores={sparklineScores} />
+          </div>
+        )}
 
         {/* Actions menu - top right */}
         <div className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">

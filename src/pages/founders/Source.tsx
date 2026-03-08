@@ -186,6 +186,19 @@ export default function FoundersSource() {
     },
   });
 
+  // Build sparkline scores map (chronological order: oldest→newest)
+  const sparklineMap = useMemo(() => {
+    const map: Record<string, number[]> = {};
+    // tracking is sorted desc, so reverse for chronological
+    const sorted = [...tracking].reverse();
+    sorted.forEach((t) => {
+      if (!t.founder_id || t.overall_score == null) return;
+      if (!map[t.founder_id]) map[t.founder_id] = [];
+      map[t.founder_id].push(t.overall_score);
+    });
+    return map;
+  }, [tracking]);
+
   // Derive unique values for filter dropdowns (case-insensitive dedup)
   const uniqueCohorts = useMemo(() => getUniqueFilterValues(founders.map(f => f.cohort)), [founders]);
   const uniqueCountries = useMemo(() => {
@@ -421,6 +434,7 @@ export default function FoundersSource() {
                 onEdit={openEdit}
                 onDelete={(id) => setDeleteId(id)}
                 highlightId={highlightId}
+                sparklineScores={sparklineMap[f.id]}
               />
             );
           })}
