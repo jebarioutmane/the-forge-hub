@@ -71,6 +71,7 @@ const statusBadgeClass = (s: string) => {
 };
 
 export default function Planning() {
+  const { user } = useAuth();
   const qc = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Event | null>(null);
