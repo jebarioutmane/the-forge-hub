@@ -556,6 +556,39 @@ export type Database = {
           },
         ]
       }
+      history_logs: {
+        Row: {
+          action: string
+          changed_by_name: string | null
+          created_at: string
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string
+          section_name: string
+        }
+        Insert: {
+          action: string
+          changed_by_name?: string | null
+          created_at?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id: string
+          section_name: string
+        }
+        Update: {
+          action?: string
+          changed_by_name?: string | null
+          created_at?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string
+          section_name?: string
+        }
+        Relationships: []
+      }
       mentoring_sessions: {
         Row: {
           all_founders: boolean | null

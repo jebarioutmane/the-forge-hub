@@ -9,9 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { StarRating } from "@/components/StarRating";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -26,20 +28,42 @@ const AREAS = [
   { key: "funding_update", label: "Funding Update" },
 ] as const;
 
+type FormState = {
+  id?: string;
+  founder_id: string;
+  tracking_date: string;
+  product_dev_rating: number;
+  product_dev_update: string;
+  clients_traction_rating: number;
+  clients_traction_update: string;
+  team_structure_rating: number;
+  team_structure_update: string;
+  market_presence_rating: number;
+  market_presence_update: string;
+  funding_update_rating: number;
+  funding_update: string;
+  other_updates: string;
+};
+
+const emptyForm = (founderId: string): FormState => ({
+  founder_id: founderId,
+  tracking_date: new Date().toISOString().split("T")[0],
+  product_dev_rating: 0, product_dev_update: "",
+  clients_traction_rating: 0, clients_traction_update: "",
+  team_structure_rating: 0, team_structure_update: "",
+  market_presence_rating: 0, market_presence_update: "",
+  funding_update_rating: 0, funding_update: "",
+  other_updates: "",
+});
+
 export default function FoundersTracking() {
   const queryClient = useQueryClient();
   const [selectedFounder, setSelectedFounder] = useState<string>("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [form, setForm] = useState({
-    founder_id: "",
-    tracking_date: new Date().toISOString().split("T")[0],
-    product_dev_rating: 0, product_dev_update: "",
-    clients_traction_rating: 0, clients_traction_update: "",
-    team_structure_rating: 0, team_structure_update: "",
-    market_presence_rating: 0, market_presence_update: "",
-    funding_update_rating: 0, funding_update: "",
-    other_updates: "",
-  });
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [form, setForm] = useState<FormState>(emptyForm(""));
+
+  const isEditing = !!form.id;
 
   const { data: founders = [] } = useQuery({
     queryKey: ["founders"],
@@ -61,7 +85,7 @@ export default function FoundersTracking() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("founders_tracking").insert({
+      const payload = {
         founder_id: form.founder_id,
         tracking_date: form.tracking_date,
         product_dev_rating: form.product_dev_rating,
@@ -75,15 +99,38 @@ export default function FoundersTracking() {
         funding_update_rating: form.funding_update_rating,
         funding_update: form.funding_update || null,
         other_updates: form.other_updates || null,
-      });
-      if (error) throw error;
+      };
+
+      if (form.id) {
+        const { error } = await supabase.from("founders_tracking").update(payload).eq("id", form.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("founders_tracking").insert(payload);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["founders_tracking"] });
       setDialogOpen(false);
-      toast.success("Progress logged");
+      toast.success(isEditing ? "Update saved" : "Progress logged");
     },
     onError: (e) => toast.error(e.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("founders_tracking").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["founders_tracking"] });
+      toast.success("Record deleted");
+      setDeleteTarget(null);
+    },
+    onError: (e) => {
+      toast.error(e.message);
+      setDeleteTarget(null);
+    },
   });
 
   const founderTracking = selectedFounder
@@ -92,7 +139,6 @@ export default function FoundersTracking() {
 
   const selectedFounderObj = founders.find((f) => f.id === selectedFounder);
 
-  // Group tracking by month
   const grouped = founderTracking.reduce((acc, t) => {
     const month = t.tracking_date ? format(parseISO(t.tracking_date), "MMMM yyyy") : "Unknown";
     if (!acc[month]) acc[month] = [];
@@ -101,15 +147,26 @@ export default function FoundersTracking() {
   }, {} as Record<string, Tracking[]>);
 
   function openNewTracking() {
+    setForm(emptyForm(selectedFounder));
+    setDialogOpen(true);
+  }
+
+  function openEditTracking(entry: Tracking) {
     setForm({
-      founder_id: selectedFounder,
-      tracking_date: new Date().toISOString().split("T")[0],
-      product_dev_rating: 0, product_dev_update: "",
-      clients_traction_rating: 0, clients_traction_update: "",
-      team_structure_rating: 0, team_structure_update: "",
-      market_presence_rating: 0, market_presence_update: "",
-      funding_update_rating: 0, funding_update: "",
-      other_updates: "",
+      id: entry.id,
+      founder_id: entry.founder_id || selectedFounder,
+      tracking_date: entry.tracking_date || new Date().toISOString().split("T")[0],
+      product_dev_rating: entry.product_dev_rating || 0,
+      product_dev_update: entry.product_dev_update || "",
+      clients_traction_rating: entry.clients_traction_rating || 0,
+      clients_traction_update: entry.clients_traction_update || "",
+      team_structure_rating: entry.team_structure_rating || 0,
+      team_structure_update: entry.team_structure_update || "",
+      market_presence_rating: entry.market_presence_rating || 0,
+      market_presence_update: entry.market_presence_update || "",
+      funding_update_rating: entry.funding_update_rating || 0,
+      funding_update: entry.funding_update || "",
+      other_updates: entry.other_updates || "",
     });
     setDialogOpen(true);
   }
@@ -157,10 +214,25 @@ export default function FoundersTracking() {
                     <div className="space-y-4">
                       {entries.map((entry) => (
                         <Card key={entry.id} className="shadow-sm">
-                          <CardHeader className="pb-2">
+                          <CardHeader className="pb-2 flex flex-row items-center justify-between">
                             <CardTitle className="text-sm font-medium text-muted-foreground">
                               {entry.tracking_date ? format(parseISO(entry.tracking_date), "EEEE, MMM d, yyyy") : "Unknown date"}
                             </CardTitle>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => openEditTracking(entry)}>
+                                  <Pencil className="mr-2 h-4 w-4" /> Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive" onClick={() => setDeleteTarget(entry.id)}>
+                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </CardHeader>
                           <CardContent className="space-y-3">
                             {AREAS.map((area) => {
@@ -194,9 +266,12 @@ export default function FoundersTracking() {
         </div>
       )}
 
+      {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Log Progress Update</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{isEditing ? "Edit Progress Update" : "Log Progress Update"}</DialogTitle>
+          </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label>Date</Label>
@@ -223,10 +298,31 @@ export default function FoundersTracking() {
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={() => saveMutation.mutate()} disabled={!form.founder_id}>Log Update</Button>
+            <Button onClick={() => saveMutation.mutate()} disabled={!form.founder_id || saveMutation.isPending}>
+              {isEditing ? "Save Changes" : "Log Update"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>This action cannot be undone. This will permanently delete this progress update.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
