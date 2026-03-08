@@ -59,6 +59,7 @@ const emptyForm = (founderId: string): FormState => ({
 });
 
 export default function FoundersTracking() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [selectedFounder, setSelectedFounder] = useState<string>("");
   const [dialogOpen, setDialogOpen] = useState(false);
