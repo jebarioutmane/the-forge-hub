@@ -152,10 +152,11 @@ export function TopNav() {
             className="flex items-center gap-2 hover:opacity-80 transition-opacity shrink-0"
           >
             <img
-              src={logoColored}
+              src={appIcon}
               alt="The Forge"
-              className="h-5"
+              className="h-8 w-8 object-contain rounded-md shadow-sm"
             />
+            <span className="font-semibold text-foreground text-sm tracking-tight">The Forge</span>
           </button>
 
           {/* Desktop: Home link */}
