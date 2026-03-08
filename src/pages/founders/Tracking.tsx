@@ -315,8 +315,36 @@ export default function FoundersTracking() {
         </Select>
       </div>
 
-      {selectedFounder && (
+      {selectedFounder && (() => {
+        const chronoTracking = [...founderTracking].sort((a, b) =>
+          (a.tracking_date || "").localeCompare(b.tracking_date || "")
+        );
+        const sparkScores = chronoTracking.map((t) => t.overall_score || 0);
+        const sparkDates = chronoTracking.map((t) => t.tracking_date || "");
+
+        return (
         <div className="space-y-4">
+          {/* Consistency Pattern */}
+          {sparkScores.length >= 2 && (
+            <Card className="overflow-hidden">
+              <CardContent className="py-4 px-5 flex items-center gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5">Consistency Pattern</p>
+                  <p className="text-sm font-semibold text-foreground truncate">{selectedFounderObj?.founder_name}</p>
+                </div>
+                <FounderSparkline
+                  scores={sparkScores}
+                  dates={sparkDates}
+                  width={200}
+                  height={48}
+                />
+                <div className="text-right shrink-0">
+                  <p className="text-2xl font-bold text-foreground">{sparkScores[sparkScores.length - 1]}</p>
+                  <p className="text-[10px] text-muted-foreground">Latest Score</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           {Object.keys(grouped).length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">
