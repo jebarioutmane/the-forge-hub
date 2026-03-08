@@ -122,6 +122,7 @@ export default function FounderEvaluation() {
       }
     },
     onSuccess: () => {
+      logAction("Founders-Evaluations", editingEval ? "UPDATE" : "INSERT", editingEval?.id || "new", editingEval ? (editingEval as any) : null, { founder_id: selectedFounder, block_name: selectedBlock, total_score: scores.total }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["founder_evaluations"] });
       setDialogOpen(false);
       setEditingEval(null);
