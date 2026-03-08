@@ -454,8 +454,8 @@ export default function FoundersSource() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Venture Associate</Label>
-                <Input value={form.venture_associate} onChange={(e) => set("venture_associate", e.target.value)} placeholder="Assigned VA" />
+                <Label htmlFor="venture-associate">Venture Associate</Label>
+                <Input id="venture-associate" name="venture_associate" value={form.venture_associate} onChange={(e) => set("venture_associate", e.target.value)} placeholder="Assigned VA" />
               </div>
             </div>
             <div className="space-y-2">
