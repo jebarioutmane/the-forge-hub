@@ -22,7 +22,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { TagPicker } from "@/components/TagPicker";
 import { TagBadges } from "@/components/TagBadges";
-import { Progress } from "@/components/ui/progress";
+import { FounderCard } from "@/components/FounderCard";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { formatUrl } from "@/lib/formatUrl";
