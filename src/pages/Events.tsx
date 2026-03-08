@@ -83,6 +83,7 @@ export default function Events() {
       }
     },
     onSuccess: () => {
+      logAction("Events-Timeline", editing ? "UPDATE" : "INSERT", editing?.id || "new", editing ? (editing as any) : null, { name: form.name, status: form.status }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["events"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setDialogOpen(false);
