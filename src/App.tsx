@@ -21,6 +21,8 @@ import EventsLogistics from "./pages/events/Logistics";
 import EventsStakeholders from "./pages/events/Stakeholders";
 import Settings from "./pages/Settings";
 import Library from "./pages/Library";
+import SystemProfiles from "./pages/system/Profiles";
+import HistoryLog from "./pages/system/HistoryLog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
