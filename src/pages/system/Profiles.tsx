@@ -242,45 +242,76 @@ export default function SystemProfiles() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {profiles.map((profile) => {
             const isOwn = user?.id === profile.id;
             const canEdit = isOwn || hasEditRights;
             const roleBadge = getRoleBadge(profile.role);
             const RoleIcon = roleBadge.icon;
+            const nationalities = (profile.nationalities as string[]) || [];
+            const tags = (profile.tags as string[]) || [];
 
             return (
-              <Card key={profile.id} className="relative overflow-hidden border-border/60 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-start gap-3 pb-3">
-                  <Avatar className="h-12 w-12 shrink-0">
-                    <AvatarImage src={profile.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                      {initials(profile.full_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <CardTitle className="text-sm truncate leading-tight">{profile.full_name || "Unnamed"}</CardTitle>
-                    {profile.title && (
-                      <p className="text-xs text-muted-foreground truncate">{profile.title}</p>
-                    )}
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 h-5 gap-1 font-medium", roleBadge.className)}>
-                        <RoleIcon className="h-2.5 w-2.5" />
-                        {roleBadge.label}
-                      </Badge>
-                      {isOwn && (
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">You</Badge>
-                      )}
-                      {profile.status && profile.status !== "Active" && (
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-accent text-accent-foreground border-border">
-                          {profile.status}
-                        </Badge>
-                      )}
-                    </div>
+              <Card key={profile.id} className="group relative flex flex-col overflow-hidden border-border/60 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+                {/* Header gradient area */}
+                <div className="relative h-24 bg-gradient-to-br from-secondary to-muted flex items-end justify-center">
+                  <div className="absolute top-3 right-3 h-14 w-14 rounded-full bg-primary/[0.04]" />
+                  {/* Avatar overlapping */}
+                  <div className="absolute -bottom-7 left-1/2 -translate-x-1/2">
+                    <Avatar className="h-14 w-14 border-[3px] border-card shadow-md">
+                      <AvatarImage src={profile.avatar_url || undefined} />
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                        {initials(profile.full_name)}
+                      </AvatarFallback>
+                    </Avatar>
                   </div>
-                </CardHeader>
-                <CardContent className="pt-0 space-y-3">
-                  <div className="flex gap-2 justify-end pt-1">
+                </div>
+
+                {/* Content */}
+                <div className="flex flex-col flex-1 px-5 pt-10 pb-4 text-center">
+                  <h3 className="text-[15px] font-semibold text-foreground leading-tight truncate">
+                    {profile.full_name || "Unnamed"}
+                  </h3>
+                  {profile.title && (
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate">{profile.title}</p>
+                  )}
+
+                  {/* Country flags */}
+                  {nationalities.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1.5 truncate">
+                      {nationalities.map((n) => `${getFlag(n)} ${n}`).join(" · ")}
+                    </p>
+                  )}
+
+                  {/* Badges row */}
+                  <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2.5">
+                    <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 h-5 gap-1 font-medium", roleBadge.className)}>
+                      <RoleIcon className="h-2.5 w-2.5" />
+                      {roleBadge.label}
+                    </Badge>
+                    {isOwn && (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">You</Badge>
+                    )}
+                    {profile.status && profile.status !== "Active" && (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-accent text-accent-foreground border-border">
+                        {profile.status}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Tags as Apple-style badges */}
+                  {tags.length > 0 && (
+                    <div className="flex flex-wrap items-center justify-center gap-1 mt-2.5">
+                      {tags.map((t) => (
+                        <span key={t} className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium bg-secondary text-muted-foreground">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex gap-2 justify-center mt-3 pt-3 border-t border-border/40">
                     <Button size="sm" variant="outline" onClick={() => openView(profile)} className="h-7 text-xs">
                       <Eye className="mr-1 h-3 w-3" /> View
                     </Button>
@@ -291,24 +322,27 @@ export default function SystemProfiles() {
                     )}
                   </div>
 
+                  {/* Role selector for admins */}
                   {hasEditRights && !isOwn && (
-                    <Select
-                      value={profile.role || "user"}
-                      onValueChange={(val) => roleMutation.mutate({ profileId: profile.id, role: val })}
-                    >
-                      <SelectTrigger className="h-7 text-[11px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ROLE_OPTIONS.map((r) => (
-                          <SelectItem key={r.value} value={r.value} className="text-xs">
-                            {r.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="mt-2">
+                      <Select
+                        value={profile.role || "user"}
+                        onValueChange={(val) => roleMutation.mutate({ profileId: profile.id, role: val })}
+                      >
+                        <SelectTrigger className="h-7 text-[11px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ROLE_OPTIONS.map((r) => (
+                            <SelectItem key={r.value} value={r.value} className="text-xs">
+                              {r.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
-                </CardContent>
+                </div>
               </Card>
             );
           })}
