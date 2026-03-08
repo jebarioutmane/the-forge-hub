@@ -21,6 +21,7 @@ import type { Tables } from "@/integrations/supabase/types";
 type Stipend = Tables<"stipends">;
 
 export default function Stipends() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
   const [editingStipend, setEditingStipend] = useState<Stipend | null>(null);
