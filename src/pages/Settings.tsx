@@ -51,6 +51,7 @@ export default function Settings() {
       if (error) throw error;
     },
     onSuccess: () => {
+      logAction("System-Tags", "INSERT", "new", null, { name: newTagName, color: newTagColor }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       setNewTagName("");
       setNewTagColor("#f97316");
