@@ -139,11 +139,17 @@ export default function FoundersLeaderboard() {
                   </p>
                 </div>
 
-                <FounderSparkline scores={sparklineMap.scores[entry.id] || []} dates={sparklineMap.dates[entry.id] || []} />
+                <div className="flex flex-col items-center gap-0.5">
+                  <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider">Progress</span>
+                  <FounderSparkline scores={sparklineMap.scores[entry.id] || []} dates={sparklineMap.dates[entry.id] || []} />
+                </div>
 
-                <span className="text-[13px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg shrink-0">
-                  {entry.avgScore}
-                </span>
+                <div className="flex flex-col items-center gap-0.5 shrink-0">
+                  <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider">Evaluation</span>
+                  <span className="text-[13px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg">
+                    {entry.avgScore}
+                  </span>
+                </div>
               </div>
             ))
           )}
