@@ -247,6 +247,7 @@ export default function FoundersSource() {
         founder_name: form.founder_name,
         startup_name: form.startup_name,
         cohort: form.cohort || null,
+        cohort_year: form.cohort || currentYear,
         venture_associate: form.venture_associate || null,
         nationality: form.nationalities[0] || null,
         nationalities: form.nationalities,
