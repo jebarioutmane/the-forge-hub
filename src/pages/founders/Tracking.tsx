@@ -181,8 +181,8 @@ export default function FoundersTracking() {
       // Auto-calculate score from star ratings (5 areas × 5 stars = 25 max → scale to 100)
       const totalStars = (form.product_dev_rating || 0) + (form.clients_traction_rating || 0) + (form.team_structure_rating || 0) + (form.market_presence_rating || 0) + (form.funding_update_rating || 0);
       const calculatedScore = Math.round((totalStars / 25) * 100);
-      // Use manual score if user set one > 0, otherwise use auto-calculated
-      const finalScore = form.overall_score > 0 ? form.overall_score : calculatedScore;
+      // Always use star-based calculation; manual field is display-only
+      const finalScore = calculatedScore;
 
       const payload = {
         founder_id: form.founder_id,
@@ -455,16 +455,12 @@ export default function FoundersTracking() {
               <Label>Other Notes</Label>
               <Textarea rows={2} value={form.other_updates} onChange={(e) => setForm((f) => ({ ...f, other_updates: e.target.value }))} />
             </div>
-            <div className="space-y-2 border-t pt-4">
-              <Label>Overall Score (0–100) <span className="text-destructive">*</span></Label>
-              <Input
-                type="number"
-                min={0}
-                max={100}
-                value={form.overall_score}
-                onChange={(e) => setForm((f) => ({ ...f, overall_score: Math.min(100, Math.max(0, Number(e.target.value) || 0)) }))}
-                className="max-w-[120px]"
-              />
+            <div className="border-t pt-4 flex items-center justify-between">
+              <Label className="text-muted-foreground">Overall Score (auto-calculated)</Label>
+              <span className="text-2xl font-bold tabular-nums">
+                {Math.round((((form.product_dev_rating || 0) + (form.clients_traction_rating || 0) + (form.team_structure_rating || 0) + (form.market_presence_rating || 0) + (form.funding_update_rating || 0)) / 25) * 100)}
+                <span className="text-sm font-medium text-muted-foreground">/100</span>
+              </span>
             </div>
           </div>
           <DialogFooter>
