@@ -576,7 +576,7 @@ export default function FoundersSource() {
           })() },
           { label: "Description", value: viewing.description },
           { label: "Tags", value: <TagBadges tagIds={viewing.tag_ids as string[] | null} /> },
-          { label: "Score", value: `${getLatestScore(viewing.id)}%` },
+          
         ] : []}
       />
     </div>
