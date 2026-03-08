@@ -534,6 +534,10 @@ export default function FoundersSource() {
             </div>
 
             <div className="space-y-2">
+              <Label>Profile Photo URL</Label>
+              <Input value={form.photo_url} onChange={(e) => set("photo_url", e.target.value)} placeholder="https://linkedin.com/in/..." />
+            </div>
+            <div className="space-y-2">
               <Label>Description / Business Idea</Label>
               <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={3} placeholder="Brief description of the startup..." />
             </div>
