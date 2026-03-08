@@ -455,16 +455,12 @@ export default function FoundersTracking() {
               <Label>Other Notes</Label>
               <Textarea rows={2} value={form.other_updates} onChange={(e) => setForm((f) => ({ ...f, other_updates: e.target.value }))} />
             </div>
-            <div className="space-y-2 border-t pt-4">
-              <Label>Overall Score (0–100) <span className="text-destructive">*</span></Label>
-              <Input
-                type="number"
-                min={0}
-                max={100}
-                value={form.overall_score}
-                onChange={(e) => setForm((f) => ({ ...f, overall_score: Math.min(100, Math.max(0, Number(e.target.value) || 0)) }))}
-                className="max-w-[120px]"
-              />
+            <div className="border-t pt-4 flex items-center justify-between">
+              <Label className="text-muted-foreground">Overall Score (auto-calculated)</Label>
+              <span className="text-2xl font-bold tabular-nums">
+                {Math.round((((form.product_dev_rating || 0) + (form.clients_traction_rating || 0) + (form.team_structure_rating || 0) + (form.market_presence_rating || 0) + (form.funding_update_rating || 0)) / 25) * 100)}
+                <span className="text-sm font-medium text-muted-foreground">/100</span>
+              </span>
             </div>
           </div>
           <DialogFooter>
