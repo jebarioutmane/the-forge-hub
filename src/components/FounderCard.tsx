@@ -18,9 +18,10 @@ interface FounderCardProps {
   onDelete: (id: string) => void;
   highlightId?: string | null;
   sparklineScores?: number[];
+  sparklineDates?: string[];
 }
 
-export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, onDelete, highlightId, sparklineScores }: FounderCardProps) {
+export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, onDelete, highlightId, sparklineScores, sparklineDates }: FounderCardProps) {
   const [imgError, setImgError] = useState(false);
   const initials = founder.founder_name
     .split(" ")
