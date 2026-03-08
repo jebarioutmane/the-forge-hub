@@ -202,7 +202,11 @@ export default function FoundersSource() {
   }, [tracking]);
 
   // Derive unique values for filter dropdowns (case-insensitive dedup)
-  const uniqueCohorts = useMemo(() => getUniqueFilterValues(founders.map(f => f.cohort)), [founders]);
+  const uniqueCohortYears = useMemo(() => {
+    const years = getUniqueFilterValues(founders.map(f => f.cohort_year));
+    if (!years.includes(currentYear)) years.push(currentYear);
+    return years.sort();
+  }, [founders, currentYear]);
   const uniqueCountries = useMemo(() => {
     const all = founders.flatMap(f => (f.nationalities as string[] | null) || (f.nationality ? [f.nationality] : []));
     return getUniqueFilterValues(all);
