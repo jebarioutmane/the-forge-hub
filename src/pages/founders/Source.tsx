@@ -241,6 +241,7 @@ export default function FoundersSource() {
         cin_number: form.cin_number || null,
         passport_number: form.passport_number || null,
         birthday: form.birthday ? format(form.birthday, "yyyy-MM-dd") : null,
+        photo_url: form.photo_url || null,
       };
       if (editing) {
         const { error } = await supabase.from("founders").update(payload).eq("id", editing.id);
