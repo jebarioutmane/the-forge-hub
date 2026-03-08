@@ -151,6 +151,8 @@ function ScoreBadge({ score }: { score: number | null }) {
 export default function FoundersTracking() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const currentYear = new Date().getFullYear().toString();
+  const [selectedCohortYear, setSelectedCohortYear] = useState(currentYear);
   const [selectedFounder, setSelectedFounder] = useState<string>("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -301,16 +303,29 @@ export default function FoundersTracking() {
         )}
       </div>
 
-      <div className="space-y-2">
-        <Label>Select Founder</Label>
-        <Select value={selectedFounder} onValueChange={setSelectedFounder}>
-          <SelectTrigger className="max-w-sm">
-            <SelectValue placeholder="Choose a founder..." />
-          </SelectTrigger>
+      <div className="flex items-end gap-3">
+        <div className="space-y-2 flex-1 max-w-sm">
+          <Label>Select Founder</Label>
+          <Select value={selectedFounder} onValueChange={setSelectedFounder}>
+            <SelectTrigger>
+              <SelectValue placeholder="Choose a founder..." />
+            </SelectTrigger>
+            <SelectContent>
+              {founders.filter(f => selectedCohortYear === "all" || f.cohort_year === selectedCohortYear).map((f) => (
+                <SelectItem key={f.id} value={f.id}>{f.founder_name} — {f.startup_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Select value={selectedCohortYear} onValueChange={(v) => { setSelectedCohortYear(v); setSelectedFounder(""); }}>
+          <SelectTrigger className="w-[140px] bg-secondary border-none rounded-lg font-medium"><SelectValue placeholder="Cohort Year" /></SelectTrigger>
           <SelectContent>
-            {founders.map((f) => (
-              <SelectItem key={f.id} value={f.id}>{f.founder_name} — {f.startup_name}</SelectItem>
-            ))}
+            <SelectItem value="all">All Years</SelectItem>
+            {(() => {
+              const years = [...new Set(founders.map(f => f.cohort_year).filter(Boolean) as string[])];
+              if (!years.includes(currentYear)) years.push(currentYear);
+              return years.sort().map(y => <SelectItem key={y} value={y}>{y}</SelectItem>);
+            })()}
           </SelectContent>
         </Select>
       </div>
