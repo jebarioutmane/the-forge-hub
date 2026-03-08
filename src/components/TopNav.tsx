@@ -336,6 +336,8 @@ export function TopNav() {
           />
         )}
       </AnimatePresence>
+
+      <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </>
   );
 }
