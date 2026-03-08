@@ -57,7 +57,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <Card className="w-full max-w-md shadow-2xl border-0">
         <CardHeader className="text-center pb-2">
-          <img src={logoColored} alt="The Forge" className="h-14 mx-auto mb-3" />
+          <img src={appIcon} alt="The Forge" className="h-16 w-16 object-contain rounded-xl shadow-sm mx-auto mb-3" />
           <CardTitle className="text-2xl tracking-tight">THE FORGE HUB</CardTitle>
           <CardDescription>Sign in to your account</CardDescription>
         </CardHeader>

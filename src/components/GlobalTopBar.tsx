@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import logoColored from "@/assets/Logo-THEFORGE_colored.png";
+const appIcon = "/pwa-512x512.png";
 
 export function GlobalTopBar() {
   const { user, signOut } = useAuth();

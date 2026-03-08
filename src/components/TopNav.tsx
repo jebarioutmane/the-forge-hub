@@ -225,10 +225,11 @@ export function TopNav() {
                 <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 <div className="flex items-center justify-between px-5 h-12 border-b border-border">
                   <img
-                    src={logoColored}
+                    src={appIcon}
                     alt="The Forge"
-                    className="h-5"
+                    className="h-8 w-8 object-contain rounded-md shadow-sm"
                   />
+                  <span className="font-semibold text-foreground text-sm tracking-tight">The Forge</span>
                 </div>
 
                 <div className="px-5 py-5 overflow-y-auto max-h-[calc(100dvh-48px)]">
