@@ -113,7 +113,8 @@ export default function Stipends() {
       const { error } = await supabase.from("stipends").update({ status: "Paid" }).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      logAction("Operations-Stipends", "UPDATE", id, { status: "Pending" }, { status: "Paid" }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["stipends"] });
       toast.success("Payment processed");
     },

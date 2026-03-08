@@ -146,7 +146,10 @@ export default function OperationsContracts() {
       const { error } = await supabase.from("contracts").update({ status }).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["contracts"] }),
+    onSuccess: (_data, vars) => {
+      logAction("Operations-Contracts", "UPDATE", vars.id, { status: "previous" }, { status: vars.status }, user?.email || "Unknown");
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+    },
     onError: (e) => toast.error(e.message),
   });
 

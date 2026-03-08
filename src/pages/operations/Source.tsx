@@ -80,7 +80,9 @@ export default function Source() {
       const { error } = await supabase.from("budgets").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      const deleted = budgets.find(b => b.id === id);
+      logAction("Operations-Budgets", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
       setDeleteId(null);
       toast.success("Budget deleted");
