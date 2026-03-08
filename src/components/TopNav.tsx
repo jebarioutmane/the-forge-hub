@@ -198,10 +198,31 @@ export function TopNav() {
               </NavigationMenuList>
             </NavigationMenu>
           )}
+
+          {/* Home: prominent search bar */}
+          {!isMobile && isHome && (
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="w-full max-w-md h-10 bg-secondary rounded-xl flex items-center px-4 text-muted-foreground cursor-text hover:bg-accent transition-colors gap-2"
+            >
+              <Search className="h-4 w-4 shrink-0" />
+              <span className="text-sm">Search founders, team, events...</span>
+            </button>
+          )}
         </div>
 
         {/* Right side */}
         <div className="flex items-center gap-2">
+          {/* Non-home: subtle search icon */}
+          {!isMobile && !isHome && (
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="h-9 w-9 rounded-full hover:bg-secondary flex items-center justify-center transition-colors text-foreground"
+              title="Search"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+          )}
           {!isMobile && <TeamPresence onlineUserIds={onlineUserIds} />}
           {!isMobile && <MyProfileDialog />}
           {!isMobile && (
