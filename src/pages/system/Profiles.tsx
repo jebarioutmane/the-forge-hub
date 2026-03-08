@@ -602,74 +602,120 @@ function ViewProfileContent({ profile, initials }: { profile: Profile; initials:
   const tags = (profile.tags as string[]) || [];
   const roleBadge = getRoleBadgeStatic(profile.role);
 
+  const statusColor = profile.status === "Active"
+    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+    : profile.status === "Inactive"
+    ? "bg-muted text-muted-foreground border-border"
+    : "bg-amber-500/10 text-amber-600 border-amber-500/20";
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+      {/* Header */}
       <div className="flex items-center gap-4">
-        <Avatar className="h-16 w-16">
+        <Avatar className="h-16 w-16 border-2 border-border shadow-sm">
           <AvatarImage src={profile.avatar_url || undefined} />
           <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
             {initials(profile.full_name)}
           </AvatarFallback>
         </Avatar>
-        <div className="space-y-1">
-          <p className="text-base font-semibold">{profile.full_name || "Unnamed"}</p>
-          {profile.title && <p className="text-xs text-muted-foreground">{profile.title}</p>}
-          <Badge variant="outline" className={cn("text-[10px] font-medium", roleBadge.className)}>
-            {roleBadge.label}
-          </Badge>
+        <div className="space-y-1.5">
+          <p className="text-lg font-semibold leading-tight">{profile.full_name || "Unnamed"}</p>
+          {profile.title && <p className="text-sm text-muted-foreground">{profile.title}</p>}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Badge variant="outline" className={cn("text-[10px] font-medium", roleBadge.className)}>
+              {roleBadge.label}
+            </Badge>
+            {profile.status && (
+              <Badge variant="outline" className={cn("text-[10px] font-medium", statusColor)}>
+                {profile.status}
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-        <DetailRow label="Email" value={profile.email} />
-        <DetailRow label="Phone" value={profile.phone} />
-        <DetailRow label="Birthday" value={profile.birthday ? format(new Date(profile.birthday), "PPP") : null} />
-        <DetailRow label="Date Joined" value={profile.date_joined ? format(new Date(profile.date_joined), "PPP") : null} />
-        <DetailRow label="CIN" value={profile.cin_number} />
-        <DetailRow label="Passport" value={profile.passport_number} />
-        <DetailRow label="Status" value={profile.status} />
-        {profile.status === "On leave" && profile.status_until && (
-          <DetailRow label="Until" value={format(new Date(profile.status_until), "PPP")} />
-        )}
-        {profile.status_note && (
-          <div className="col-span-2">
-            <DetailRow label="Status Note" value={profile.status_note} />
-          </div>
-        )}
+      {/* Status details */}
+      {(profile.status === "On leave" && profile.status_until) && (
+        <div className="rounded-lg bg-amber-50 border border-amber-200/50 px-3 py-2 text-sm text-amber-700">
+          On leave until <span className="font-medium">{format(new Date(profile.status_until), "PPP")}</span>
+        </div>
+      )}
+      {profile.status_note && (
+        <div className="rounded-lg bg-secondary px-3 py-2 text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">Note:</span> {profile.status_note}
+        </div>
+      )}
+
+      {/* Contact Info */}
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Contact</p>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+          <DetailRow label="Email" value={profile.email} icon={<Mail className="h-3 w-3" />} />
+          <DetailRow label="Phone" value={profile.phone} icon={<Phone className="h-3 w-3" />} />
+        </div>
       </div>
 
+      {/* HR Data */}
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">HR Details</p>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+          <DetailRow label="CIN Number" value={profile.cin_number} />
+          <DetailRow label="Passport" value={profile.passport_number} />
+          <DetailRow label="Birthday" value={profile.birthday ? format(new Date(profile.birthday), "PPP") : null} />
+          <DetailRow label="Date Joined" value={profile.date_joined ? format(new Date(profile.date_joined), "PPP") : null} />
+        </div>
+      </div>
+
+      {/* Nationalities */}
       {nationalities.length > 0 && (
         <div>
-          <p className="text-xs font-medium text-muted-foreground mb-1">Nationalities</p>
-          <div className="flex flex-wrap gap-1">
-            {nationalities.map((n) => <Badge key={n} variant="secondary" className="text-xs">{getFlag(n)} {n}</Badge>)}
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Nationalities</p>
+          <div className="flex flex-wrap gap-1.5">
+            {nationalities.map((n) => (
+              <Badge key={n} variant="secondary" className="text-xs gap-1">
+                {getFlag(n)} {n}
+              </Badge>
+            ))}
           </div>
         </div>
       )}
 
+      {/* Tags */}
       {tags.length > 0 && (
         <div>
-          <p className="text-xs font-medium text-muted-foreground mb-1">Tags</p>
-          <div className="flex flex-wrap gap-1">
-            {tags.map((t) => <Badge key={t} variant="outline" className="text-xs">{t}</Badge>)}
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Tags</p>
+          <div className="flex flex-wrap gap-1.5">
+            {tags.map((t) => (
+              <span key={t} className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-secondary text-muted-foreground">
+                {t}
+              </span>
+            ))}
           </div>
         </div>
       )}
 
+      {/* Bio */}
       {profile.description && (
         <div>
-          <p className="text-xs font-medium text-muted-foreground mb-1">Description</p>
-          <p className="text-sm">{profile.description}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Bio</p>
+          <p className="text-sm leading-relaxed">{profile.description}</p>
         </div>
       )}
 
+      {/* Links */}
       {links.length > 0 && (
         <div>
-          <p className="text-xs font-medium text-muted-foreground mb-1">Links</p>
-          <div className="space-y-1">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Links</p>
+          <div className="space-y-1.5">
             {links.map((l, i) => (
-              <a key={i} href={l.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-primary hover:underline">
-                <Link2 className="h-3 w-3" />
+              <a
+                key={i}
+                href={formatUrl(l.url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm text-primary hover:underline transition-colors"
+              >
+                <ExternalLink className="h-3 w-3 shrink-0" />
                 {l.title || l.url}
               </a>
             ))}
@@ -680,12 +726,15 @@ function ViewProfileContent({ profile, initials }: { profile: Profile; initials:
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string | null | undefined }) {
+function DetailRow({ label, value, icon }: { label: string; value: string | null | undefined; icon?: React.ReactNode }) {
   if (!value) return null;
   return (
     <div>
       <p className="text-[11px] text-muted-foreground">{label}</p>
-      <p className="text-sm truncate">{value}</p>
+      <p className="text-sm truncate flex items-center gap-1.5">
+        {icon && <span className="text-muted-foreground">{icon}</span>}
+        {value}
+      </p>
     </div>
   );
 }
