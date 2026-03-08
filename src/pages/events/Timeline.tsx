@@ -41,6 +41,7 @@ const statusBadge = (s: string) => {
 };
 
 export default function Timeline() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [view, setView] = useState<"gantt" | "calendar">("gantt");
   const [currentMonth, setCurrentMonth] = useState(new Date());
