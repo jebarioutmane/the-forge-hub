@@ -133,6 +133,7 @@ function CountryMultiSelect({ value, onChange, placeholder = "Select countries..
 }
 
 export default function FoundersSource() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Founder | null>(null);
