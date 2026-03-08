@@ -423,7 +423,6 @@ export type Database = {
           birthday: string | null
           cin_number: string | null
           cohort: string | null
-          cohort_year: string | null
           created_at: string | null
           description: string | null
           email: string | null
@@ -446,7 +445,6 @@ export type Database = {
           birthday?: string | null
           cin_number?: string | null
           cohort?: string | null
-          cohort_year?: string | null
           created_at?: string | null
           description?: string | null
           email?: string | null
@@ -469,7 +467,6 @@ export type Database = {
           birthday?: string | null
           cin_number?: string | null
           cohort?: string | null
-          cohort_year?: string | null
           created_at?: string | null
           description?: string | null
           email?: string | null

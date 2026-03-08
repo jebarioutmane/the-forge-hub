@@ -52,8 +52,6 @@ function initMetricData(block: BlockConfig): Record<string, MetricData> {
 export default function FounderEvaluation() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const currentYear = new Date().getFullYear().toString();
-  const [selectedCohortYear, setSelectedCohortYear] = useState(currentYear);
   const [selectedFounder, setSelectedFounder] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState<string>("Block 1");
@@ -207,29 +205,15 @@ export default function FounderEvaluation() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Select Founder</Label>
           <Select value={selectedFounder} onValueChange={setSelectedFounder}>
             <SelectTrigger><SelectValue placeholder="Choose a founder..." /></SelectTrigger>
             <SelectContent>
-              {founders.filter(f => selectedCohortYear === "all" || f.cohort_year === selectedCohortYear).map((f) => (
+              {founders.map((f) => (
                 <SelectItem key={f.id} value={f.id}>{f.founder_name} — {f.startup_name}</SelectItem>
               ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Cohort Year</Label>
-          <Select value={selectedCohortYear} onValueChange={(v) => { setSelectedCohortYear(v); setSelectedFounder(""); }}>
-            <SelectTrigger className="bg-secondary border-none rounded-lg font-medium"><SelectValue placeholder="Cohort Year" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Years</SelectItem>
-              {(() => {
-                const years = [...new Set(founders.map(f => f.cohort_year).filter(Boolean) as string[])];
-                if (!years.includes(currentYear)) years.push(currentYear);
-                return years.sort().map(y => <SelectItem key={y} value={y}>{y}</SelectItem>);
-              })()}
             </SelectContent>
           </Select>
         </div>

@@ -148,9 +148,8 @@ export default function FoundersSource() {
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
   // Filters
-  const currentYear = new Date().getFullYear().toString();
   const [search, setSearch] = useState("");
-  const [filterCohortYear, setFilterCohortYear] = useState(currentYear);
+  const [filterCohort, setFilterCohort] = useState("all");
   const [filterCountries, setFilterCountries] = useState<string[]>([]);
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterVA, setFilterVA] = useState("all");
@@ -202,11 +201,7 @@ export default function FoundersSource() {
   }, [tracking]);
 
   // Derive unique values for filter dropdowns (case-insensitive dedup)
-  const uniqueCohortYears = useMemo(() => {
-    const years = getUniqueFilterValues(founders.map(f => f.cohort_year));
-    if (!years.includes(currentYear)) years.push(currentYear);
-    return years.sort();
-  }, [founders, currentYear]);
+  const uniqueCohorts = useMemo(() => getUniqueFilterValues(founders.map(f => f.cohort)), [founders]);
   const uniqueCountries = useMemo(() => {
     const all = founders.flatMap(f => (f.nationalities as string[] | null) || (f.nationality ? [f.nationality] : []));
     return getUniqueFilterValues(all);
@@ -233,13 +228,13 @@ export default function FoundersSource() {
     return founders.filter((f) => {
       const q = search.toLowerCase();
       if (q && !f.founder_name.toLowerCase().includes(q) && !f.startup_name.toLowerCase().includes(q)) return false;
-      if (filterCohortYear !== "all" && f.cohort_year !== filterCohortYear) return false;
+      if (!matchesFilter(f.cohort, filterCohort)) return false;
       if (!matchesMultiFilter(getFounderNationalities(f), filterCountries)) return false;
       if (!matchesFilter(f.status, filterStatus)) return false;
       if (!matchesFilter(f.venture_associate, filterVA)) return false;
       return true;
     });
-  }, [founders, search, filterCohortYear, filterCountries, filterStatus, filterVA]);
+  }, [founders, search, filterCohort, filterCountries, filterStatus, filterVA]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -247,7 +242,6 @@ export default function FoundersSource() {
         founder_name: form.founder_name,
         startup_name: form.startup_name,
         cohort: form.cohort || null,
-        cohort_year: form.cohort || currentYear,
         venture_associate: form.venture_associate || null,
         nationality: form.nationalities[0] || null,
         nationalities: form.nationalities,
@@ -367,11 +361,11 @@ export default function FoundersSource() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Search name or startup..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
             </div>
-            <Select value={filterCohortYear} onValueChange={setFilterCohortYear}>
-              <SelectTrigger className="w-[140px] bg-secondary border-none rounded-lg font-medium"><SelectValue placeholder="Cohort Year" /></SelectTrigger>
+            <Select value={filterCohort} onValueChange={setFilterCohort}>
+              <SelectTrigger><SelectValue placeholder="All Cohorts" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Years</SelectItem>
-                {uniqueCohortYears.map((y) => <SelectItem key={y} value={y!}>{y}</SelectItem>)}
+                <SelectItem value="all">All Cohorts</SelectItem>
+                {uniqueCohorts.map((c) => <SelectItem key={c} value={c!}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
             <CountryMultiSelect value={filterCountries} onChange={setFilterCountries} placeholder="Filter countries..." />

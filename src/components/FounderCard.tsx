@@ -38,6 +38,13 @@ export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, o
         <div className="absolute top-3 right-3 h-16 w-16 rounded-full bg-primary/[0.04]" />
         <div className="absolute bottom-2 left-4 h-8 w-8 rounded-full bg-primary/[0.03]" />
 
+        {/* Sparkline - top left */}
+        {sparklineScores && sparklineScores.length >= 2 && (
+          <div className="absolute top-2.5 left-2.5">
+            <FounderSparkline scores={sparklineScores} dates={sparklineDates} />
+          </div>
+        )}
+
         {/* Actions menu - top right */}
         <div className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
           <DropdownMenu>
