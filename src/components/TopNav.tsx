@@ -4,7 +4,7 @@ import {
   ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
   Settings, Wallet, PiggyBank, ListTodo,
   ClipboardList, BarChart3, Users2, Truck,
-  LogOut, Menu, ChevronRight,
+  LogOut, Menu, ChevronRight, Search,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import TeamPresence from "@/components/TeamPresence";
 const appIcon = "/pwa-512x512.png";
 import { usePresence } from "@/hooks/usePresence";
 import { cn } from "@/lib/utils";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -136,6 +137,8 @@ export function TopNav() {
   const { onlineUserIds } = usePresence();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const isHome = location.pathname === "/";
 
   const handleSignOut = async () => {
     await signOut();
@@ -195,10 +198,31 @@ export function TopNav() {
               </NavigationMenuList>
             </NavigationMenu>
           )}
+
+          {/* Home: prominent search bar */}
+          {!isMobile && isHome && (
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="w-full max-w-md h-10 bg-secondary rounded-xl flex items-center px-4 text-muted-foreground cursor-text hover:bg-accent transition-colors gap-2"
+            >
+              <Search className="h-4 w-4 shrink-0" />
+              <span className="text-sm">Search founders, team, events...</span>
+            </button>
+          )}
         </div>
 
         {/* Right side */}
         <div className="flex items-center gap-2">
+          {/* Non-home: subtle search icon */}
+          {!isMobile && !isHome && (
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="h-9 w-9 rounded-full hover:bg-secondary flex items-center justify-center transition-colors text-foreground"
+              title="Search"
+            >
+              <Search className="h-4 w-4" />
+            </button>
+          )}
           {!isMobile && <TeamPresence onlineUserIds={onlineUserIds} />}
           {!isMobile && <MyProfileDialog />}
           {!isMobile && (
@@ -312,6 +336,8 @@ export function TopNav() {
           />
         )}
       </AnimatePresence>
+
+      <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </>
   );
 }

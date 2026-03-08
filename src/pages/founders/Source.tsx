@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { logAction } from "@/lib/logAction";
@@ -135,6 +136,8 @@ function CountryMultiSelect({ value, onChange, placeholder = "Select countries..
 
 export default function FoundersSource() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const highlightId = searchParams.get("highlight");
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Founder | null>(null);
@@ -419,6 +422,7 @@ export default function FoundersSource() {
                 onView={setViewing}
                 onEdit={openEdit}
                 onDelete={(id) => setDeleteId(id)}
+                highlightId={highlightId}
               />
             );
           })}

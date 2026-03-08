@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -63,6 +64,8 @@ function parseLinks(raw: unknown): LinkItem[] {
 
 export default function SystemProfiles() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const highlightId = searchParams.get("highlight");
   const queryClient = useQueryClient();
   const [editOpen, setEditOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
@@ -252,7 +255,7 @@ export default function SystemProfiles() {
             const tags = (profile.tags as string[]) || [];
 
             return (
-              <Card key={profile.id} className="group relative flex flex-col overflow-hidden border-border/60 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+              <Card key={profile.id} className={cn("group relative flex flex-col overflow-hidden border-border/60 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300", highlightId === profile.id && "animate-target-flash")}>
                 {/* Header gradient area */}
                 <div className="relative h-24 bg-gradient-to-br from-secondary to-muted flex items-end justify-center">
                   <div className="absolute top-3 right-3 h-14 w-14 rounded-full bg-primary/[0.04]" />
