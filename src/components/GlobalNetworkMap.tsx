@@ -321,7 +321,7 @@ export default function GlobalNetworkMap() {
             <span className="text-xs text-muted-foreground">Morocco (Hub)</span>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
