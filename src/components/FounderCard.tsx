@@ -15,6 +15,7 @@ interface FounderCardProps {
   onView: (f: Founder) => void;
   onEdit: (f: Founder) => void;
   onDelete: (id: string) => void;
+  highlightId?: string | null;
 }
 
 export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, onDelete }: FounderCardProps) {
