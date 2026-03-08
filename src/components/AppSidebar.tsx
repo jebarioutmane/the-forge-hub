@@ -63,6 +63,8 @@ const sections = [
     color: "text-muted-foreground",
     items: [
       { title: "Library", url: "/library", icon: BookOpen },
+      { title: "Team Profiles", url: "/system/profiles", icon: UserCircle },
+      { title: "History Log", url: "/system/history", icon: History },
       { title: "Settings", url: "/settings", icon: Settings },
     ],
   },

@@ -51,6 +51,8 @@ const App = () => (
           <Route path="/founders/portfolio" element={<MainLayout><PortfolioDashboard /></MainLayout>} />
           <Route path="/settings" element={<MainLayout><Settings /></MainLayout>} />
           <Route path="/library" element={<MainLayout><Library moduleName="All" /></MainLayout>} />
+          <Route path="/system/profiles" element={<MainLayout><SystemProfiles /></MainLayout>} />
+          <Route path="/system/history" element={<MainLayout><HistoryLog /></MainLayout>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
