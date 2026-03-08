@@ -435,6 +435,7 @@ export type Database = {
           nationality: string | null
           passport_number: string | null
           phone: string | null
+          photo_url: string | null
           startup_name: string
           status: string | null
           tag_ids: string[] | null
@@ -456,6 +457,7 @@ export type Database = {
           nationality?: string | null
           passport_number?: string | null
           phone?: string | null
+          photo_url?: string | null
           startup_name: string
           status?: string | null
           tag_ids?: string[] | null
@@ -477,6 +479,7 @@ export type Database = {
           nationality?: string | null
           passport_number?: string | null
           phone?: string | null
+          photo_url?: string | null
           startup_name?: string
           status?: string | null
           tag_ids?: string[] | null

@@ -56,8 +56,12 @@ export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, o
 
         {/* Avatar - overlapping the header/content boundary */}
         <div className="absolute -bottom-8 left-1/2 -translate-x-1/2">
-          <div className="h-16 w-16 rounded-full bg-card border-[3px] border-card shadow-md flex items-center justify-center">
-            <span className="text-lg font-semibold text-primary select-none">{initials}</span>
+          <div className="h-16 w-16 rounded-full bg-card border-[3px] border-card shadow-md flex items-center justify-center overflow-hidden">
+            {founder.photo_url ? (
+              <img src={founder.photo_url} alt={founder.founder_name} className="h-full w-full object-cover" />
+            ) : (
+              <span className="text-lg font-semibold text-primary select-none">{initials}</span>
+            )}
           </div>
         </div>
       </div>

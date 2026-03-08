@@ -54,13 +54,14 @@ interface FounderForm {
   cin_number: string;
   passport_number: string;
   birthday: Date | undefined;
+  photo_url: string;
 }
 
 const emptyForm: FounderForm = {
   founder_name: "", startup_name: "", cohort: "", venture_associate: "",
   nationalities: [], phone: "", email: "", status: "", description: "", tag_ids: [],
   links: [],
-  cin_number: "", passport_number: "", birthday: undefined,
+  cin_number: "", passport_number: "", birthday: undefined, photo_url: "",
 };
 
 /* ── Multi-select country combobox (fetches from Supabase) ── */
@@ -240,6 +241,7 @@ export default function FoundersSource() {
         cin_number: form.cin_number || null,
         passport_number: form.passport_number || null,
         birthday: form.birthday ? format(form.birthday, "yyyy-MM-dd") : null,
+        photo_url: form.photo_url || null,
       };
       if (editing) {
         const { error } = await supabase.from("founders").update(payload).eq("id", editing.id);
@@ -293,6 +295,7 @@ export default function FoundersSource() {
       cin_number: f.cin_number || "",
       passport_number: f.passport_number || "",
       birthday: f.birthday ? new Date(f.birthday) : undefined,
+      photo_url: f.photo_url || "",
     });
     setEditing(f);
     setDialogOpen(true);
@@ -530,6 +533,10 @@ export default function FoundersSource() {
               </Button>
             </div>
 
+            <div className="space-y-2">
+              <Label>Profile Photo URL</Label>
+              <Input value={form.photo_url} onChange={(e) => set("photo_url", e.target.value)} placeholder="https://linkedin.com/in/..." />
+            </div>
             <div className="space-y-2">
               <Label>Description / Business Idea</Label>
               <Textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={3} placeholder="Brief description of the startup..." />
