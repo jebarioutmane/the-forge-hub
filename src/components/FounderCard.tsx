@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
 import { TagBadges } from "@/components/TagBadges";
-import { FounderSparkline } from "@/components/FounderSparkline";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Founder = Tables<"founders">;
