@@ -148,6 +148,8 @@ function ScoreBadge({ score }: { score: number | null }) {
   );
 }
 
+const COHORT_YEARS = ['2024', '2025', '2026', '2027', '2028', '2029', '2030'];
+
 export default function FoundersTracking() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -155,10 +157,11 @@ export default function FoundersTracking() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm(""));
+  const [cohortYear, setCohortYear] = useState(new Date().getFullYear().toString());
 
   const isEditing = !!form.id;
 
-  const { data: founders = [] } = useQuery({
+  const { data: allFounders = [] } = useQuery({
     queryKey: ["founders"],
     queryFn: async () => {
       const { data, error } = await supabase.from("founders").select("*").order("founder_name");
@@ -166,6 +169,8 @@ export default function FoundersTracking() {
       return data;
     },
   });
+
+  const founders = useMemo(() => allFounders.filter(f => f.cohort_year === cohortYear), [allFounders, cohortYear]);
 
   const { data: allTracking = [] } = useQuery({
     queryKey: ["founders_tracking"],
