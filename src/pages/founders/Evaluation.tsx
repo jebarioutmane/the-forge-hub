@@ -49,6 +49,8 @@ function initMetricData(block: BlockConfig): Record<string, MetricData> {
   return data;
 }
 
+const COHORT_YEARS = ['2024', '2025', '2026', '2027', '2028', '2029', '2030'];
+
 export default function FounderEvaluation() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -63,10 +65,11 @@ export default function FounderEvaluation() {
   const [editingEval, setEditingEval] = useState<Evaluation | null>(null);
   const [deleteEvalId, setDeleteEvalId] = useState<string | null>(null);
   const [viewingEval, setViewingEval] = useState<Evaluation | null>(null);
+  const [cohortYear, setCohortYear] = useState(new Date().getFullYear().toString());
 
   const block = BLOCKS.find((b) => b.name === selectedBlock) || BLOCKS[0];
 
-  const { data: founders = [] } = useQuery({
+  const { data: allFounders = [] } = useQuery({
     queryKey: ["founders"],
     queryFn: async () => {
       const { data, error } = await supabase.from("founders").select("*").order("founder_name");
@@ -74,6 +77,8 @@ export default function FounderEvaluation() {
       return data;
     },
   });
+
+  const founders = useMemo(() => allFounders.filter(f => f.cohort_year === cohortYear), [allFounders, cohortYear]);
 
   const { data: evaluations = [] } = useQuery({
     queryKey: ["founder_evaluations"],
@@ -205,7 +210,18 @@ export default function FounderEvaluation() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label>Cohort Year</Label>
+          <Select value={cohortYear} onValueChange={(v) => { setCohortYear(v); setSelectedFounder(""); }}>
+            <SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger>
+            <SelectContent>
+              {COHORT_YEARS.map((y) => (
+                <SelectItem key={y} value={y}>{y}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="space-y-2">
           <Label>Select Founder</Label>
           <Select value={selectedFounder} onValueChange={setSelectedFounder}>

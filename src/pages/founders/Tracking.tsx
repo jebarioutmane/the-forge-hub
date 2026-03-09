@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -148,6 +148,8 @@ function ScoreBadge({ score }: { score: number | null }) {
   );
 }
 
+const COHORT_YEARS = ['2024', '2025', '2026', '2027', '2028', '2029', '2030'];
+
 export default function FoundersTracking() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -155,10 +157,11 @@ export default function FoundersTracking() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm(""));
+  const [cohortYear, setCohortYear] = useState(new Date().getFullYear().toString());
 
   const isEditing = !!form.id;
 
-  const { data: founders = [] } = useQuery({
+  const { data: allFounders = [] } = useQuery({
     queryKey: ["founders"],
     queryFn: async () => {
       const { data, error } = await supabase.from("founders").select("*").order("founder_name");
@@ -166,6 +169,8 @@ export default function FoundersTracking() {
       return data;
     },
   });
+
+  const founders = useMemo(() => allFounders.filter(f => f.cohort_year === cohortYear), [allFounders, cohortYear]);
 
   const { data: allTracking = [] } = useQuery({
     queryKey: ["founders_tracking"],
@@ -301,18 +306,33 @@ export default function FoundersTracking() {
         )}
       </div>
 
-      <div className="space-y-2">
-        <Label>Select Founder</Label>
-        <Select value={selectedFounder} onValueChange={setSelectedFounder}>
-          <SelectTrigger className="max-w-sm">
-            <SelectValue placeholder="Choose a founder..." />
-          </SelectTrigger>
-          <SelectContent>
-            {founders.map((f) => (
-              <SelectItem key={f.id} value={f.id}>{f.founder_name} — {f.startup_name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Cohort Year</Label>
+          <Select value={cohortYear} onValueChange={(v) => { setCohortYear(v); setSelectedFounder(""); }}>
+            <SelectTrigger className="max-w-sm">
+              <SelectValue placeholder="Select year" />
+            </SelectTrigger>
+            <SelectContent>
+              {COHORT_YEARS.map((y) => (
+                <SelectItem key={y} value={y}>{y}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>Select Founder</Label>
+          <Select value={selectedFounder} onValueChange={setSelectedFounder}>
+            <SelectTrigger className="max-w-sm">
+              <SelectValue placeholder="Choose a founder..." />
+            </SelectTrigger>
+            <SelectContent>
+              {founders.map((f) => (
+                <SelectItem key={f.id} value={f.id}>{f.founder_name} — {f.startup_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {selectedFounder && (() => {
