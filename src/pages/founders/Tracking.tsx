@@ -306,18 +306,33 @@ export default function FoundersTracking() {
         )}
       </div>
 
-      <div className="space-y-2">
-        <Label>Select Founder</Label>
-        <Select value={selectedFounder} onValueChange={setSelectedFounder}>
-          <SelectTrigger className="max-w-sm">
-            <SelectValue placeholder="Choose a founder..." />
-          </SelectTrigger>
-          <SelectContent>
-            {founders.map((f) => (
-              <SelectItem key={f.id} value={f.id}>{f.founder_name} — {f.startup_name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Cohort Year</Label>
+          <Select value={cohortYear} onValueChange={(v) => { setCohortYear(v); setSelectedFounder(""); }}>
+            <SelectTrigger className="max-w-sm">
+              <SelectValue placeholder="Select year" />
+            </SelectTrigger>
+            <SelectContent>
+              {COHORT_YEARS.map((y) => (
+                <SelectItem key={y} value={y}>{y}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>Select Founder</Label>
+          <Select value={selectedFounder} onValueChange={setSelectedFounder}>
+            <SelectTrigger className="max-w-sm">
+              <SelectValue placeholder="Choose a founder..." />
+            </SelectTrigger>
+            <SelectContent>
+              {founders.map((f) => (
+                <SelectItem key={f.id} value={f.id}>{f.founder_name} — {f.startup_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {selectedFounder && (() => {

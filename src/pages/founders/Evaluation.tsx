@@ -49,6 +49,8 @@ function initMetricData(block: BlockConfig): Record<string, MetricData> {
   return data;
 }
 
+const COHORT_YEARS = ['2024', '2025', '2026', '2027', '2028', '2029', '2030'];
+
 export default function FounderEvaluation() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -63,10 +65,11 @@ export default function FounderEvaluation() {
   const [editingEval, setEditingEval] = useState<Evaluation | null>(null);
   const [deleteEvalId, setDeleteEvalId] = useState<string | null>(null);
   const [viewingEval, setViewingEval] = useState<Evaluation | null>(null);
+  const [cohortYear, setCohortYear] = useState(new Date().getFullYear().toString());
 
   const block = BLOCKS.find((b) => b.name === selectedBlock) || BLOCKS[0];
 
-  const { data: founders = [] } = useQuery({
+  const { data: allFounders = [] } = useQuery({
     queryKey: ["founders"],
     queryFn: async () => {
       const { data, error } = await supabase.from("founders").select("*").order("founder_name");
@@ -74,6 +77,8 @@ export default function FounderEvaluation() {
       return data;
     },
   });
+
+  const founders = useMemo(() => allFounders.filter(f => f.cohort_year === cohortYear), [allFounders, cohortYear]);
 
   const { data: evaluations = [] } = useQuery({
     queryKey: ["founder_evaluations"],
