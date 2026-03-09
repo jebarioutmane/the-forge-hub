@@ -148,7 +148,7 @@ function ScoreBadge({ score }: { score: number | null }) {
   );
 }
 
-const COHORT_YEARS = ['2024', '2025', '2026', '2027', '2028', '2029', '2030'];
+const COHORT_YEARS = Array.from({ length: 77 }, (_, i) => String(2024 + i));
 
 export default function FoundersTracking() {
   const { user } = useAuth();

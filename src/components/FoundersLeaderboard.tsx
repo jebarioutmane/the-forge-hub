@@ -116,8 +116,8 @@ export default function FoundersLeaderboard() {
                 <div className="h-7 w-7 shrink-0" />
                 <div className="h-9 w-9 shrink-0" />
                 <div className="flex-1 min-w-0" />
-                <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider w-[80px] text-center">Progress</span>
-                <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider shrink-0 text-center min-w-[50px]">Evaluation</span>
+                <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider w-[80px] text-center">Consistency Pattern</span>
+                <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider shrink-0 text-center min-w-[50px]">Blocks Evaluation</span>
               </div>
               {leaderboard.map((entry, i) => (
               <div
