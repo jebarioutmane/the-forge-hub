@@ -112,25 +112,25 @@ export default function FoundersLeaderboard() {
           ) : (
             <>
               {/* Column headers */}
-              <div className="flex items-center gap-3 px-3 pb-1.5 mb-1">
-                <div className="h-7 w-7 shrink-0" />
-                <div className="h-9 w-9 shrink-0" />
-                <div className="flex-1 min-w-0" />
-                <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider w-[80px] text-center">Consistency Pattern</span>
-                <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider shrink-0 text-center min-w-[50px]">Blocks Evaluation</span>
+              <div className="grid grid-cols-[auto_auto_1fr_100px_70px] items-center gap-3 px-3 pb-1.5 mb-1">
+                <div className="h-7 w-7" />
+                <div className="h-9 w-9" />
+                <div />
+                <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider text-center">Consistency Pattern</span>
+                <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider text-center">Blocks Evaluation</span>
               </div>
               {leaderboard.map((entry, i) => (
               <div
                 key={entry.id}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-accent/50 transition-colors"
+                className="grid grid-cols-[auto_auto_1fr_100px_70px] items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-accent/50 transition-colors"
               >
                 <span
-                  className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold border shrink-0 ${getRankStyle(i + 1)}`}
+                  className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold border ${getRankStyle(i + 1)}`}
                 >
                   {i + 1}
                 </span>
 
-                <Avatar className="h-9 w-9 shrink-0">
+                <Avatar className="h-9 w-9">
                   {entry.photo_url && (
                     <AvatarImage src={entry.photo_url} alt={entry.founder_name} />
                   )}
@@ -139,7 +139,7 @@ export default function FoundersLeaderboard() {
                   </AvatarFallback>
                 </Avatar>
 
-                <div className="flex-1 min-w-0">
+                <div className="min-w-0">
                   <p className="text-[14px] font-medium text-foreground truncate leading-tight">
                     {entry.founder_name}
                   </p>
@@ -148,11 +148,15 @@ export default function FoundersLeaderboard() {
                   </p>
                 </div>
 
-                <FounderSparkline scores={sparklineMap.scores[entry.id] || []} dates={sparklineMap.dates[entry.id] || []} />
+                <div className="flex justify-center">
+                  <FounderSparkline scores={sparklineMap.scores[entry.id] || []} dates={sparklineMap.dates[entry.id] || []} />
+                </div>
 
-                <span className="text-[13px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg shrink-0 min-w-[50px] text-center">
-                  {entry.avgScore}
-                </span>
+                <div className="flex justify-center">
+                  <span className="text-[13px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg text-center min-w-[50px]">
+                    {entry.avgScore}
+                  </span>
+                </div>
               </div>
             ))}
             </>
