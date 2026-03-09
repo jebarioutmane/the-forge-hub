@@ -16,8 +16,6 @@ interface FounderCardProps {
   onEdit: (f: Founder) => void;
   onDelete: (id: string) => void;
   highlightId?: string | null;
-  sparklineScores?: number[];
-  sparklineDates?: string[];
 }
 
 export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, onDelete, highlightId, sparklineScores, sparklineDates }: FounderCardProps) {
