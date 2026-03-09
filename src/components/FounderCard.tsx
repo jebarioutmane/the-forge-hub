@@ -18,7 +18,7 @@ interface FounderCardProps {
   highlightId?: string | null;
 }
 
-export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, onDelete, highlightId, sparklineScores, sparklineDates }: FounderCardProps) {
+export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, onDelete, highlightId }: FounderCardProps) {
   const [imgError, setImgError] = useState(false);
   const initials = founder.founder_name
     .split(" ")
