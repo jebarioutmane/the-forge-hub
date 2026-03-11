@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Trophy } from "lucide-react";
 import { FounderSparkline } from "@/components/FounderSparkline";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface LeaderboardEntry {
   id: string;
@@ -92,6 +93,8 @@ export default function FoundersLeaderboard() {
     return "bg-muted text-muted-foreground border-border";
   };
 
+  const isMobile = useIsMobile();
+
   return (
     <div className="flex flex-col h-full">
       <div className="px-5 py-4 border-b border-border/40 flex items-center gap-2.5">
@@ -109,9 +112,62 @@ export default function FoundersLeaderboard() {
             <p className="text-sm text-muted-foreground text-center py-10">
               No evaluation data yet.
             </p>
+          ) : isMobile ? (
+            /* ── Mobile: stacked card layout ── */
+            <div className="flex flex-col gap-2">
+              {leaderboard.map((entry, i) => (
+                <div
+                  key={entry.id}
+                  className="rounded-xl bg-card border border-border/60 p-3.5 shadow-sm"
+                >
+                  {/* Top row: rank, avatar, name, score */}
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`h-7 w-7 shrink-0 rounded-full flex items-center justify-center text-xs font-bold border ${getRankStyle(i + 1)}`}
+                    >
+                      {i + 1}
+                    </span>
+                    <Avatar className="h-9 w-9 shrink-0">
+                      {entry.photo_url && (
+                        <AvatarImage src={entry.photo_url} alt={entry.founder_name} />
+                      )}
+                      <AvatarFallback className="text-xs font-semibold bg-muted text-muted-foreground">
+                        {getInitials(entry.founder_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[14px] font-medium text-foreground truncate leading-tight">
+                        {entry.founder_name}
+                      </p>
+                      <p className="text-[12px] text-muted-foreground truncate leading-tight">
+                        {entry.startup_name}
+                      </p>
+                    </div>
+                    <span className="text-[13px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg shrink-0">
+                      {entry.avgScore}
+                    </span>
+                  </div>
+
+                  {/* Second row: sparkline with inline label */}
+                  {(sparklineMap.scores[entry.id]?.length ?? 0) >= 2 && (
+                    <div className="mt-3 pt-3 border-t border-border/40 flex items-center gap-3">
+                      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider shrink-0">
+                        Consistency
+                      </span>
+                      <FounderSparkline
+                        scores={sparklineMap.scores[entry.id] || []}
+                        dates={sparklineMap.dates[entry.id] || []}
+                        width={100}
+                        height={28}
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           ) : (
+            /* ── Desktop: grid row layout ── */
             <>
-              {/* Column headers */}
               <div className="grid grid-cols-[auto_auto_1fr_100px_70px] items-center gap-3 px-3 pb-1.5 mb-1">
                 <div className="h-7 w-7" />
                 <div className="h-9 w-9" />
@@ -120,45 +176,41 @@ export default function FoundersLeaderboard() {
                 <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider text-center">Blocks Evaluation</span>
               </div>
               {leaderboard.map((entry, i) => (
-              <div
-                key={entry.id}
-                className="grid grid-cols-[auto_auto_1fr_100px_70px] items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-accent/50 transition-colors"
-              >
-                <span
-                  className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold border ${getRankStyle(i + 1)}`}
+                <div
+                  key={entry.id}
+                  className="grid grid-cols-[auto_auto_1fr_100px_70px] items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-accent/50 transition-colors"
                 >
-                  {i + 1}
-                </span>
-
-                <Avatar className="h-9 w-9">
-                  {entry.photo_url && (
-                    <AvatarImage src={entry.photo_url} alt={entry.founder_name} />
-                  )}
-                  <AvatarFallback className="text-xs font-semibold bg-muted text-muted-foreground">
-                    {getInitials(entry.founder_name)}
-                  </AvatarFallback>
-                </Avatar>
-
-                <div className="min-w-0">
-                  <p className="text-[14px] font-medium text-foreground truncate leading-tight">
-                    {entry.founder_name}
-                  </p>
-                  <p className="text-[12px] text-muted-foreground truncate leading-tight">
-                    {entry.startup_name}
-                  </p>
-                </div>
-
-                <div className="flex justify-center">
-                  <FounderSparkline scores={sparklineMap.scores[entry.id] || []} dates={sparklineMap.dates[entry.id] || []} />
-                </div>
-
-                <div className="flex justify-center">
-                  <span className="text-[13px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg text-center min-w-[50px]">
-                    {entry.avgScore}
+                  <span
+                    className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold border ${getRankStyle(i + 1)}`}
+                  >
+                    {i + 1}
                   </span>
+                  <Avatar className="h-9 w-9">
+                    {entry.photo_url && (
+                      <AvatarImage src={entry.photo_url} alt={entry.founder_name} />
+                    )}
+                    <AvatarFallback className="text-xs font-semibold bg-muted text-muted-foreground">
+                      {getInitials(entry.founder_name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="text-[14px] font-medium text-foreground truncate leading-tight">
+                      {entry.founder_name}
+                    </p>
+                    <p className="text-[12px] text-muted-foreground truncate leading-tight">
+                      {entry.startup_name}
+                    </p>
+                  </div>
+                  <div className="flex justify-center">
+                    <FounderSparkline scores={sparklineMap.scores[entry.id] || []} dates={sparklineMap.dates[entry.id] || []} />
+                  </div>
+                  <div className="flex justify-center">
+                    <span className="text-[13px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg text-center min-w-[50px]">
+                      {entry.avgScore}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
             </>
           )}
         </div>
