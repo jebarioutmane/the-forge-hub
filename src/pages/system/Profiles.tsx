@@ -128,7 +128,17 @@ export default function SystemProfiles() {
       setEditOpen(false);
       toast.success("Profile saved");
       if (selectedProfile) {
-        await logAction("System-Profiles", "UPDATE", selectedProfile.id, selectedProfile as any, payload, form.full_name || user!.email || "Unknown");
+        const safeOldData = { ...selectedProfile } as Record<string, any>;
+        delete safeOldData.cin_number;
+        delete safeOldData.passport_number;
+        delete safeOldData.phone;
+        delete safeOldData.birthday;
+        const safeNewData = { ...payload } as Record<string, any>;
+        delete safeNewData.cin_number;
+        delete safeNewData.passport_number;
+        delete safeNewData.phone;
+        delete safeNewData.birthday;
+        await logAction("System-Profiles", "UPDATE", selectedProfile.id, safeOldData, safeNewData, form.full_name || user!.email || "Unknown");
       }
     },
     onError: (e) => toast.error(e.message),

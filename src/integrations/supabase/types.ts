@@ -1065,7 +1065,12 @@ export type Database = {
         Args: { curlopt: string; value: string }
         Returns: boolean
       }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
       text_to_bytea: { Args: { data: string }; Returns: string }
+      update_user_role: {
+        Args: { _new_role: string; _target_id: string }
+        Returns: undefined
+      }
       urlencode:
         | { Args: { data: Json }; Returns: string }
         | {
