@@ -128,11 +128,11 @@ export default function Home() {
       <EventCountdowns />
 
       {/* Split Layout: Leaderboard + Map */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 bg-card rounded-2xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-[500px]">
+      <div className="flex flex-col gap-8 w-full">
+        <div className="w-full bg-card rounded-2xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-[500px]">
           <FoundersLeaderboard />
         </div>
-        <div className="lg:col-span-2 bg-card rounded-2xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-[500px]">
+        <div className="w-full bg-card rounded-2xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-[500px]">
           <GlobalNetworkMap />
         </div>
       </div>
