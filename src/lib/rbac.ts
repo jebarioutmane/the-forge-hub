@@ -18,9 +18,9 @@ export function canEditProfiles(
 }
 
 export async function updateProfileRole(profileId: string, newRole: string) {
-  const { error } = await supabase
-    .from("profiles")
-    .update({ role: newRole })
-    .eq("id", profileId);
+  const { error } = await supabase.rpc("update_user_role", {
+    _target_id: profileId,
+    _new_role: newRole,
+  });
   if (error) throw error;
 }
