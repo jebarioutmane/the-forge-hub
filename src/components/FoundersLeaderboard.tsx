@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Trophy } from "lucide-react";
 import { FounderSparkline } from "@/components/FounderSparkline";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface LeaderboardEntry {
   id: string;
