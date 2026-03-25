@@ -705,7 +705,15 @@ export default function Expenses() {
           cohorts={cohorts}
           selectedId={activeCohortId}
           onSelect={(id) => setSelectedCohortId(id)}
-          onCreateNew={() => setCohortDialogOpen(true)}
+          onCreateNew={() => { setEditingCohort(null); setCohortForm({ name: "", year: String(new Date().getFullYear()), total_budget: "" }); setCohortDialogOpen(true); }}
+          onEdit={() => {
+            if (activeCohort) {
+              setEditingCohort(activeCohort);
+              setCohortForm({ name: activeCohort.name, year: String(activeCohort.year), total_budget: String(activeCohort.total_budget || 0) });
+              setCohortDialogOpen(true);
+            }
+          }}
+          onDelete={() => activeCohortId && setDeleteCohortId(activeCohortId)}
         />
       </div>
 
@@ -829,10 +837,10 @@ export default function Expenses() {
         </>
       )}
 
-      {/* Create Cohort Dialog */}
-      <Dialog open={cohortDialogOpen} onOpenChange={setCohortDialogOpen}>
+      {/* Create/Edit Cohort Dialog */}
+      <Dialog open={cohortDialogOpen} onOpenChange={(o) => { setCohortDialogOpen(o); if (!o) setEditingCohort(null); }}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader><DialogTitle>New Cohort</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editingCohort ? "Edit Cohort" : "New Cohort"}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label>Name</Label>
@@ -850,8 +858,11 @@ export default function Expenses() {
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={() => createCohortMutation.mutate()} disabled={!cohortForm.name || !cohortForm.year}>
-              Create Cohort
+            <Button
+              onClick={() => editingCohort ? updateCohortMutation.mutate() : createCohortMutation.mutate()}
+              disabled={!cohortForm.name || !cohortForm.year}
+            >
+              {editingCohort ? "Save Changes" : "Create Cohort"}
             </Button>
           </DialogFooter>
         </DialogContent>
