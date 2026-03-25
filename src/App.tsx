@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import OperationsDashboard from "./pages/operations/Dashboard";
 import Source from "./pages/operations/Source";
+import Expenses from "./pages/operations/Expenses";
 import Stipends from "./pages/operations/Stipends";
 import OperationsContracts from "./pages/operations/Contracts";
 
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/" element={<MainLayout><Home /></MainLayout>} />
           <Route path="/operations" element={<MainLayout><OperationsDashboard /></MainLayout>} />
           <Route path="/operations/source" element={<MainLayout><Source /></MainLayout>} />
+          <Route path="/operations/expenses" element={<MainLayout><Expenses /></MainLayout>} />
           <Route path="/operations/stipends" element={<MainLayout><Stipends /></MainLayout>} />
           <Route path="/operations/contracts" element={<MainLayout><OperationsContracts /></MainLayout>} />
           
