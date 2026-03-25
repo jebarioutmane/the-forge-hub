@@ -1254,7 +1254,15 @@ export default function Expenses() {
           { label: "Currency", value: viewing.currency || "MAD" },
           { label: "Amount", value: `${Number(viewing.amount).toLocaleString()} ${viewing.currency || "MAD"}` },
           { label: "Stakeholders", value: viewStakeholders.length > 0 ? vendors.filter((v) => viewStakeholders.includes(v.id)).map((v) => v.name).join(", ") : "—" },
-          { label: "Links", value: viewLinks.length > 0 ? viewLinks.map((l) => `${l.title || "Link"}: ${l.url}`).join("\n") : "—" },
+          { label: "Links", value: viewLinks.length > 0 ? (
+            <div className="flex flex-col gap-1">
+              {viewLinks.map((l, i) => (
+                <a key={i} href={/^https?:\/\//i.test(l.url) ? l.url : `https://${l.url}`} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:opacity-80 truncate">
+                  {l.title || l.url}
+                </a>
+              ))}
+            </div>
+          ) : "—" },
           { label: "Date", value: viewing.created_at ? new Date(viewing.created_at).toLocaleDateString() : "—" },
         ] : []}
       />
