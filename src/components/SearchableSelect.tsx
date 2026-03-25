@@ -16,6 +16,8 @@ interface SearchableSelectProps {
   /** When provided, shows a "+ Add new" option at the bottom of the list */
   onCreateNew?: (name: string) => Promise<string | null>;
   createLabel?: string;
+  /** When provided, shows a delete icon on each option */
+  onDelete?: (id: string) => void;
 }
 
 export function SearchableSelect({

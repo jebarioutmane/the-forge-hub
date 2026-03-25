@@ -583,6 +583,15 @@ export default function Expenses() {
     return data.id;
   }
 
+  // Delete budget category
+  async function handleDeleteCategory(id: string) {
+    const { error } = await supabase.from("budget_categories").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    queryClient.invalidateQueries({ queryKey: ["budget-categories-list"] });
+    if (form.category_id === id) setForm((f) => ({ ...f, category_id: null }));
+    toast.success("Category deleted");
+  }
+
   // Inline creation: Vendor (duplicate-safe)
   async function handleCreateVendor(name: string, type: string | null): Promise<string | null> {
     const trimmed = name.trim();
@@ -596,6 +605,16 @@ export default function Expenses() {
     queryClient.invalidateQueries({ queryKey: ["vendors-list"] });
     toast.success(`Stakeholder "${trimmed}" created`);
     return data.id;
+  }
+
+  // Delete vendor
+  async function handleDeleteVendor(id: string) {
+    // Remove from current selection first
+    setForm((f) => ({ ...f, stakeholder_ids: f.stakeholder_ids.filter((sid) => sid !== id) }));
+    const { error } = await supabase.from("vendors").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    queryClient.invalidateQueries({ queryKey: ["vendors-list"] });
+    toast.success("Stakeholder deleted");
   }
 
   const expenseFormContent = (
