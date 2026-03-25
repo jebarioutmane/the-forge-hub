@@ -3,13 +3,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { logAction } from "@/lib/logAction";
 import { useAuth } from "@/hooks/useAuth";
-import { useVendors, useBudgetCategories } from "@/hooks/useRelationalData";
+import { useVendors } from "@/hooks/useRelationalData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Plus, MoreHorizontal, Pencil, Trash2, Eye, Link2, X, PiggyBank, TrendingDown, Wallet, Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Trash2, Eye, X, PiggyBank, TrendingDown, Wallet, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import ViewDetailDialog from "@/components/ViewDetailDialog";
@@ -27,6 +27,7 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type Expense = Tables<"expenses">;
 type Cohort = Tables<"cohorts">;
+type BudgetLine = Tables<"budget_lines">;
 
 /* ─── Cohort Selector ─── */
 function CohortSelector({
@@ -75,7 +76,169 @@ function CohortSelector({
   );
 }
 
-/* ─── Multi-Select Vendors with Inline Creation ─── */
+/* ─── Generic Multi-Select with Inline Creation ─── */
+function MultiSelectPicker({
+  value,
+  onChange,
+  options,
+  placeholder,
+  searchPlaceholder,
+  onCreateNew,
+  createLabel,
+  onDelete,
+}: {
+  value: string[];
+  onChange: (ids: string[]) => void;
+  options: { id: string; label: string; sublabel?: string }[];
+  placeholder?: string;
+  searchPlaceholder?: string;
+  onCreateNew?: (name: string) => Promise<string | null>;
+  createLabel?: string;
+  onDelete?: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return options;
+    const q = search.toLowerCase();
+    return options.filter(
+      (o) => o.label.toLowerCase().includes(q) || (o.sublabel && o.sublabel.toLowerCase().includes(q))
+    );
+  }, [options, search]);
+
+  async function handleCreate() {
+    if (!newName.trim() || !onCreateNew) return;
+    setSaving(true);
+    const newId = await onCreateNew(newName.trim());
+    setSaving(false);
+    if (newId) {
+      onChange([...value, newId]);
+      setIsCreating(false);
+      setNewName("");
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setIsCreating(false); setNewName(""); } }}>
+        <PopoverTrigger asChild>
+          <Button variant="outline" role="combobox" className="w-full justify-between font-normal h-auto min-h-9">
+            <span className="truncate text-left">
+              {value.length > 0 ? `${value.length} selected` : placeholder || "Select..."}
+            </span>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+          <div className="p-2">
+            <Input
+              placeholder={searchPlaceholder || "Search..."}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-8"
+              autoFocus
+            />
+          </div>
+          <ScrollArea className="max-h-[200px]">
+            {filtered.length === 0 && !isCreating ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No results found</p>
+            ) : (
+              <div className="p-1">
+                {filtered.map((option) => {
+                  const isSelected = value.includes(option.id);
+                  return (
+                    <div
+                      key={option.id}
+                      className={cn(
+                        "flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-accent text-left group",
+                        isSelected && "bg-accent"
+                      )}
+                    >
+                      <button
+                        onClick={() => {
+                          onChange(isSelected ? value.filter((id) => id !== option.id) : [...value, option.id]);
+                        }}
+                        className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
+                      >
+                        <Check className={cn("h-3.5 w-3.5 shrink-0", isSelected ? "opacity-100" : "opacity-0")} />
+                        <div className="flex flex-col min-w-0">
+                          <span className="truncate">{option.label}</span>
+                          {option.sublabel && (
+                            <span className="text-xs text-muted-foreground truncate">{option.sublabel}</span>
+                          )}
+                        </div>
+                      </button>
+                      {onDelete && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onDelete(option.id); }}
+                          className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-destructive/10 text-destructive shrink-0 transition-opacity"
+                          title="Delete"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </ScrollArea>
+
+          {onCreateNew && (
+            <div className="border-t p-1">
+              {isCreating ? (
+                <div className="flex items-center gap-1.5 p-1">
+                  <Input
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="Name..."
+                    className="h-8 text-sm"
+                    autoFocus
+                    onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") setIsCreating(false); }}
+                  />
+                  <Button size="sm" className="h-8 px-2.5 shrink-0" onClick={handleCreate} disabled={!newName.trim() || saving}>
+                    {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                  </Button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsCreating(true)}
+                  className="flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-accent cursor-pointer text-primary font-medium"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  {createLabel || "Add new"}
+                </button>
+              )}
+            </div>
+          )}
+        </PopoverContent>
+      </Popover>
+      {value.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {options
+            .filter((o) => value.includes(o.id))
+            .map((o) => (
+              <Badge key={o.id} variant="secondary" className="gap-1 pr-1">
+                {o.label}
+                <button
+                  onClick={() => onChange(value.filter((id) => id !== o.id))}
+                  className="ml-0.5 rounded-full hover:bg-muted-foreground/20 p-0.5"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Vendor Multi-Select with Type Field ─── */
 function VendorMultiSelect({
   value,
   onChange,
@@ -104,8 +267,6 @@ function VendorMultiSelect({
     );
   }, [options, search]);
 
-  const selectedNames = options.filter((o) => value.includes(o.id)).map((o) => o.name);
-
   async function handleCreate() {
     if (!newName.trim() || !onCreateNew) return;
     setSaving(true);
@@ -125,20 +286,14 @@ function VendorMultiSelect({
         <PopoverTrigger asChild>
           <Button variant="outline" role="combobox" className="w-full justify-between font-normal h-auto min-h-9">
             <span className="truncate text-left">
-              {selectedNames.length > 0 ? `${selectedNames.length} selected` : "Select stakeholders..."}
+              {value.length > 0 ? `${value.length} selected` : "Select stakeholders..."}
             </span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
           <div className="p-2">
-            <Input
-              placeholder="Search vendors..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-8"
-              autoFocus
-            />
+            <Input placeholder="Search vendors..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-8" autoFocus />
           </div>
           <ScrollArea className="max-h-[200px]">
             {filtered.length === 0 && !isCreating ? (
@@ -148,31 +303,15 @@ function VendorMultiSelect({
                 {filtered.map((option) => {
                   const isSelected = value.includes(option.id);
                   return (
-                     <div
-                      key={option.id}
-                      className={cn(
-                        "flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-accent text-left group",
-                        isSelected && "bg-accent"
-                      )}
-                    >
+                    <div key={option.id} className={cn("flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-accent text-left group", isSelected && "bg-accent")}>
                       <button
-                        onClick={() => {
-                          onChange(
-                            isSelected
-                              ? value.filter((id) => id !== option.id)
-                              : [...value, option.id]
-                          );
-                        }}
+                        onClick={() => onChange(isSelected ? value.filter((id) => id !== option.id) : [...value, option.id])}
                         className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
                       >
-                        <Check
-                          className={cn("h-3.5 w-3.5 shrink-0", isSelected ? "opacity-100" : "opacity-0")}
-                        />
+                        <Check className={cn("h-3.5 w-3.5 shrink-0", isSelected ? "opacity-100" : "opacity-0")} />
                         <div className="flex flex-col min-w-0">
                           <span className="truncate">{option.name}</span>
-                          {option.type && (
-                            <span className="text-xs text-muted-foreground truncate">{option.type}</span>
-                          )}
+                          {option.type && <span className="text-xs text-muted-foreground truncate">{option.type}</span>}
                         </div>
                       </button>
                       {onDelete && (
@@ -191,24 +330,15 @@ function VendorMultiSelect({
             )}
           </ScrollArea>
 
-          {/* Inline vendor creation */}
           {onCreateNew && (
             <div className="border-t p-1">
               {isCreating ? (
                 <div className="space-y-1.5 p-1">
-                  <Input
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Vendor name..."
-                    className="h-8 text-sm"
-                    autoFocus
-                    onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") setIsCreating(false); }}
-                  />
+                  <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Vendor name..." className="h-8 text-sm" autoFocus
+                    onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") setIsCreating(false); }} />
                   <div className="flex items-center gap-1.5">
                     <Select value={newType} onValueChange={setNewType}>
-                      <SelectTrigger className="h-8 text-sm flex-1">
-                        <SelectValue placeholder="Type (optional)" />
-                      </SelectTrigger>
+                      <SelectTrigger className="h-8 text-sm flex-1"><SelectValue placeholder="Type (optional)" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="mentor">Mentor</SelectItem>
                         <SelectItem value="expert">Expert</SelectItem>
@@ -222,33 +352,24 @@ function VendorMultiSelect({
                   </div>
                 </div>
               ) : (
-                <button
-                  onClick={() => setIsCreating(true)}
-                  className="flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-accent cursor-pointer text-primary font-medium"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  Add new stakeholder
+                <button onClick={() => setIsCreating(true)} className="flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-accent cursor-pointer text-primary font-medium">
+                  <Plus className="h-3.5 w-3.5" /> Add new stakeholder
                 </button>
               )}
             </div>
           )}
         </PopoverContent>
       </Popover>
-      {selectedNames.length > 0 && (
+      {value.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {options
-            .filter((o) => value.includes(o.id))
-            .map((o) => (
-              <Badge key={o.id} variant="secondary" className="gap-1 pr-1">
-                {o.name}
-                <button
-                  onClick={() => onChange(value.filter((id) => id !== o.id))}
-                  className="ml-0.5 rounded-full hover:bg-muted-foreground/20 p-0.5"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
+          {options.filter((o) => value.includes(o.id)).map((o) => (
+            <Badge key={o.id} variant="secondary" className="gap-1 pr-1">
+              {o.name}
+              <button onClick={() => onChange(value.filter((id) => id !== o.id))} className="ml-0.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
         </div>
       )}
     </div>
@@ -265,6 +386,12 @@ export default function Expenses() {
   const [deleteCohortId, setDeleteCohortId] = useState<string | null>(null);
   const [cohortForm, setCohortForm] = useState({ name: "", year: String(new Date().getFullYear()), total_budget: "" });
 
+  // Budget line management
+  const [budgetLineDialogOpen, setBudgetLineDialogOpen] = useState(false);
+  const [editingBudgetLine, setEditingBudgetLine] = useState<BudgetLine | null>(null);
+  const [deleteBudgetLineId, setDeleteBudgetLineId] = useState<string | null>(null);
+  const [budgetLineForm, setBudgetLineForm] = useState({ name: "", code: "", allocated_amount: "" });
+
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -275,7 +402,8 @@ export default function Expenses() {
   const [form, setForm] = useState({
     description: "",
     detail: "",
-    category_id: null as string | null,
+    budget_line_id: null as string | null,
+    category_ids: [] as string[],
     currency: "MAD",
     amount: "",
     stakeholder_ids: [] as string[],
@@ -283,12 +411,20 @@ export default function Expenses() {
   });
 
   const { data: vendors = [] } = useVendors();
-  const { data: categories = [] } = useBudgetCategories();
 
-  const categoryOptions = categories.map((c) => ({
+  // Expense categories
+  const { data: expenseCategories = [] } = useQuery({
+    queryKey: ["expense-categories-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("expense_categories").select("*").order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const categoryOptions = expenseCategories.map((c) => ({
     id: c.id,
     label: c.name,
-    sublabel: c.total_amount ? `${Number(c.total_amount).toLocaleString()} MAD` : undefined,
   }));
 
   const { data: cohorts = [] } = useQuery({
@@ -300,9 +436,26 @@ export default function Expenses() {
     },
   });
 
-  // Auto-select first cohort
   const activeCohortId = selectedCohortId || (cohorts.length > 0 ? cohorts[0].id : null);
   const activeCohort = cohorts.find((c) => c.id === activeCohortId);
+
+  // Budget lines for active cohort
+  const { data: budgetLines = [] } = useQuery({
+    queryKey: ["budget-lines", activeCohortId],
+    queryFn: async () => {
+      if (!activeCohortId) return [];
+      const { data, error } = await supabase.from("budget_lines").select("*").eq("cohort_id", activeCohortId).order("code");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!activeCohortId,
+  });
+
+  const budgetLineOptions = budgetLines.map((bl) => ({
+    id: bl.id,
+    label: bl.code ? `${bl.code} — ${bl.name}` : bl.name,
+    sublabel: bl.allocated_amount ? `${Number(bl.allocated_amount).toLocaleString()} MAD` : undefined,
+  }));
 
   const { data: expenses = [], isLoading } = useQuery({
     queryKey: ["expenses", activeCohortId],
@@ -319,16 +472,15 @@ export default function Expenses() {
     enabled: !!activeCohortId,
   });
 
-  // Load stakeholders and links for viewing
   const [viewStakeholders, setViewStakeholders] = useState<string[]>([]);
   const [viewLinks, setViewLinks] = useState<{ title: string; url: string }[]>([]);
+  const [viewCategoryIds, setViewCategoryIds] = useState<string[]>([]);
 
-  // Budget tracking
   const totalBudget = Number(activeCohort?.total_budget || 0);
   const totalExpenses = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
   const remaining = totalBudget - totalExpenses;
 
-  // Cohort creation
+  // ─── Cohort Mutations ───
   const createCohortMutation = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.from("cohorts").insert({
@@ -349,7 +501,6 @@ export default function Expenses() {
     onError: (e) => toast.error(e.message),
   });
 
-  // Cohort update
   const updateCohortMutation = useMutation({
     mutationFn: async () => {
       if (!editingCohort) return;
@@ -370,23 +521,24 @@ export default function Expenses() {
     onError: (e) => toast.error(e.message),
   });
 
-  // Cohort delete
   const deleteCohortMutation = useMutation({
     mutationFn: async (id: string) => {
-      // Delete related expenses first
       const { data: expenseIds } = await supabase.from("expenses").select("id").eq("cohort_id", id);
       if (expenseIds && expenseIds.length > 0) {
         const ids = expenseIds.map((e) => e.id);
         await supabase.from("expense_stakeholders").delete().in("expense_id", ids);
         await supabase.from("expense_links").delete().in("expense_id", ids);
+        await supabase.from("expense_category_links").delete().in("expense_id", ids);
         await supabase.from("expenses").delete().eq("cohort_id", id);
       }
+      await supabase.from("budget_lines").delete().eq("cohort_id", id);
       const { error } = await supabase.from("cohorts").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cohorts"] });
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["budget-lines"] });
       setSelectedCohortId(null);
       setDeleteCohortId(null);
       toast.success("Cohort deleted");
@@ -394,43 +546,124 @@ export default function Expenses() {
     onError: (e) => toast.error(e.message),
   });
 
-  // Expense creation
+  // ─── Budget Line Mutations ───
+  const createBudgetLineMutation = useMutation({
+    mutationFn: async () => {
+      const trimmedCode = budgetLineForm.code.trim();
+      if (trimmedCode) {
+        const dup = budgetLines.find((bl) => bl.code?.trim().toLowerCase() === trimmedCode.toLowerCase());
+        if (dup) throw new Error(`Code "${trimmedCode}" already exists in this cohort`);
+      }
+      const { data, error } = await supabase.from("budget_lines").insert({
+        name: budgetLineForm.name.trim(),
+        code: trimmedCode || null,
+        cohort_id: activeCohortId,
+        allocated_amount: budgetLineForm.allocated_amount ? Number(budgetLineForm.allocated_amount) : 0,
+      }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["budget-lines"] });
+      setBudgetLineDialogOpen(false);
+      setBudgetLineForm({ name: "", code: "", allocated_amount: "" });
+      toast.success("Budget line created");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const updateBudgetLineMutation = useMutation({
+    mutationFn: async () => {
+      if (!editingBudgetLine) return;
+      const trimmedCode = budgetLineForm.code.trim();
+      if (trimmedCode) {
+        const dup = budgetLines.find((bl) => bl.id !== editingBudgetLine.id && bl.code?.trim().toLowerCase() === trimmedCode.toLowerCase());
+        if (dup) throw new Error(`Code "${trimmedCode}" already exists in this cohort`);
+      }
+      const { error } = await supabase.from("budget_lines").update({
+        name: budgetLineForm.name.trim(),
+        code: trimmedCode || null,
+        allocated_amount: budgetLineForm.allocated_amount ? Number(budgetLineForm.allocated_amount) : 0,
+      }).eq("id", editingBudgetLine.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["budget-lines"] });
+      setBudgetLineDialogOpen(false);
+      setEditingBudgetLine(null);
+      setBudgetLineForm({ name: "", code: "", allocated_amount: "" });
+      toast.success("Budget line updated");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const deleteBudgetLineMutation = useMutation({
+    mutationFn: async (id: string) => {
+      // Unlink expenses from this budget line
+      await supabase.from("expenses").update({ budget_id: null } as any).eq("budget_id", id);
+      const { error } = await supabase.from("budget_lines").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["budget-lines"] });
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      setDeleteBudgetLineId(null);
+      toast.success("Budget line deleted");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  // Inline create budget line from dropdown
+  async function handleCreateBudgetLine(name: string): Promise<string | null> {
+    const trimmed = name.trim();
+    const existing = budgetLines.find((bl) => bl.name.trim().toLowerCase() === trimmed.toLowerCase());
+    if (existing) {
+      toast.info(`"${existing.name}" already exists — selected it.`);
+      return existing.id;
+    }
+    const { data, error } = await supabase.from("budget_lines").insert({
+      name: trimmed,
+      cohort_id: activeCohortId,
+    }).select().single();
+    if (error) { toast.error(error.message); return null; }
+    queryClient.invalidateQueries({ queryKey: ["budget-lines"] });
+    toast.success(`Budget line "${trimmed}" created`);
+    return data.id;
+  }
+
+  // ─── Expense Mutations ───
   const addExpenseMutation = useMutation({
     mutationFn: async () => {
-      // Insert expense
       const { data: expense, error } = await supabase.from("expenses").insert({
         cohort_id: activeCohortId,
         description: form.description,
-        category_id: form.category_id,
+        budget_id: form.budget_line_id,
         currency: form.currency,
         amount: Number(form.amount),
         beneficiary_name: form.detail || null,
       } as any).select().single();
       if (error) throw error;
 
+      // Insert category links
+      if (form.category_ids.length > 0) {
+        await supabase.from("expense_category_links").insert(
+          form.category_ids.map((category_id) => ({ expense_id: expense.id, category_id }))
+        );
+      }
+
       // Insert stakeholders
       if (form.stakeholder_ids.length > 0) {
-        const stakeholderRows = form.stakeholder_ids.map((vendor_id) => ({
-          expense_id: expense.id,
-          vendor_id,
-        }));
-        const { error: sErr } = await supabase.from("expense_stakeholders").insert(stakeholderRows);
-        if (sErr) throw sErr;
+        await supabase.from("expense_stakeholders").insert(
+          form.stakeholder_ids.map((vendor_id) => ({ expense_id: expense.id, vendor_id }))
+        );
       }
 
       // Insert links
-      if (form.links.length > 0) {
-        const linkRows = form.links
-          .filter((l) => l.url.trim())
-          .map((l) => ({
-            expense_id: expense.id,
-            title: l.title || null,
-            url: l.url,
-          }));
-        if (linkRows.length > 0) {
-          const { error: lErr } = await supabase.from("expense_links").insert(linkRows);
-          if (lErr) throw lErr;
-        }
+      const validLinks = form.links.filter((l) => l.url.trim());
+      if (validLinks.length > 0) {
+        await supabase.from("expense_links").insert(
+          validLinks.map((l) => ({ expense_id: expense.id, title: l.title || null, url: l.url }))
+        );
       }
 
       return expense;
@@ -445,18 +678,25 @@ export default function Expenses() {
     onError: (e) => toast.error(e.message),
   });
 
-  // Expense update
   const updateExpenseMutation = useMutation({
     mutationFn: async () => {
       if (!editingExpense) return;
       const { error } = await supabase.from("expenses").update({
         description: form.description,
-        category_id: form.category_id,
+        budget_id: form.budget_line_id,
         currency: form.currency,
         amount: Number(form.amount),
         beneficiary_name: form.detail || null,
       } as any).eq("id", editingExpense.id);
       if (error) throw error;
+
+      // Replace category links
+      await supabase.from("expense_category_links").delete().eq("expense_id", editingExpense.id);
+      if (form.category_ids.length > 0) {
+        await supabase.from("expense_category_links").insert(
+          form.category_ids.map((category_id) => ({ expense_id: editingExpense.id, category_id }))
+        );
+      }
 
       // Replace stakeholders
       await supabase.from("expense_stakeholders").delete().eq("expense_id", editingExpense.id);
@@ -489,6 +729,7 @@ export default function Expenses() {
     mutationFn: async (id: string) => {
       await supabase.from("expense_stakeholders").delete().eq("expense_id", id);
       await supabase.from("expense_links").delete().eq("expense_id", id);
+      await supabase.from("expense_category_links").delete().eq("expense_id", id);
       const { error } = await supabase.from("expenses").delete().eq("id", id);
       if (error) throw error;
     },
@@ -507,6 +748,7 @@ export default function Expenses() {
       for (const id of ids) {
         await supabase.from("expense_stakeholders").delete().eq("expense_id", id);
         await supabase.from("expense_links").delete().eq("expense_id", id);
+        await supabase.from("expense_category_links").delete().eq("expense_id", id);
       }
       const { error } = await supabase.from("expenses").delete().in("id", ids);
       if (error) throw error;
@@ -521,22 +763,24 @@ export default function Expenses() {
   });
 
   function resetForm() {
-    setForm({ description: "", detail: "", category_id: null, currency: "MAD", amount: "", stakeholder_ids: [], links: [] });
+    setForm({ description: "", detail: "", budget_line_id: null, category_ids: [], currency: "MAD", amount: "", stakeholder_ids: [], links: [] });
   }
 
   async function openEdit(e: Expense) {
-    // Load stakeholders
     const { data: sData } = await supabase.from("expense_stakeholders").select("vendor_id").eq("expense_id", e.id);
     const stakeholderIds = (sData || []).map((s) => s.vendor_id).filter(Boolean) as string[];
 
-    // Load links
     const { data: lData } = await supabase.from("expense_links").select("title, url").eq("expense_id", e.id);
     const links = (lData || []).map((l) => ({ title: l.title || "", url: l.url || "" }));
+
+    const { data: cData } = await supabase.from("expense_category_links").select("category_id").eq("expense_id", e.id);
+    const catIds = (cData || []).map((c) => c.category_id).filter(Boolean) as string[];
 
     setForm({
       description: e.description,
       detail: e.beneficiary_name || "",
-      category_id: e.category_id || null,
+      budget_line_id: e.budget_id || null,
+      category_ids: catIds,
       currency: e.currency || "MAD",
       amount: String(e.amount),
       stakeholder_ids: stakeholderIds,
@@ -547,11 +791,14 @@ export default function Expenses() {
 
   async function openView(e: Expense) {
     const { data: sData } = await supabase.from("expense_stakeholders").select("vendor_id").eq("expense_id", e.id);
-    const ids = (sData || []).map((s) => s.vendor_id).filter(Boolean) as string[];
-    setViewStakeholders(ids);
+    setViewStakeholders((sData || []).map((s) => s.vendor_id).filter(Boolean) as string[]);
 
     const { data: lData } = await supabase.from("expense_links").select("title, url").eq("expense_id", e.id);
     setViewLinks((lData || []).map((l) => ({ title: l.title || "", url: l.url || "" })));
+
+    const { data: cData } = await supabase.from("expense_category_links").select("category_id").eq("expense_id", e.id);
+    setViewCategoryIds((cData || []).map((c) => c.category_id).filter(Boolean) as string[]);
+
     setViewing(e);
   }
 
@@ -563,32 +810,34 @@ export default function Expenses() {
     else setSelected(new Set(expenses.map((e) => e.id)));
   }
 
-  const getCategoryName = (catId: string | null) => {
-    if (!catId) return "—";
-    return categories.find((c) => c.id === catId)?.name || "—";
+  const getBudgetLineName = (budgetId: string | null) => {
+    if (!budgetId) return "—";
+    const bl = budgetLines.find((b) => b.id === budgetId);
+    if (!bl) return "—";
+    return bl.code ? `${bl.code} — ${bl.name}` : bl.name;
   };
 
-  // Inline creation: Budget Category (duplicate-safe)
+  // Inline creation: Expense Category (duplicate-safe)
   async function handleCreateCategory(name: string): Promise<string | null> {
     const trimmed = name.trim();
-    const existing = categories.find((c) => c.name.trim().toLowerCase() === trimmed.toLowerCase());
+    const existing = expenseCategories.find((c) => c.name.trim().toLowerCase() === trimmed.toLowerCase());
     if (existing) {
       toast.info(`"${existing.name}" already exists — selected it.`);
       return existing.id;
     }
-    const { data, error } = await supabase.from("budget_categories").insert({ name: trimmed }).select().single();
+    const { data, error } = await supabase.from("expense_categories").insert({ name: trimmed }).select().single();
     if (error) { toast.error(error.message); return null; }
-    queryClient.invalidateQueries({ queryKey: ["budget-categories-list"] });
+    queryClient.invalidateQueries({ queryKey: ["expense-categories-list"] });
     toast.success(`Category "${trimmed}" created`);
     return data.id;
   }
 
-  // Delete budget category
   async function handleDeleteCategory(id: string) {
-    const { error } = await supabase.from("budget_categories").delete().eq("id", id);
+    await supabase.from("expense_category_links").delete().eq("category_id", id);
+    const { error } = await supabase.from("expense_categories").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
-    queryClient.invalidateQueries({ queryKey: ["budget-categories-list"] });
-    if (form.category_id === id) setForm((f) => ({ ...f, category_id: null }));
+    queryClient.invalidateQueries({ queryKey: ["expense-categories-list"] });
+    setForm((f) => ({ ...f, category_ids: f.category_ids.filter((cid) => cid !== id) }));
     toast.success("Category deleted");
   }
 
@@ -607,14 +856,22 @@ export default function Expenses() {
     return data.id;
   }
 
-  // Delete vendor
   async function handleDeleteVendor(id: string) {
-    // Remove from current selection first
     setForm((f) => ({ ...f, stakeholder_ids: f.stakeholder_ids.filter((sid) => sid !== id) }));
     const { error } = await supabase.from("vendors").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
     queryClient.invalidateQueries({ queryKey: ["vendors-list"] });
     toast.success("Stakeholder deleted");
+  }
+
+  async function handleDeleteBudgetLine(id: string) {
+    setForm((f) => ({ ...f, budget_line_id: f.budget_line_id === id ? null : f.budget_line_id }));
+    await supabase.from("expenses").update({ budget_id: null } as any).eq("budget_id", id);
+    const { error } = await supabase.from("budget_lines").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    queryClient.invalidateQueries({ queryKey: ["budget-lines"] });
+    queryClient.invalidateQueries({ queryKey: ["expenses"] });
+    toast.success("Budget line deleted");
   }
 
   const expenseFormContent = (
@@ -630,20 +887,53 @@ export default function Expenses() {
           <Label>Details</Label>
           <Textarea value={form.detail} onChange={(e) => setForm((f) => ({ ...f, detail: e.target.value }))} placeholder="Additional details..." rows={3} />
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Budget Category</Label>
-            <SearchableSelect
-              value={form.category_id}
-              onValueChange={(v) => setForm((f) => ({ ...f, category_id: v }))}
-              options={categoryOptions}
-              placeholder="Select category..."
-              searchPlaceholder="Search categories..."
-              onCreateNew={handleCreateCategory}
-              createLabel="Add new category"
-              onDelete={handleDeleteCategory}
-            />
+
+        {/* Budget Line */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label>Budget Line</Label>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-xs"
+              onClick={() => {
+                setEditingBudgetLine(null);
+                setBudgetLineForm({ name: "", code: "", allocated_amount: "" });
+                setBudgetLineDialogOpen(true);
+              }}
+            >
+              <Plus className="mr-1 h-3 w-3" /> Manage
+            </Button>
           </div>
+          <SearchableSelect
+            value={form.budget_line_id}
+            onValueChange={(v) => setForm((f) => ({ ...f, budget_line_id: v }))}
+            options={budgetLineOptions}
+            placeholder="Select budget line..."
+            searchPlaceholder="Search budget lines..."
+            onCreateNew={handleCreateBudgetLine}
+            createLabel="Add budget line"
+            onDelete={handleDeleteBudgetLine}
+          />
+        </div>
+
+        {/* Categories (multi-select) */}
+        <div className="space-y-2">
+          <Label>Categories</Label>
+          <MultiSelectPicker
+            value={form.category_ids}
+            onChange={(ids) => setForm((f) => ({ ...f, category_ids: ids }))}
+            options={categoryOptions}
+            placeholder="Select categories..."
+            searchPlaceholder="Search categories..."
+            onCreateNew={handleCreateCategory}
+            createLabel="Add new category"
+            onDelete={handleDeleteCategory}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Currency</Label>
             <Select value={form.currency} onValueChange={(v) => setForm((f) => ({ ...f, currency: v }))}>
@@ -655,10 +945,10 @@ export default function Expenses() {
               </SelectContent>
             </Select>
           </div>
-        </div>
-        <div className="space-y-2">
-          <Label>Amount</Label>
-          <Input type="number" value={form.amount} onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))} placeholder="0.00" />
+          <div className="space-y-2">
+            <Label>Amount</Label>
+            <Input type="number" value={form.amount} onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))} placeholder="0.00" />
+          </div>
         </div>
       </div>
 
@@ -678,51 +968,16 @@ export default function Expenses() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Links</h3>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setForm((f) => ({ ...f, links: [...f.links, { title: "", url: "" }] }))}
-          >
+          <Button type="button" variant="outline" size="sm" onClick={() => setForm((f) => ({ ...f, links: [...f.links, { title: "", url: "" }] }))}>
             <Plus className="mr-1 h-3 w-3" /> Add Link
           </Button>
         </div>
-        {form.links.length === 0 && (
-          <p className="text-sm text-muted-foreground">No links added yet.</p>
-        )}
+        {form.links.length === 0 && <p className="text-sm text-muted-foreground">No links added yet.</p>}
         {form.links.map((link, i) => (
           <div key={i} className="flex gap-2 items-start">
-            <Input
-              placeholder="Title"
-              value={link.title}
-              onChange={(e) => {
-                const updated = [...form.links];
-                updated[i] = { ...updated[i], title: e.target.value };
-                setForm((f) => ({ ...f, links: updated }));
-              }}
-              className="flex-1"
-            />
-            <Input
-              placeholder="https://..."
-              value={link.url}
-              onChange={(e) => {
-                const updated = [...form.links];
-                updated[i] = { ...updated[i], url: e.target.value };
-                setForm((f) => ({ ...f, links: updated }));
-              }}
-              className="flex-[2]"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 shrink-0"
-              onClick={() => {
-                setForm((f) => ({ ...f, links: f.links.filter((_, idx) => idx !== i) }));
-              }}
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <Input placeholder="Title" value={link.title} onChange={(e) => { const updated = [...form.links]; updated[i] = { ...updated[i], title: e.target.value }; setForm((f) => ({ ...f, links: updated })); }} className="flex-1" />
+            <Input placeholder="https://..." value={link.url} onChange={(e) => { const updated = [...form.links]; updated[i] = { ...updated[i], url: e.target.value }; setForm((f) => ({ ...f, links: updated })); }} className="flex-[2]" />
+            <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => setForm((f) => ({ ...f, links: f.links.filter((_, idx) => idx !== i) }))}><X className="h-4 w-4" /></Button>
           </div>
         ))}
       </div>
@@ -758,9 +1013,7 @@ export default function Expenses() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card>
             <CardContent className="p-5 flex items-center gap-4">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <PiggyBank className="h-5 w-5 text-primary" />
-              </div>
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center"><PiggyBank className="h-5 w-5 text-primary" /></div>
               <div>
                 <p className="text-xs text-muted-foreground font-medium">Total Budget</p>
                 <p className="text-xl font-bold">{totalBudget.toLocaleString()} MAD</p>
@@ -769,9 +1022,7 @@ export default function Expenses() {
           </Card>
           <Card>
             <CardContent className="p-5 flex items-center gap-4">
-              <div className="h-10 w-10 rounded-lg bg-destructive/10 flex items-center justify-center">
-                <TrendingDown className="h-5 w-5 text-destructive" />
-              </div>
+              <div className="h-10 w-10 rounded-lg bg-destructive/10 flex items-center justify-center"><TrendingDown className="h-5 w-5 text-destructive" /></div>
               <div>
                 <p className="text-xs text-muted-foreground font-medium">Total Expenses</p>
                 <p className="text-xl font-bold">{totalExpenses.toLocaleString()} MAD</p>
@@ -792,13 +1043,50 @@ export default function Expenses() {
         </div>
       )}
 
+      {/* Budget Lines Section */}
+      {activeCohort && budgetLines.length > 0 && (
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Budget Lines</h3>
+              <Button variant="outline" size="sm" onClick={() => { setEditingBudgetLine(null); setBudgetLineForm({ name: "", code: "", allocated_amount: "" }); setBudgetLineDialogOpen(true); }}>
+                <Plus className="mr-1 h-3 w-3" /> Add Line
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {budgetLines.map((bl) => (
+                <div key={bl.id} className="group flex items-center gap-1.5 rounded-lg border bg-muted/30 px-3 py-1.5 text-sm">
+                  <span className="font-mono text-xs text-muted-foreground">{bl.code || "—"}</span>
+                  <span className="font-medium">{bl.name}</span>
+                  <span className="text-xs text-muted-foreground">({Number(bl.allocated_amount || 0).toLocaleString()} MAD)</span>
+                  <button
+                    onClick={() => {
+                      setEditingBudgetLine(bl);
+                      setBudgetLineForm({ name: bl.name, code: bl.code || "", allocated_amount: String(bl.allocated_amount || 0) });
+                      setBudgetLineDialogOpen(true);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-accent transition-opacity"
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={() => setDeleteBudgetLineId(bl.id)}
+                    className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-destructive/10 text-destructive transition-opacity"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {!activeCohort ? (
         <Card>
           <CardContent className="py-16 text-center">
             <p className="text-muted-foreground mb-4">No cohort selected. Create one to start tracking expenses.</p>
-            <Button onClick={() => setCohortDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" /> Create Cohort
-            </Button>
+            <Button onClick={() => setCohortDialogOpen(true)}><Plus className="mr-2 h-4 w-4" /> Create Cohort</Button>
           </CardContent>
         </Card>
       ) : (
@@ -826,11 +1114,9 @@ export default function Expenses() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-10">
-                      <Checkbox checked={expenses.length > 0 && selected.size === expenses.length} onCheckedChange={toggleAll} />
-                    </TableHead>
+                    <TableHead className="w-10"><Checkbox checked={expenses.length > 0 && selected.size === expenses.length} onCheckedChange={toggleAll} /></TableHead>
                     <TableHead>Description</TableHead>
-                    <TableHead>Category</TableHead>
+                    <TableHead>Budget Line</TableHead>
                     <TableHead>Currency</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                     <TableHead>Date</TableHead>
@@ -847,15 +1133,13 @@ export default function Expenses() {
                       <TableRow key={e.id} className={selected.has(e.id) ? "bg-muted/50" : ""}>
                         <TableCell><Checkbox checked={selected.has(e.id)} onCheckedChange={() => toggleSelect(e.id)} /></TableCell>
                         <TableCell className="font-medium max-w-[200px] truncate">{e.description}</TableCell>
-                        <TableCell>{getCategoryName(e.category_id)}</TableCell>
+                        <TableCell className="text-sm">{getBudgetLineName(e.budget_id)}</TableCell>
                         <TableCell><Badge variant="outline" className="text-[10px]">{e.currency || "MAD"}</Badge></TableCell>
                         <TableCell className="text-right font-medium">{Number(e.amount).toLocaleString()}</TableCell>
                         <TableCell className="text-muted-foreground text-sm">{e.created_at ? new Date(e.created_at).toLocaleDateString() : "—"}</TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button>
-                            </DropdownMenuTrigger>
+                            <DropdownMenuTrigger asChild><Button size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => openView(e)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => openEdit(e)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
@@ -873,7 +1157,7 @@ export default function Expenses() {
         </>
       )}
 
-      {/* Create/Edit Cohort Dialog */}
+      {/* Cohort Dialog */}
       <Dialog open={cohortDialogOpen} onOpenChange={(o) => { setCohortDialogOpen(o); if (!o) setEditingCohort(null); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>{editingCohort ? "Edit Cohort" : "New Cohort"}</DialogTitle></DialogHeader>
@@ -894,38 +1178,59 @@ export default function Expenses() {
             </div>
           </div>
           <DialogFooter>
-            <Button
-              onClick={() => editingCohort ? updateCohortMutation.mutate() : createCohortMutation.mutate()}
-              disabled={!cohortForm.name || !cohortForm.year}
-            >
+            <Button onClick={() => editingCohort ? updateCohortMutation.mutate() : createCohortMutation.mutate()} disabled={!cohortForm.name || !cohortForm.year}>
               {editingCohort ? "Save Changes" : "Create Cohort"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Add Expense Dialog */}
-      <Dialog open={expenseDialogOpen} onOpenChange={setExpenseDialogOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>New Expense</DialogTitle></DialogHeader>
-          {expenseFormContent}
+      {/* Budget Line Dialog */}
+      <Dialog open={budgetLineDialogOpen} onOpenChange={(o) => { setBudgetLineDialogOpen(o); if (!o) setEditingBudgetLine(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>{editingBudgetLine ? "Edit Budget Line" : "New Budget Line"}</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label>Name</Label>
+              <Input value={budgetLineForm.name} onChange={(e) => setBudgetLineForm((f) => ({ ...f, name: e.target.value }))} placeholder="e.g. Events" />
+            </div>
+            <div className="space-y-2">
+              <Label>Code</Label>
+              <Input value={budgetLineForm.code} onChange={(e) => setBudgetLineForm((f) => ({ ...f, code: e.target.value }))} placeholder="e.g. EVT-2025-001" />
+            </div>
+            <div className="space-y-2">
+              <Label>Allocated Amount (MAD)</Label>
+              <Input type="number" value={budgetLineForm.allocated_amount} onChange={(e) => setBudgetLineForm((f) => ({ ...f, allocated_amount: e.target.value }))} placeholder="0" />
+            </div>
+          </div>
           <DialogFooter>
-            <Button onClick={() => addExpenseMutation.mutate()} disabled={!form.description || !form.amount}>
-              Add Expense
+            <Button
+              onClick={() => editingBudgetLine ? updateBudgetLineMutation.mutate() : createBudgetLineMutation.mutate()}
+              disabled={!budgetLineForm.name.trim()}
+            >
+              {editingBudgetLine ? "Save Changes" : "Create Budget Line"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Expense Dialog */}
+      {/* Expense Dialogs */}
+      <Dialog open={expenseDialogOpen} onOpenChange={setExpenseDialogOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>New Expense</DialogTitle></DialogHeader>
+          {expenseFormContent}
+          <DialogFooter>
+            <Button onClick={() => addExpenseMutation.mutate()} disabled={!form.description || !form.amount}>Add Expense</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={!!editingExpense} onOpenChange={(o) => !o && setEditingExpense(null)}>
         <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Edit Expense</DialogTitle></DialogHeader>
           {expenseFormContent}
           <DialogFooter>
-            <Button onClick={() => updateExpenseMutation.mutate()} disabled={!form.description || !form.amount}>
-              Save Changes
-            </Button>
+            <Button onClick={() => updateExpenseMutation.mutate()} disabled={!form.description || !form.amount}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -934,6 +1239,7 @@ export default function Expenses() {
       <ConfirmDeleteDialog open={!!deleteCohortId} onConfirm={() => deleteCohortId && deleteCohortMutation.mutate(deleteCohortId)} onCancel={() => setDeleteCohortId(null)} />
       <ConfirmDeleteDialog open={!!deleteId} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
       <ConfirmDeleteDialog open={bulkDeleteOpen} onConfirm={() => bulkDeleteMutation.mutate()} onCancel={() => setBulkDeleteOpen(false)} />
+      <ConfirmDeleteDialog open={!!deleteBudgetLineId} onConfirm={() => deleteBudgetLineId && deleteBudgetLineMutation.mutate(deleteBudgetLineId)} onCancel={() => setDeleteBudgetLineId(null)} />
 
       {/* View Dialog */}
       <ViewDetailDialog
@@ -943,7 +1249,8 @@ export default function Expenses() {
         fields={viewing ? [
           { label: "Description", value: viewing.description },
           { label: "Details", value: viewing.beneficiary_name || "—" },
-          { label: "Category", value: getCategoryName(viewing.category_id) },
+          { label: "Budget Line", value: getBudgetLineName(viewing.budget_id) },
+          { label: "Categories", value: viewCategoryIds.length > 0 ? expenseCategories.filter((c) => viewCategoryIds.includes(c.id)).map((c) => c.name).join(", ") : "—" },
           { label: "Currency", value: viewing.currency || "MAD" },
           { label: "Amount", value: `${Number(viewing.amount).toLocaleString()} ${viewing.currency || "MAD"}` },
           { label: "Stakeholders", value: viewStakeholders.length > 0 ? vendors.filter((v) => viewStakeholders.includes(v.id)).map((v) => v.name).join(", ") : "—" },
