@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      budget_categories: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          total_amount: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          total_amount?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          total_amount?: number | null
+        }
+        Relationships: []
+      }
       budgets: {
         Row: {
           category: string
@@ -913,6 +934,33 @@ export type Database = {
           source_module?: string | null
           status?: string | null
           title?: string
+        }
+        Relationships: []
+      }
+      vendors: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string
+          rate: number | null
+          type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          rate?: number | null
+          type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          rate?: number | null
+          type?: string | null
         }
         Relationships: []
       }
