@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { logAction } from "@/lib/logAction";
 import { useAuth } from "@/hooks/useAuth";
+import { useVendors } from "@/hooks/useRelationalData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,10 +19,11 @@ import { Plus, Settings, MoreHorizontal, Pencil, Trash2, X, Eye } from "lucide-r
 import { ViewToggle } from "@/components/ViewToggle";
 import StatusPipeline from "@/components/StatusPipeline";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
-import type { Tables } from "@/integrations/supabase/types";
 import { TagPicker } from "@/components/TagPicker";
 import { TagBadges } from "@/components/TagBadges";
 import ViewDetailDialog from "@/components/ViewDetailDialog";
+import { SearchableSelect } from "@/components/SearchableSelect";
+import type { Tables } from "@/integrations/supabase/types";
 
 type Contract = Tables<"contracts">;
 
@@ -50,7 +52,32 @@ export default function OperationsContracts() {
   const [viewing, setViewing] = useState<Contract | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "table">("table");
 
-  const [form, setForm] = useState({ title: "", stakeholder_name: "", value: "", type: "External", start_date: "", end_date: "", tag_ids: [] as string[] });
+  const [form, setForm] = useState({
+    title: "",
+    stakeholder_name: "",
+    vendor_id: null as string | null,
+    value: "",
+    type: "External",
+    start_date: "",
+    end_date: "",
+    tag_ids: [] as string[],
+  });
+
+  const { data: vendors = [] } = useVendors();
+
+  const vendorOptions = vendors.map((v) => ({
+    id: v.id,
+    label: v.name,
+    sublabel: v.type || undefined,
+  }));
+
+  const getVendorName = (vendorId: string | null, stakeholderName: string) => {
+    if (vendorId) {
+      const v = vendors.find((x) => x.id === vendorId);
+      return v ? v.name : stakeholderName;
+    }
+    return stakeholderName;
+  };
 
   useEffect(() => { localStorage.setItem("forge_contract_stages", JSON.stringify(stages)); }, [stages]);
 
@@ -65,20 +92,22 @@ export default function OperationsContracts() {
 
   const addMutation = useMutation({
     mutationFn: async () => {
+      const vendorRecord = vendors.find((v) => v.id === form.vendor_id);
       const { error } = await supabase.from("contracts").insert({
         title: form.title,
-        stakeholder_name: form.stakeholder_name,
+        stakeholder_name: vendorRecord?.name || form.stakeholder_name,
+        vendor_id: form.vendor_id,
         value: form.value ? Number(form.value) : 0,
         type: form.type,
         start_date: form.start_date || null,
         end_date: form.end_date || null,
         status: stages[0],
         tag_ids: form.tag_ids,
-      });
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
-      logAction("Operations-Contracts", "INSERT", "new", null, { title: form.title, stakeholder_name: form.stakeholder_name, value: form.value }, user?.email || "Unknown");
+      logAction("Operations-Contracts", "INSERT", "new", null, { title: form.title, vendor_id: form.vendor_id, value: form.value }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       setContractDialog(false);
       resetForm();
@@ -90,19 +119,21 @@ export default function OperationsContracts() {
   const updateMutation = useMutation({
     mutationFn: async () => {
       if (!editingContract) return;
+      const vendorRecord = vendors.find((v) => v.id === form.vendor_id);
       const { error } = await supabase.from("contracts").update({
         title: form.title,
-        stakeholder_name: form.stakeholder_name,
+        stakeholder_name: vendorRecord?.name || form.stakeholder_name,
+        vendor_id: form.vendor_id,
         value: form.value ? Number(form.value) : 0,
         type: form.type,
         start_date: form.start_date || null,
         end_date: form.end_date || null,
         tag_ids: form.tag_ids,
-      }).eq("id", editingContract.id);
+      } as any).eq("id", editingContract.id);
       if (error) throw error;
     },
     onSuccess: () => {
-      logAction("Operations-Contracts", "UPDATE", editingContract?.id || "", editingContract as any, { title: form.title, stakeholder_name: form.stakeholder_name, value: form.value }, user?.email || "Unknown");
+      logAction("Operations-Contracts", "UPDATE", editingContract?.id || "", editingContract as any, { title: form.title, vendor_id: form.vendor_id, value: form.value }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
       setEditingContract(null);
       resetForm();
@@ -154,13 +185,14 @@ export default function OperationsContracts() {
   });
 
   function resetForm() {
-    setForm({ title: "", stakeholder_name: "", value: "", type: "External", start_date: "", end_date: "", tag_ids: [] });
+    setForm({ title: "", stakeholder_name: "", vendor_id: null, value: "", type: "External", start_date: "", end_date: "", tag_ids: [] });
   }
 
   function openEdit(c: Contract) {
     setForm({
       title: c.title,
       stakeholder_name: c.stakeholder_name,
+      vendor_id: (c as any).vendor_id || null,
       value: c.value ? String(c.value) : "",
       type: c.type || "External",
       start_date: c.start_date || "",
@@ -187,8 +219,21 @@ export default function OperationsContracts() {
           <Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
         </div>
         <div className="space-y-2">
-          <Label>Stakeholder</Label>
-          <Input value={form.stakeholder_name} onChange={(e) => setForm((f) => ({ ...f, stakeholder_name: e.target.value }))} />
+          <Label>Vendor / Stakeholder</Label>
+          <SearchableSelect
+            value={form.vendor_id}
+            onValueChange={(v) => {
+              const vendor = vendors.find((x) => x.id === v);
+              setForm((f) => ({
+                ...f,
+                vendor_id: v,
+                stakeholder_name: vendor?.name || f.stakeholder_name,
+              }));
+            }}
+            options={vendorOptions}
+            placeholder="Select a vendor..."
+            searchPlaceholder="Search vendors..."
+          />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -241,7 +286,6 @@ export default function OperationsContracts() {
         </div>
       </div>
 
-      {/* Bulk Actions Bar */}
       {selected.size > 0 && (
         <div className="flex items-center gap-3 p-3 rounded-lg bg-muted border">
           <span className="text-sm font-medium">{selected.size} selected</span>
@@ -262,7 +306,7 @@ export default function OperationsContracts() {
                 <TableRow>
                   <TableHead className="w-10"><Checkbox checked={contracts.length > 0 && selected.size === contracts.length} onCheckedChange={toggleAll} /></TableHead>
                   <TableHead>Title</TableHead>
-                  <TableHead>Stakeholder</TableHead>
+                  <TableHead>Vendor</TableHead>
                   <TableHead className="text-right">Value (MAD)</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Tags</TableHead>
@@ -281,7 +325,7 @@ export default function OperationsContracts() {
                     <TableRow key={c.id} className={selected.has(c.id) ? "bg-muted/50" : ""}>
                       <TableCell><Checkbox checked={selected.has(c.id)} onCheckedChange={() => toggleSelect(c.id)} /></TableCell>
                       <TableCell className="font-medium">{c.title}</TableCell>
-                      <TableCell>{c.stakeholder_name}</TableCell>
+                      <TableCell>{getVendorName((c as any).vendor_id, c.stakeholder_name)}</TableCell>
                       <TableCell className="text-right">{c.value ? Number(c.value).toLocaleString() : "—"}</TableCell>
                       <TableCell>
                         <StatusPipeline stages={stages} currentStage={c.status || stages[0]} onStageClick={(s) => statusMutation.mutate({ id: c.id, status: s })} />
@@ -309,7 +353,6 @@ export default function OperationsContracts() {
           </CardContent>
         </Card>
       ) : (
-        /* Grid View */
         isLoading ? (
           <p className="text-muted-foreground text-center py-12">Loading contracts...</p>
         ) : contracts.length === 0 ? (
@@ -333,7 +376,7 @@ export default function OperationsContracts() {
                     </DropdownMenu>
                   </div>
                   <h3 className="font-bold text-sm mb-1 truncate">{c.title}</h3>
-                  <p className="text-xs text-muted-foreground mb-2 truncate">{c.stakeholder_name}</p>
+                  <p className="text-xs text-muted-foreground mb-2 truncate">{getVendorName((c as any).vendor_id, c.stakeholder_name)}</p>
                   <p className="text-lg font-semibold mb-2">{c.value ? `${Number(c.value).toLocaleString()} MAD` : "—"}</p>
                   <StatusPipeline stages={stages} currentStage={c.status || stages[0]} onStageClick={(s) => statusMutation.mutate({ id: c.id, status: s })} />
                   <div className="mt-2">
@@ -351,7 +394,7 @@ export default function OperationsContracts() {
           <DialogHeader><DialogTitle>New Contract</DialogTitle></DialogHeader>
           {contractFormContent}
           <DialogFooter>
-            <Button onClick={() => addMutation.mutate()} disabled={!form.title || !form.stakeholder_name}>Add Contract</Button>
+            <Button onClick={() => addMutation.mutate()} disabled={!form.title || !form.vendor_id}>Add Contract</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -361,7 +404,7 @@ export default function OperationsContracts() {
           <DialogHeader><DialogTitle>Edit Contract</DialogTitle></DialogHeader>
           {contractFormContent}
           <DialogFooter>
-            <Button onClick={() => updateMutation.mutate()} disabled={!form.title || !form.stakeholder_name}>Save Changes</Button>
+            <Button onClick={() => updateMutation.mutate()} disabled={!form.title || !form.vendor_id}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -375,7 +418,7 @@ export default function OperationsContracts() {
         title="Contract Details"
         fields={viewing ? [
           { label: "Title", value: viewing.title },
-          { label: "Stakeholder", value: viewing.stakeholder_name },
+          { label: "Vendor", value: getVendorName((viewing as any).vendor_id, viewing.stakeholder_name) },
           { label: "Value", value: viewing.value ? `${Number(viewing.value).toLocaleString()} MAD` : "—" },
           { label: "Type", value: viewing.type },
           { label: "Status", value: viewing.status },

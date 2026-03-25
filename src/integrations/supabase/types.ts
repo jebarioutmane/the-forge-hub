@@ -74,6 +74,7 @@ export type Database = {
           title: string
           type: string | null
           value: number | null
+          vendor_id: string | null
         }
         Insert: {
           end_date?: string | null
@@ -86,6 +87,7 @@ export type Database = {
           title: string
           type?: string | null
           value?: number | null
+          vendor_id?: string | null
         }
         Update: {
           end_date?: string | null
@@ -98,8 +100,17 @@ export type Database = {
           title?: string
           type?: string | null
           value?: number | null
+          vendor_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "contracts_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       countries: {
         Row: {
@@ -278,6 +289,7 @@ export type Database = {
           amount: number
           beneficiary_name: string | null
           budget_id: string | null
+          category_id: string | null
           created_at: string | null
           currency: string | null
           description: string
@@ -287,11 +299,13 @@ export type Database = {
           status: string | null
           tag_ids: string[] | null
           type: string | null
+          vendor_id: string | null
         }
         Insert: {
           amount: number
           beneficiary_name?: string | null
           budget_id?: string | null
+          category_id?: string | null
           created_at?: string | null
           currency?: string | null
           description: string
@@ -301,11 +315,13 @@ export type Database = {
           status?: string | null
           tag_ids?: string[] | null
           type?: string | null
+          vendor_id?: string | null
         }
         Update: {
           amount?: number
           beneficiary_name?: string | null
           budget_id?: string | null
+          category_id?: string | null
           created_at?: string | null
           currency?: string | null
           description?: string
@@ -315,6 +331,7 @@ export type Database = {
           status?: string | null
           tag_ids?: string[] | null
           type?: string | null
+          vendor_id?: string | null
         }
         Relationships: [
           {
@@ -322,6 +339,20 @@ export type Database = {
             columns: ["budget_id"]
             isOneToOne: false
             referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "budget_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
             referencedColumns: ["id"]
           },
         ]
@@ -850,6 +881,7 @@ export type Database = {
           created_at: string
           deductions: number
           final_payout: number | null
+          founder_id: string | null
           founder_name: string
           id: string
           status: string
@@ -859,6 +891,7 @@ export type Database = {
           created_at?: string
           deductions?: number
           final_payout?: number | null
+          founder_id?: string | null
           founder_name: string
           id?: string
           status?: string
@@ -868,11 +901,20 @@ export type Database = {
           created_at?: string
           deductions?: number
           final_payout?: number | null
+          founder_id?: string | null
           founder_name?: string
           id?: string
           status?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "stipends_founder_id_fkey"
+            columns: ["founder_id"]
+            isOneToOne: false
+            referencedRelation: "founders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tags: {
         Row: {
