@@ -10,7 +10,7 @@ import OperationsDashboard from "./pages/operations/Dashboard";
 import Source from "./pages/operations/Source";
 import Stipends from "./pages/operations/Stipends";
 import OperationsContracts from "./pages/operations/Contracts";
-import OperationsTasks from "./pages/operations/Tasks";
+
 import FoundersSource from "./pages/founders/Source";
 import FoundersTracking from "./pages/founders/Tracking";
 import FounderEvaluation from "./pages/founders/Evaluation";
@@ -41,7 +41,7 @@ const App = () => (
           <Route path="/operations/source" element={<MainLayout><Source /></MainLayout>} />
           <Route path="/operations/stipends" element={<MainLayout><Stipends /></MainLayout>} />
           <Route path="/operations/contracts" element={<MainLayout><OperationsContracts /></MainLayout>} />
-          <Route path="/operations/tasks" element={<MainLayout><OperationsTasks /></MainLayout>} />
+          
           <Route path="/events" element={<MainLayout><EventsTimeline /></MainLayout>} />
           <Route path="/events/planning" element={<MainLayout><EventsPlanning /></MainLayout>} />
           <Route path="/events/logistics" element={<MainLayout><EventsLogistics /></MainLayout>} />
