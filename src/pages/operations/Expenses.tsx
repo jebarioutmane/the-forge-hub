@@ -334,6 +334,51 @@ export default function Expenses() {
     onError: (e) => toast.error(e.message),
   });
 
+  // Cohort update
+  const updateCohortMutation = useMutation({
+    mutationFn: async () => {
+      if (!editingCohort) return;
+      const { error } = await supabase.from("cohorts").update({
+        name: cohortForm.name,
+        year: Number(cohortForm.year),
+        total_budget: cohortForm.total_budget ? Number(cohortForm.total_budget) : 0,
+      }).eq("id", editingCohort.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cohorts"] });
+      setCohortDialogOpen(false);
+      setEditingCohort(null);
+      setCohortForm({ name: "", year: String(new Date().getFullYear()), total_budget: "" });
+      toast.success("Cohort updated");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  // Cohort delete
+  const deleteCohortMutation = useMutation({
+    mutationFn: async (id: string) => {
+      // Delete related expenses first
+      const { data: expenseIds } = await supabase.from("expenses").select("id").eq("cohort_id", id);
+      if (expenseIds && expenseIds.length > 0) {
+        const ids = expenseIds.map((e) => e.id);
+        await supabase.from("expense_stakeholders").delete().in("expense_id", ids);
+        await supabase.from("expense_links").delete().in("expense_id", ids);
+        await supabase.from("expenses").delete().eq("cohort_id", id);
+      }
+      const { error } = await supabase.from("cohorts").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cohorts"] });
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      setSelectedCohortId(null);
+      setDeleteCohortId(null);
+      toast.success("Cohort deleted");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   // Expense creation
   const addExpenseMutation = useMutation({
     mutationFn: async () => {
