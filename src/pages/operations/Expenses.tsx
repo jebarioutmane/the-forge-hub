@@ -81,11 +81,13 @@ function VendorMultiSelect({
   onChange,
   options,
   onCreateNew,
+  onDelete,
 }: {
   value: string[];
   onChange: (ids: string[]) => void;
   options: { id: string; name: string; type: string | null }[];
   onCreateNew?: (name: string, type: string | null) => Promise<string | null>;
+  onDelete?: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
