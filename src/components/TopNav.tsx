@@ -69,7 +69,7 @@ const sections = [
       { title: "Expenses", url: "/operations/source", icon: DollarSign, desc: "Track and categorize spend" },
       { title: "Stipends", url: "/operations/stipends", icon: Wallet, desc: "Founder stipend payouts" },
       { title: "Contracts", url: "/operations/contracts", icon: FileText, desc: "Manage agreements" },
-      { title: "Tasks", url: "/operations/tasks", icon: ListTodo, desc: "Team task management" },
+      
     ],
   },
   {
