@@ -641,6 +641,7 @@ export default function Expenses() {
               searchPlaceholder="Search categories..."
               onCreateNew={handleCreateCategory}
               createLabel="Add new category"
+              onDelete={handleDeleteCategory}
             />
           </div>
           <div className="space-y-2">
