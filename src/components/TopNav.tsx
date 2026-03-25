@@ -66,7 +66,8 @@ const sections = [
     description: "Budget tracking, expenses, contracts, and team tasks.",
     items: [
       { title: "Budget Dashboard", url: "/operations", icon: PiggyBank, desc: "Financial overview" },
-      { title: "Expenses", url: "/operations/source", icon: DollarSign, desc: "Track and categorize spend" },
+      { title: "Expenses", url: "/operations/expenses", icon: DollarSign, desc: "Cohort-based expense tracking" },
+      { title: "Budget Source", url: "/operations/source", icon: BarChart3, desc: "Manage budget categories" },
       { title: "Stipends", url: "/operations/stipends", icon: Wallet, desc: "Founder stipend payouts" },
       { title: "Contracts", url: "/operations/contracts", icon: FileText, desc: "Manage agreements" },
       
