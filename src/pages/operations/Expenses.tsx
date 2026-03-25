@@ -34,15 +34,18 @@ function CohortSelector({
   selectedId,
   onSelect,
   onCreateNew,
+  onEdit,
+  onDelete,
 }: {
   cohorts: Cohort[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   onCreateNew: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
 }) {
-  const selected = cohorts.find((c) => c.id === selectedId);
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2">
       <Select value={selectedId || ""} onValueChange={onSelect}>
         <SelectTrigger className="w-[260px]">
           <SelectValue placeholder="Select a cohort..." />
@@ -55,6 +58,16 @@ function CohortSelector({
           ))}
         </SelectContent>
       </Select>
+      {selectedId && (
+        <>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onEdit} title="Edit cohort">
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={onDelete} title="Delete cohort">
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </>
+      )}
       <Button variant="outline" size="sm" onClick={onCreateNew}>
         <Plus className="mr-1 h-3.5 w-3.5" /> New Cohort
       </Button>
@@ -233,6 +246,8 @@ export default function Expenses() {
   const queryClient = useQueryClient();
   const [selectedCohortId, setSelectedCohortId] = useState<string | null>(null);
   const [cohortDialogOpen, setCohortDialogOpen] = useState(false);
+  const [editingCohort, setEditingCohort] = useState<Cohort | null>(null);
+  const [deleteCohortId, setDeleteCohortId] = useState<string | null>(null);
   const [cohortForm, setCohortForm] = useState({ name: "", year: String(new Date().getFullYear()), total_budget: "" });
 
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
@@ -315,6 +330,51 @@ export default function Expenses() {
       setCohortDialogOpen(false);
       setCohortForm({ name: "", year: String(new Date().getFullYear()), total_budget: "" });
       toast.success("Cohort created");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  // Cohort update
+  const updateCohortMutation = useMutation({
+    mutationFn: async () => {
+      if (!editingCohort) return;
+      const { error } = await supabase.from("cohorts").update({
+        name: cohortForm.name,
+        year: Number(cohortForm.year),
+        total_budget: cohortForm.total_budget ? Number(cohortForm.total_budget) : 0,
+      }).eq("id", editingCohort.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cohorts"] });
+      setCohortDialogOpen(false);
+      setEditingCohort(null);
+      setCohortForm({ name: "", year: String(new Date().getFullYear()), total_budget: "" });
+      toast.success("Cohort updated");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  // Cohort delete
+  const deleteCohortMutation = useMutation({
+    mutationFn: async (id: string) => {
+      // Delete related expenses first
+      const { data: expenseIds } = await supabase.from("expenses").select("id").eq("cohort_id", id);
+      if (expenseIds && expenseIds.length > 0) {
+        const ids = expenseIds.map((e) => e.id);
+        await supabase.from("expense_stakeholders").delete().in("expense_id", ids);
+        await supabase.from("expense_links").delete().in("expense_id", ids);
+        await supabase.from("expenses").delete().eq("cohort_id", id);
+      }
+      const { error } = await supabase.from("cohorts").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cohorts"] });
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      setSelectedCohortId(null);
+      setDeleteCohortId(null);
+      toast.success("Cohort deleted");
     },
     onError: (e) => toast.error(e.message),
   });
@@ -645,7 +705,15 @@ export default function Expenses() {
           cohorts={cohorts}
           selectedId={activeCohortId}
           onSelect={(id) => setSelectedCohortId(id)}
-          onCreateNew={() => setCohortDialogOpen(true)}
+          onCreateNew={() => { setEditingCohort(null); setCohortForm({ name: "", year: String(new Date().getFullYear()), total_budget: "" }); setCohortDialogOpen(true); }}
+          onEdit={() => {
+            if (activeCohort) {
+              setEditingCohort(activeCohort);
+              setCohortForm({ name: activeCohort.name, year: String(activeCohort.year), total_budget: String(activeCohort.total_budget || 0) });
+              setCohortDialogOpen(true);
+            }
+          }}
+          onDelete={() => activeCohortId && setDeleteCohortId(activeCohortId)}
         />
       </div>
 
@@ -769,10 +837,10 @@ export default function Expenses() {
         </>
       )}
 
-      {/* Create Cohort Dialog */}
-      <Dialog open={cohortDialogOpen} onOpenChange={setCohortDialogOpen}>
+      {/* Create/Edit Cohort Dialog */}
+      <Dialog open={cohortDialogOpen} onOpenChange={(o) => { setCohortDialogOpen(o); if (!o) setEditingCohort(null); }}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader><DialogTitle>New Cohort</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editingCohort ? "Edit Cohort" : "New Cohort"}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label>Name</Label>
@@ -790,8 +858,11 @@ export default function Expenses() {
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={() => createCohortMutation.mutate()} disabled={!cohortForm.name || !cohortForm.year}>
-              Create Cohort
+            <Button
+              onClick={() => editingCohort ? updateCohortMutation.mutate() : createCohortMutation.mutate()}
+              disabled={!cohortForm.name || !cohortForm.year}
+            >
+              {editingCohort ? "Save Changes" : "Create Cohort"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -824,6 +895,7 @@ export default function Expenses() {
       </Dialog>
 
       {/* Delete Dialogs */}
+      <ConfirmDeleteDialog open={!!deleteCohortId} onConfirm={() => deleteCohortId && deleteCohortMutation.mutate(deleteCohortId)} onCancel={() => setDeleteCohortId(null)} />
       <ConfirmDeleteDialog open={!!deleteId} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
       <ConfirmDeleteDialog open={bulkDeleteOpen} onConfirm={() => bulkDeleteMutation.mutate()} onCancel={() => setBulkDeleteOpen(false)} />
 
