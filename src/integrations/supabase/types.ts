@@ -35,6 +35,41 @@ export type Database = {
         }
         Relationships: []
       }
+      budget_lines: {
+        Row: {
+          allocated_amount: number | null
+          code: string | null
+          cohort_id: string | null
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          allocated_amount?: number | null
+          code?: string | null
+          cohort_id?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          allocated_amount?: number | null
+          code?: string | null
+          cohort_id?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_lines_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       budgets: {
         Row: {
           category: string
@@ -304,6 +339,57 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_categories: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      expense_category_links: {
+        Row: {
+          category_id: string | null
+          expense_id: string | null
+          id: string
+        }
+        Insert: {
+          category_id?: string | null
+          expense_id?: string | null
+          id?: string
+        }
+        Update: {
+          category_id?: string | null
+          expense_id?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_category_links_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_category_links_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
             referencedColumns: ["id"]
           },
         ]
