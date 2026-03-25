@@ -62,18 +62,24 @@ function CohortSelector({
   );
 }
 
-/* ─── Multi-Select Vendors ─── */
+/* ─── Multi-Select Vendors with Inline Creation ─── */
 function VendorMultiSelect({
   value,
   onChange,
   options,
+  onCreateNew,
 }: {
   value: string[];
   onChange: (ids: string[]) => void;
   options: { id: string; name: string; type: string | null }[];
+  onCreateNew?: (name: string, type: string | null) => Promise<string | null>;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newType, setNewType] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return options;
@@ -85,9 +91,22 @@ function VendorMultiSelect({
 
   const selectedNames = options.filter((o) => value.includes(o.id)).map((o) => o.name);
 
+  async function handleCreate() {
+    if (!newName.trim() || !onCreateNew) return;
+    setSaving(true);
+    const newId = await onCreateNew(newName.trim(), newType.trim() || null);
+    setSaving(false);
+    if (newId) {
+      onChange([...value, newId]);
+      setIsCreating(false);
+      setNewName("");
+      setNewType("");
+    }
+  }
+
   return (
     <div className="space-y-2">
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setIsCreating(false); setNewName(""); setNewType(""); } }}>
         <PopoverTrigger asChild>
           <Button variant="outline" role="combobox" className="w-full justify-between font-normal h-auto min-h-9">
             <span className="truncate text-left">
@@ -107,7 +126,7 @@ function VendorMultiSelect({
             />
           </div>
           <ScrollArea className="max-h-[200px]">
-            {filtered.length === 0 ? (
+            {filtered.length === 0 && !isCreating ? (
               <p className="text-sm text-muted-foreground text-center py-4">No vendors found</p>
             ) : (
               <div className="p-1">
@@ -143,6 +162,48 @@ function VendorMultiSelect({
               </div>
             )}
           </ScrollArea>
+
+          {/* Inline vendor creation */}
+          {onCreateNew && (
+            <div className="border-t p-1">
+              {isCreating ? (
+                <div className="space-y-1.5 p-1">
+                  <Input
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="Vendor name..."
+                    className="h-8 text-sm"
+                    autoFocus
+                    onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") setIsCreating(false); }}
+                  />
+                  <div className="flex items-center gap-1.5">
+                    <Select value={newType} onValueChange={setNewType}>
+                      <SelectTrigger className="h-8 text-sm flex-1">
+                        <SelectValue placeholder="Type (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="mentor">Mentor</SelectItem>
+                        <SelectItem value="expert">Expert</SelectItem>
+                        <SelectItem value="consultant">Consultant</SelectItem>
+                        <SelectItem value="vendor">Vendor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button size="sm" className="h-8 px-2.5 shrink-0" onClick={handleCreate} disabled={!newName.trim() || saving}>
+                      {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsCreating(true)}
+                  className="flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-accent cursor-pointer text-primary font-medium"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add new stakeholder
+                </button>
+              )}
+            </div>
+          )}
         </PopoverContent>
       </Popover>
       {selectedNames.length > 0 && (
