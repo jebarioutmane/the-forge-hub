@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Plus, MoreHorizontal, Pencil, Trash2, Eye, Link2, X, PiggyBank, TrendingDown, Wallet, Check, ChevronsUpDown } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Trash2, Eye, Link2, X, PiggyBank, TrendingDown, Wallet, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import ViewDetailDialog from "@/components/ViewDetailDialog";
@@ -62,18 +62,24 @@ function CohortSelector({
   );
 }
 
-/* ─── Multi-Select Vendors ─── */
+/* ─── Multi-Select Vendors with Inline Creation ─── */
 function VendorMultiSelect({
   value,
   onChange,
   options,
+  onCreateNew,
 }: {
   value: string[];
   onChange: (ids: string[]) => void;
   options: { id: string; name: string; type: string | null }[];
+  onCreateNew?: (name: string, type: string | null) => Promise<string | null>;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newType, setNewType] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return options;
@@ -85,9 +91,22 @@ function VendorMultiSelect({
 
   const selectedNames = options.filter((o) => value.includes(o.id)).map((o) => o.name);
 
+  async function handleCreate() {
+    if (!newName.trim() || !onCreateNew) return;
+    setSaving(true);
+    const newId = await onCreateNew(newName.trim(), newType.trim() || null);
+    setSaving(false);
+    if (newId) {
+      onChange([...value, newId]);
+      setIsCreating(false);
+      setNewName("");
+      setNewType("");
+    }
+  }
+
   return (
     <div className="space-y-2">
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setIsCreating(false); setNewName(""); setNewType(""); } }}>
         <PopoverTrigger asChild>
           <Button variant="outline" role="combobox" className="w-full justify-between font-normal h-auto min-h-9">
             <span className="truncate text-left">
@@ -107,7 +126,7 @@ function VendorMultiSelect({
             />
           </div>
           <ScrollArea className="max-h-[200px]">
-            {filtered.length === 0 ? (
+            {filtered.length === 0 && !isCreating ? (
               <p className="text-sm text-muted-foreground text-center py-4">No vendors found</p>
             ) : (
               <div className="p-1">
@@ -143,6 +162,48 @@ function VendorMultiSelect({
               </div>
             )}
           </ScrollArea>
+
+          {/* Inline vendor creation */}
+          {onCreateNew && (
+            <div className="border-t p-1">
+              {isCreating ? (
+                <div className="space-y-1.5 p-1">
+                  <Input
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="Vendor name..."
+                    className="h-8 text-sm"
+                    autoFocus
+                    onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") setIsCreating(false); }}
+                  />
+                  <div className="flex items-center gap-1.5">
+                    <Select value={newType} onValueChange={setNewType}>
+                      <SelectTrigger className="h-8 text-sm flex-1">
+                        <SelectValue placeholder="Type (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="mentor">Mentor</SelectItem>
+                        <SelectItem value="expert">Expert</SelectItem>
+                        <SelectItem value="consultant">Consultant</SelectItem>
+                        <SelectItem value="vendor">Vendor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button size="sm" className="h-8 px-2.5 shrink-0" onClick={handleCreate} disabled={!newName.trim() || saving}>
+                      {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsCreating(true)}
+                  className="flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-accent cursor-pointer text-primary font-medium"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add new stakeholder
+                </button>
+              )}
+            </div>
+          )}
         </PopoverContent>
       </Popover>
       {selectedNames.length > 0 && (
@@ -432,6 +493,36 @@ export default function Expenses() {
     return categories.find((c) => c.id === catId)?.name || "—";
   };
 
+  // Inline creation: Budget Category (duplicate-safe)
+  async function handleCreateCategory(name: string): Promise<string | null> {
+    const trimmed = name.trim();
+    const existing = categories.find((c) => c.name.trim().toLowerCase() === trimmed.toLowerCase());
+    if (existing) {
+      toast.info(`"${existing.name}" already exists — selected it.`);
+      return existing.id;
+    }
+    const { data, error } = await supabase.from("budget_categories").insert({ name: trimmed }).select().single();
+    if (error) { toast.error(error.message); return null; }
+    queryClient.invalidateQueries({ queryKey: ["budget-categories-list"] });
+    toast.success(`Category "${trimmed}" created`);
+    return data.id;
+  }
+
+  // Inline creation: Vendor (duplicate-safe)
+  async function handleCreateVendor(name: string, type: string | null): Promise<string | null> {
+    const trimmed = name.trim();
+    const existing = vendors.find((v) => v.name.trim().toLowerCase() === trimmed.toLowerCase());
+    if (existing) {
+      toast.info(`"${existing.name}" already exists — added it.`);
+      return existing.id;
+    }
+    const { data, error } = await supabase.from("vendors").insert({ name: trimmed, type }).select().single();
+    if (error) { toast.error(error.message); return null; }
+    queryClient.invalidateQueries({ queryKey: ["vendors-list"] });
+    toast.success(`Stakeholder "${trimmed}" created`);
+    return data.id;
+  }
+
   const expenseFormContent = (
     <div className="space-y-6 py-2">
       {/* Basic Info */}
@@ -454,6 +545,8 @@ export default function Expenses() {
               options={categoryOptions}
               placeholder="Select category..."
               searchPlaceholder="Search categories..."
+              onCreateNew={handleCreateCategory}
+              createLabel="Add new category"
             />
           </div>
           <div className="space-y-2">
@@ -481,6 +574,7 @@ export default function Expenses() {
           value={form.stakeholder_ids}
           onChange={(ids) => setForm((f) => ({ ...f, stakeholder_ids: ids }))}
           options={vendors}
+          onCreateNew={handleCreateVendor}
         />
       </div>
 
