@@ -574,6 +574,7 @@ export default function Expenses() {
           value={form.stakeholder_ids}
           onChange={(ids) => setForm((f) => ({ ...f, stakeholder_ids: ids }))}
           options={vendors}
+          onCreateNew={handleCreateVendor}
         />
       </div>
 
