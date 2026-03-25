@@ -460,7 +460,7 @@ export type Database = {
         Row: {
           amount: number
           beneficiary_name: string | null
-          budget_id: string | null
+          budget_line_id: string | null
           category_id: string | null
           cohort_id: string | null
           created_at: string | null
@@ -477,7 +477,7 @@ export type Database = {
         Insert: {
           amount: number
           beneficiary_name?: string | null
-          budget_id?: string | null
+          budget_line_id?: string | null
           category_id?: string | null
           cohort_id?: string | null
           created_at?: string | null
@@ -494,7 +494,7 @@ export type Database = {
         Update: {
           amount?: number
           beneficiary_name?: string | null
-          budget_id?: string | null
+          budget_line_id?: string | null
           category_id?: string | null
           cohort_id?: string | null
           created_at?: string | null
@@ -510,10 +510,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "expenses_budget_id_fkey"
-            columns: ["budget_id"]
+            foreignKeyName: "expenses_budget_line_id_fkey"
+            columns: ["budget_line_id"]
             isOneToOne: false
-            referencedRelation: "budgets"
+            referencedRelation: "budget_lines"
             referencedColumns: ["id"]
           },
           {

@@ -53,7 +53,7 @@ export default function OperationsDashboard() {
   // Chart data: group by budget category
   const chartData = budgets.map((b) => {
     const catExpenses = expenses
-      .filter((e) => e.budget_id === b.id)
+      .filter((e) => (e as any).budget_line_id === b.id)
       .reduce((sum, e) => sum + Number(e.amount), 0);
     return {
       category: b.category,
