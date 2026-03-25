@@ -545,6 +545,8 @@ export default function Expenses() {
               options={categoryOptions}
               placeholder="Select category..."
               searchPlaceholder="Search categories..."
+              onCreateNew={handleCreateCategory}
+              createLabel="Add new category"
             />
           </div>
           <div className="space-y-2">
