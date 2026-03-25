@@ -246,6 +246,8 @@ export default function Expenses() {
   const queryClient = useQueryClient();
   const [selectedCohortId, setSelectedCohortId] = useState<string | null>(null);
   const [cohortDialogOpen, setCohortDialogOpen] = useState(false);
+  const [editingCohort, setEditingCohort] = useState<Cohort | null>(null);
+  const [deleteCohortId, setDeleteCohortId] = useState<string | null>(null);
   const [cohortForm, setCohortForm] = useState({ name: "", year: String(new Date().getFullYear()), total_budget: "" });
 
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
