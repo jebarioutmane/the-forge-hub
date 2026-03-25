@@ -146,30 +146,43 @@ function VendorMultiSelect({
                 {filtered.map((option) => {
                   const isSelected = value.includes(option.id);
                   return (
-                    <button
+                     <div
                       key={option.id}
-                      onClick={() => {
-                        onChange(
-                          isSelected
-                            ? value.filter((id) => id !== option.id)
-                            : [...value, option.id]
-                        );
-                      }}
                       className={cn(
-                        "flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-accent cursor-pointer text-left",
+                        "flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-accent text-left group",
                         isSelected && "bg-accent"
                       )}
                     >
-                      <Check
-                        className={cn("h-3.5 w-3.5 shrink-0", isSelected ? "opacity-100" : "opacity-0")}
-                      />
-                      <div className="flex flex-col min-w-0">
-                        <span className="truncate">{option.name}</span>
-                        {option.type && (
-                          <span className="text-xs text-muted-foreground truncate">{option.type}</span>
-                        )}
-                      </div>
-                    </button>
+                      <button
+                        onClick={() => {
+                          onChange(
+                            isSelected
+                              ? value.filter((id) => id !== option.id)
+                              : [...value, option.id]
+                          );
+                        }}
+                        className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
+                      >
+                        <Check
+                          className={cn("h-3.5 w-3.5 shrink-0", isSelected ? "opacity-100" : "opacity-0")}
+                        />
+                        <div className="flex flex-col min-w-0">
+                          <span className="truncate">{option.name}</span>
+                          {option.type && (
+                            <span className="text-xs text-muted-foreground truncate">{option.type}</span>
+                          )}
+                        </div>
+                      </button>
+                      {onDelete && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onDelete(option.id); }}
+                          className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-destructive/10 text-destructive shrink-0 transition-opacity"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
                   );
                 })}
               </div>
