@@ -62,6 +62,30 @@ export type Database = {
         }
         Relationships: []
       }
+      cohorts: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          total_budget: number | null
+          year: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          total_budget?: number | null
+          year: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          total_budget?: number | null
+          year?: number
+        }
+        Relationships: []
+      }
       contracts: {
         Row: {
           end_date: string | null
@@ -284,12 +308,75 @@ export type Database = {
           },
         ]
       }
+      expense_links: {
+        Row: {
+          expense_id: string | null
+          id: string
+          title: string | null
+          url: string | null
+        }
+        Insert: {
+          expense_id?: string | null
+          id?: string
+          title?: string | null
+          url?: string | null
+        }
+        Update: {
+          expense_id?: string | null
+          id?: string
+          title?: string | null
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_links_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_stakeholders: {
+        Row: {
+          expense_id: string | null
+          id: string
+          vendor_id: string | null
+        }
+        Insert: {
+          expense_id?: string | null
+          id?: string
+          vendor_id?: string | null
+        }
+        Update: {
+          expense_id?: string | null
+          id?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_stakeholders_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_stakeholders_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expenses: {
         Row: {
           amount: number
           beneficiary_name: string | null
           budget_id: string | null
           category_id: string | null
+          cohort_id: string | null
           created_at: string | null
           currency: string | null
           description: string
@@ -306,6 +393,7 @@ export type Database = {
           beneficiary_name?: string | null
           budget_id?: string | null
           category_id?: string | null
+          cohort_id?: string | null
           created_at?: string | null
           currency?: string | null
           description: string
@@ -322,6 +410,7 @@ export type Database = {
           beneficiary_name?: string | null
           budget_id?: string | null
           category_id?: string | null
+          cohort_id?: string | null
           created_at?: string | null
           currency?: string | null
           description?: string
@@ -346,6 +435,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "budget_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
             referencedColumns: ["id"]
           },
           {
