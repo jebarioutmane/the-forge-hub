@@ -493,6 +493,36 @@ export default function Expenses() {
     return categories.find((c) => c.id === catId)?.name || "—";
   };
 
+  // Inline creation: Budget Category (duplicate-safe)
+  async function handleCreateCategory(name: string): Promise<string | null> {
+    const trimmed = name.trim();
+    const existing = categories.find((c) => c.name.trim().toLowerCase() === trimmed.toLowerCase());
+    if (existing) {
+      toast.info(`"${existing.name}" already exists — selected it.`);
+      return existing.id;
+    }
+    const { data, error } = await supabase.from("budget_categories").insert({ name: trimmed }).select().single();
+    if (error) { toast.error(error.message); return null; }
+    queryClient.invalidateQueries({ queryKey: ["budget-categories-list"] });
+    toast.success(`Category "${trimmed}" created`);
+    return data.id;
+  }
+
+  // Inline creation: Vendor (duplicate-safe)
+  async function handleCreateVendor(name: string, type: string | null): Promise<string | null> {
+    const trimmed = name.trim();
+    const existing = vendors.find((v) => v.name.trim().toLowerCase() === trimmed.toLowerCase());
+    if (existing) {
+      toast.info(`"${existing.name}" already exists — added it.`);
+      return existing.id;
+    }
+    const { data, error } = await supabase.from("vendors").insert({ name: trimmed, type }).select().single();
+    if (error) { toast.error(error.message); return null; }
+    queryClient.invalidateQueries({ queryKey: ["vendors-list"] });
+    toast.success(`Stakeholder "${trimmed}" created`);
+    return data.id;
+  }
+
   const expenseFormContent = (
     <div className="space-y-6 py-2">
       {/* Basic Info */}
