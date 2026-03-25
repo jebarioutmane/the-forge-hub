@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { logAction } from "@/lib/logAction";
 import { useAuth } from "@/hooks/useAuth";
+import { useFounders } from "@/hooks/useRelationalData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +17,7 @@ import { toast } from "sonner";
 import { Plus, MoreHorizontal, Pencil, Trash2, CheckCircle, Eye } from "lucide-react";
 import ViewDetailDialog from "@/components/ViewDetailDialog";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
+import { SearchableSelect } from "@/components/SearchableSelect";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Stipend = Tables<"stipends">;
@@ -26,10 +28,26 @@ export default function Stipends() {
   const [addOpen, setAddOpen] = useState(false);
   const [editingStipend, setEditingStipend] = useState<Stipend | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [form, setForm] = useState({ founder_name: "", base_amount: "" });
+  const [form, setForm] = useState({ founder_id: "" as string | null, base_amount: "" });
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [viewing, setViewing] = useState<Stipend | null>(null);
+
+  const { data: founders = [] } = useFounders();
+
+  const founderOptions = founders.map((f) => ({
+    id: f.id,
+    label: f.founder_name,
+    sublabel: f.startup_name,
+  }));
+
+  const getFounderName = (founderId: string | null, founderName: string) => {
+    if (founderId) {
+      const f = founders.find((x) => x.id === founderId);
+      return f ? f.founder_name : founderName;
+    }
+    return founderName;
+  };
 
   const { data: stipends = [], isLoading } = useQuery({
     queryKey: ["stipends"],
@@ -42,15 +60,18 @@ export default function Stipends() {
 
   const addMutation = useMutation({
     mutationFn: async () => {
+      const founderRecord = founders.find((f) => f.id === form.founder_id);
       const { error } = await supabase.from("stipends").insert({
-        founder_name: form.founder_name,
+        founder_name: founderRecord?.founder_name || "",
+        founder_id: form.founder_id,
         base_amount: Number(form.base_amount),
         deductions: 0,
-      });
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
-      logAction("Operations-Stipends", "INSERT", "new", null, { founder_name: form.founder_name, base_amount: form.base_amount }, user?.email || "Unknown");
+      const founderRecord = founders.find((f) => f.id === form.founder_id);
+      logAction("Operations-Stipends", "INSERT", "new", null, { founder_name: founderRecord?.founder_name, base_amount: form.base_amount }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["stipends"] });
       setAddOpen(false);
       resetForm();
@@ -62,14 +83,16 @@ export default function Stipends() {
   const updateMutation = useMutation({
     mutationFn: async () => {
       if (!editingStipend) return;
+      const founderRecord = founders.find((f) => f.id === form.founder_id);
       const { error } = await supabase.from("stipends").update({
-        founder_name: form.founder_name,
+        founder_name: founderRecord?.founder_name || "",
+        founder_id: form.founder_id,
         base_amount: Number(form.base_amount),
-      }).eq("id", editingStipend.id);
+      } as any).eq("id", editingStipend.id);
       if (error) throw error;
     },
     onSuccess: () => {
-      logAction("Operations-Stipends", "UPDATE", editingStipend?.id || "", editingStipend as any, { founder_name: form.founder_name, base_amount: form.base_amount }, user?.email || "Unknown");
+      logAction("Operations-Stipends", "UPDATE", editingStipend?.id || "", editingStipend as any, { founder_id: form.founder_id, base_amount: form.base_amount }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["stipends"] });
       setEditingStipend(null);
       resetForm();
@@ -121,10 +144,13 @@ export default function Stipends() {
     onError: (e) => toast.error(e.message),
   });
 
-  function resetForm() { setForm({ founder_name: "", base_amount: "" }); }
+  function resetForm() { setForm({ founder_id: null, base_amount: "" }); }
 
   function openEdit(s: Stipend) {
-    setForm({ founder_name: s.founder_name, base_amount: String(s.base_amount) });
+    setForm({
+      founder_id: (s as any).founder_id || null,
+      base_amount: String(s.base_amount),
+    });
     setEditingStipend(s);
   }
 
@@ -142,8 +168,14 @@ export default function Stipends() {
   const stipendFormContent = (
     <div className="space-y-4 py-2">
       <div className="space-y-2">
-        <Label>Founder Name</Label>
-        <Input value={form.founder_name} onChange={(e) => setForm((f) => ({ ...f, founder_name: e.target.value }))} />
+        <Label>Founder</Label>
+        <SearchableSelect
+          value={form.founder_id}
+          onValueChange={(v) => setForm((f) => ({ ...f, founder_id: v }))}
+          options={founderOptions}
+          placeholder="Select a founder..."
+          searchPlaceholder="Search founders..."
+        />
       </div>
       <div className="space-y-2">
         <Label>Amount (MAD)</Label>
@@ -162,7 +194,6 @@ export default function Stipends() {
         <Button onClick={() => { resetForm(); setAddOpen(true); }}><Plus className="mr-2 h-4 w-4" /> Add Stipend</Button>
       </div>
 
-      {/* Bulk Actions Bar */}
       {selected.size > 0 && (
         <div className="flex items-center gap-3 p-3 rounded-lg bg-muted border">
           <span className="text-sm font-medium">{selected.size} selected</span>
@@ -197,7 +228,7 @@ export default function Stipends() {
                 stipends.map((s) => (
                   <TableRow key={s.id} className={selected.has(s.id) ? "bg-muted/50" : ""}>
                     <TableCell><Checkbox checked={selected.has(s.id)} onCheckedChange={() => toggleSelect(s.id)} /></TableCell>
-                    <TableCell className="font-medium">{s.founder_name}</TableCell>
+                    <TableCell className="font-medium">{getFounderName((s as any).founder_id, s.founder_name)}</TableCell>
                     <TableCell className="text-right">{Number(s.base_amount).toLocaleString()} MAD</TableCell>
                     <TableCell className="text-muted-foreground text-sm">{new Date(s.created_at).toLocaleDateString()}</TableCell>
                     <TableCell><Badge className={statusColor(s.status)}>{s.status}</Badge></TableCell>
@@ -229,7 +260,7 @@ export default function Stipends() {
           <DialogHeader><DialogTitle>New Stipend</DialogTitle></DialogHeader>
           {stipendFormContent}
           <DialogFooter>
-            <Button onClick={() => addMutation.mutate()} disabled={!form.founder_name || !form.base_amount}>Add Stipend</Button>
+            <Button onClick={() => addMutation.mutate()} disabled={!form.founder_id || !form.base_amount}>Add Stipend</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -239,7 +270,7 @@ export default function Stipends() {
           <DialogHeader><DialogTitle>Edit Stipend</DialogTitle></DialogHeader>
           {stipendFormContent}
           <DialogFooter>
-            <Button onClick={() => updateMutation.mutate()} disabled={!form.founder_name || !form.base_amount}>Save Changes</Button>
+            <Button onClick={() => updateMutation.mutate()} disabled={!form.founder_id || !form.base_amount}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -252,7 +283,7 @@ export default function Stipends() {
         onClose={() => setViewing(null)}
         title="Stipend Details"
         fields={viewing ? [
-          { label: "Founder", value: viewing.founder_name },
+          { label: "Founder", value: getFounderName((viewing as any).founder_id, viewing.founder_name) },
           { label: "Base Amount", value: `${Number(viewing.base_amount).toLocaleString()} MAD` },
           { label: "Deductions", value: `${Number(viewing.deductions).toLocaleString()} MAD` },
           { label: "Final Payout", value: viewing.final_payout ? `${Number(viewing.final_payout).toLocaleString()} MAD` : "—" },
