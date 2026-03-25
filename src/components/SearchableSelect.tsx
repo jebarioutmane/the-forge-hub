@@ -3,7 +3,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, ChevronsUpDown, Plus, Loader2 } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SearchableSelectProps {
@@ -16,6 +16,8 @@ interface SearchableSelectProps {
   /** When provided, shows a "+ Add new" option at the bottom of the list */
   onCreateNew?: (name: string) => Promise<string | null>;
   createLabel?: string;
+  /** When provided, shows a delete icon on each option */
+  onDelete?: (id: string) => void;
 }
 
 export function SearchableSelect({
@@ -27,6 +29,7 @@ export function SearchableSelect({
   disabled = false,
   onCreateNew,
   createLabel = "Add new",
+  onDelete,
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -94,33 +97,46 @@ export function SearchableSelect({
           ) : (
             <div className="p-1">
               {filtered.map((option) => (
-                <button
+                <div
                   key={option.id}
-                  onClick={() => {
-                    onValueChange(option.id === value ? null : option.id);
-                    setOpen(false);
-                    setSearch("");
-                  }}
                   className={cn(
-                    "flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-accent cursor-pointer text-left",
+                    "flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-accent text-left group",
                     option.id === value && "bg-accent"
                   )}
                 >
-                  <Check
-                    className={cn(
-                      "h-3.5 w-3.5 shrink-0",
-                      option.id === value ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  <div className="flex flex-col min-w-0">
-                    <span className="truncate">{option.label}</span>
-                    {option.sublabel && (
-                      <span className="text-xs text-muted-foreground truncate">
-                        {option.sublabel}
-                      </span>
-                    )}
-                  </div>
-                </button>
+                  <button
+                    onClick={() => {
+                      onValueChange(option.id === value ? null : option.id);
+                      setOpen(false);
+                      setSearch("");
+                    }}
+                    className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
+                  >
+                    <Check
+                      className={cn(
+                        "h-3.5 w-3.5 shrink-0",
+                        option.id === value ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    <div className="flex flex-col min-w-0">
+                      <span className="truncate">{option.label}</span>
+                      {option.sublabel && (
+                        <span className="text-xs text-muted-foreground truncate">
+                          {option.sublabel}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                  {onDelete && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onDelete(option.id); }}
+                      className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-destructive/10 text-destructive shrink-0 transition-opacity"
+                      title="Delete"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
           )}

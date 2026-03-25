@@ -81,11 +81,13 @@ function VendorMultiSelect({
   onChange,
   options,
   onCreateNew,
+  onDelete,
 }: {
   value: string[];
   onChange: (ids: string[]) => void;
   options: { id: string; name: string; type: string | null }[];
   onCreateNew?: (name: string, type: string | null) => Promise<string | null>;
+  onDelete?: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -146,30 +148,43 @@ function VendorMultiSelect({
                 {filtered.map((option) => {
                   const isSelected = value.includes(option.id);
                   return (
-                    <button
+                     <div
                       key={option.id}
-                      onClick={() => {
-                        onChange(
-                          isSelected
-                            ? value.filter((id) => id !== option.id)
-                            : [...value, option.id]
-                        );
-                      }}
                       className={cn(
-                        "flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-accent cursor-pointer text-left",
+                        "flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-accent text-left group",
                         isSelected && "bg-accent"
                       )}
                     >
-                      <Check
-                        className={cn("h-3.5 w-3.5 shrink-0", isSelected ? "opacity-100" : "opacity-0")}
-                      />
-                      <div className="flex flex-col min-w-0">
-                        <span className="truncate">{option.name}</span>
-                        {option.type && (
-                          <span className="text-xs text-muted-foreground truncate">{option.type}</span>
-                        )}
-                      </div>
-                    </button>
+                      <button
+                        onClick={() => {
+                          onChange(
+                            isSelected
+                              ? value.filter((id) => id !== option.id)
+                              : [...value, option.id]
+                          );
+                        }}
+                        className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
+                      >
+                        <Check
+                          className={cn("h-3.5 w-3.5 shrink-0", isSelected ? "opacity-100" : "opacity-0")}
+                        />
+                        <div className="flex flex-col min-w-0">
+                          <span className="truncate">{option.name}</span>
+                          {option.type && (
+                            <span className="text-xs text-muted-foreground truncate">{option.type}</span>
+                          )}
+                        </div>
+                      </button>
+                      {onDelete && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); onDelete(option.id); }}
+                          className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-destructive/10 text-destructive shrink-0 transition-opacity"
+                          title="Delete"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
                   );
                 })}
               </div>
@@ -568,6 +583,15 @@ export default function Expenses() {
     return data.id;
   }
 
+  // Delete budget category
+  async function handleDeleteCategory(id: string) {
+    const { error } = await supabase.from("budget_categories").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    queryClient.invalidateQueries({ queryKey: ["budget-categories-list"] });
+    if (form.category_id === id) setForm((f) => ({ ...f, category_id: null }));
+    toast.success("Category deleted");
+  }
+
   // Inline creation: Vendor (duplicate-safe)
   async function handleCreateVendor(name: string, type: string | null): Promise<string | null> {
     const trimmed = name.trim();
@@ -581,6 +605,16 @@ export default function Expenses() {
     queryClient.invalidateQueries({ queryKey: ["vendors-list"] });
     toast.success(`Stakeholder "${trimmed}" created`);
     return data.id;
+  }
+
+  // Delete vendor
+  async function handleDeleteVendor(id: string) {
+    // Remove from current selection first
+    setForm((f) => ({ ...f, stakeholder_ids: f.stakeholder_ids.filter((sid) => sid !== id) }));
+    const { error } = await supabase.from("vendors").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    queryClient.invalidateQueries({ queryKey: ["vendors-list"] });
+    toast.success("Stakeholder deleted");
   }
 
   const expenseFormContent = (
@@ -607,6 +641,7 @@ export default function Expenses() {
               searchPlaceholder="Search categories..."
               onCreateNew={handleCreateCategory}
               createLabel="Add new category"
+              onDelete={handleDeleteCategory}
             />
           </div>
           <div className="space-y-2">
@@ -635,6 +670,7 @@ export default function Expenses() {
           onChange={(ids) => setForm((f) => ({ ...f, stakeholder_ids: ids }))}
           options={vendors}
           onCreateNew={handleCreateVendor}
+          onDelete={handleDeleteVendor}
         />
       </div>
 
