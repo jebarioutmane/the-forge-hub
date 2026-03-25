@@ -600,7 +600,7 @@ export default function Expenses() {
   const deleteBudgetLineMutation = useMutation({
     mutationFn: async (id: string) => {
       // Unlink expenses from this budget line
-      await supabase.from("expenses").update({ budget_id: null } as any).eq("budget_id", id);
+      await supabase.from("expenses").update({ budget_line_id: null } as any).eq("budget_line_id", id);
       const { error } = await supabase.from("budget_lines").delete().eq("id", id);
       if (error) throw error;
     },
@@ -637,7 +637,7 @@ export default function Expenses() {
       const { data: expense, error } = await supabase.from("expenses").insert({
         cohort_id: activeCohortId,
         description: form.description,
-        budget_id: form.budget_line_id,
+        budget_line_id: form.budget_line_id,
         currency: form.currency,
         amount: Number(form.amount),
         beneficiary_name: form.detail || null,
@@ -683,7 +683,7 @@ export default function Expenses() {
       if (!editingExpense) return;
       const { error } = await supabase.from("expenses").update({
         description: form.description,
-        budget_id: form.budget_line_id,
+        budget_line_id: form.budget_line_id,
         currency: form.currency,
         amount: Number(form.amount),
         beneficiary_name: form.detail || null,
@@ -779,7 +779,7 @@ export default function Expenses() {
     setForm({
       description: e.description,
       detail: e.beneficiary_name || "",
-      budget_line_id: e.budget_id || null,
+      budget_line_id: e.budget_line_id || null,
       category_ids: catIds,
       currency: e.currency || "MAD",
       amount: String(e.amount),
@@ -866,7 +866,7 @@ export default function Expenses() {
 
   async function handleDeleteBudgetLine(id: string) {
     setForm((f) => ({ ...f, budget_line_id: f.budget_line_id === id ? null : f.budget_line_id }));
-    await supabase.from("expenses").update({ budget_id: null } as any).eq("budget_id", id);
+    await supabase.from("expenses").update({ budget_line_id: null } as any).eq("budget_line_id", id);
     const { error } = await supabase.from("budget_lines").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
     queryClient.invalidateQueries({ queryKey: ["budget-lines"] });
@@ -1133,7 +1133,7 @@ export default function Expenses() {
                       <TableRow key={e.id} className={selected.has(e.id) ? "bg-muted/50" : ""}>
                         <TableCell><Checkbox checked={selected.has(e.id)} onCheckedChange={() => toggleSelect(e.id)} /></TableCell>
                         <TableCell className="font-medium max-w-[200px] truncate">{e.description}</TableCell>
-                        <TableCell className="text-sm">{getBudgetLineName(e.budget_id)}</TableCell>
+                        <TableCell className="text-sm">{getBudgetLineName(e.budget_line_id)}</TableCell>
                         <TableCell><Badge variant="outline" className="text-[10px]">{e.currency || "MAD"}</Badge></TableCell>
                         <TableCell className="text-right font-medium">{Number(e.amount).toLocaleString()}</TableCell>
                         <TableCell className="text-muted-foreground text-sm">{e.created_at ? new Date(e.created_at).toLocaleDateString() : "—"}</TableCell>
@@ -1249,7 +1249,7 @@ export default function Expenses() {
         fields={viewing ? [
           { label: "Description", value: viewing.description },
           { label: "Details", value: viewing.beneficiary_name || "—" },
-          { label: "Budget Line", value: getBudgetLineName(viewing.budget_id) },
+          { label: "Budget Line", value: getBudgetLineName(viewing.budget_line_id) },
           { label: "Categories", value: viewCategoryIds.length > 0 ? expenseCategories.filter((c) => viewCategoryIds.includes(c.id)).map((c) => c.name).join(", ") : "—" },
           { label: "Currency", value: viewing.currency || "MAD" },
           { label: "Amount", value: `${Number(viewing.amount).toLocaleString()} ${viewing.currency || "MAD"}` },
