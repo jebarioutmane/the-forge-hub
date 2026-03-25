@@ -35,7 +35,7 @@ const sections = [
       { title: "Expenses", url: "/operations/source", icon: DollarSign },
       { title: "Stipends", url: "/operations/stipends", icon: Wallet },
       { title: "Contracts", url: "/operations/contracts", icon: FileText },
-      { title: "Tasks", url: "/operations/tasks", icon: ListTodo },
+      
     ],
   },
   {
