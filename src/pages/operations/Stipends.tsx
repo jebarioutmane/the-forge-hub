@@ -37,7 +37,18 @@ function calcNet(base: number, dedPct: number, dedFixed: number, addPct: number,
 export default function Stipends() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { data: founders = [] } = useFounders();
+
+  const { data: founders = [] } = useQuery({
+    queryKey: ["founders-full"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("founders")
+        .select("id, founder_name, startup_name, cohort_year")
+        .order("founder_name");
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const [cohortYear, setCohortYear] = useState(String(currentYear));
   const [paymentMonth, setPaymentMonth] = useState(MONTHS[currentMonthIndex]);
