@@ -1057,6 +1057,65 @@ export type Database = {
         }
         Relationships: []
       }
+      stipend_records: {
+        Row: {
+          addition_fixed: number | null
+          addition_percent: number | null
+          base_amount: number | null
+          cohort_year: string
+          created_at: string | null
+          deduction_fixed: number | null
+          deduction_percent: number | null
+          founder_id: string | null
+          id: string
+          notes: string | null
+          payment_month: string
+          reimbursement: number | null
+          status: string | null
+          total_net: number | null
+        }
+        Insert: {
+          addition_fixed?: number | null
+          addition_percent?: number | null
+          base_amount?: number | null
+          cohort_year: string
+          created_at?: string | null
+          deduction_fixed?: number | null
+          deduction_percent?: number | null
+          founder_id?: string | null
+          id?: string
+          notes?: string | null
+          payment_month: string
+          reimbursement?: number | null
+          status?: string | null
+          total_net?: number | null
+        }
+        Update: {
+          addition_fixed?: number | null
+          addition_percent?: number | null
+          base_amount?: number | null
+          cohort_year?: string
+          created_at?: string | null
+          deduction_fixed?: number | null
+          deduction_percent?: number | null
+          founder_id?: string | null
+          id?: string
+          notes?: string | null
+          payment_month?: string
+          reimbursement?: number | null
+          status?: string | null
+          total_net?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stipend_records_founder_id_fkey"
+            columns: ["founder_id"]
+            isOneToOne: false
+            referencedRelation: "founders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stipends: {
         Row: {
           base_amount: number
