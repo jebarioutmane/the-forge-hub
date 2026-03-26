@@ -14,9 +14,9 @@ import {
 const items = [
   { title: "Dashboard", url: "/operations", icon: LayoutDashboard },
   { title: "Budget Source", url: "/operations/source", icon: PiggyBank },
-  { title: "Stipends", url: "/operations/stipends", icon: Wallet },
+  { title: "Expenses", url: "/operations/expenses", icon: Wallet },
+  { title: "Stipends", url: "/operations/stipends", icon: PiggyBank },
   { title: "Contracts", url: "/operations/contracts", icon: FileText },
-  { title: "Tasks", url: "/operations/tasks", icon: ListTodo },
   { title: "Library", url: "/operations/library", icon: BookOpen },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
