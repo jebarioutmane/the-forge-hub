@@ -115,6 +115,15 @@ export default function Stipends() {
     [founders]
   );
 
+  const getRib = useCallback(
+    (id: string | null) => {
+      if (!id) return "";
+      const f = founders.find((x) => x.id === id);
+      return f ? f.rib_number || "" : "";
+    },
+    [founders]
+  );
+
   // Initialize a record for a founder
   const initMutation = useMutation({
     mutationFn: async (founderId: string) => {
