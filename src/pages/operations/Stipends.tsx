@@ -338,10 +338,11 @@ export default function Stipends() {
 
   // Export CSV
   function exportCSV() {
-    const headers = ["Founder", "Startup", "Base", "Ded%", "DedFixed", "Add%", "AddFixed", "Reimb", "Net", "Status"];
+    const headers = ["Founder", "Startup", "RIB", "Base", "Ded%", "DedFixed", "Add%", "AddFixed", "Reimb", "Net", "Status"];
     const rows = records.map((r) => [
       getFounderName(r.founder_id),
       getStartupName(r.founder_id),
+      getRib(r.founder_id),
       r.base_amount,
       r.deduction_percent,
       r.deduction_fixed,
