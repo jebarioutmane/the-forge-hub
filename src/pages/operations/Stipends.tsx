@@ -118,7 +118,7 @@ export default function Stipends() {
   // Initialize a record for a founder
   const initMutation = useMutation({
     mutationFn: async (founderId: string) => {
-      const base = 5000;
+      const base = 12000;
       const { error } = await supabase.from("stipend_records").insert({
         founder_id: founderId,
         cohort_year: cohortYear,
