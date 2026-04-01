@@ -55,6 +55,7 @@ interface FounderForm {
   links: LinkItem[];
   cin_number: string;
   passport_number: string;
+  rib_number: string;
   birthday: Date | undefined;
   photo_url: string;
 }
@@ -63,7 +64,7 @@ const emptyForm: FounderForm = {
   founder_name: "", startup_name: "", cohort: "", venture_associate: "",
   nationalities: [], phone: "", email: "", status: "", description: "", tag_ids: [],
   links: [],
-  cin_number: "", passport_number: "", birthday: undefined, photo_url: "",
+  cin_number: "", passport_number: "", rib_number: "", birthday: undefined, photo_url: "",
 };
 
 /* ── Multi-select country combobox (fetches from Supabase) ── */
