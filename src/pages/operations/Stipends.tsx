@@ -556,6 +556,16 @@ export default function Stipends() {
                             <p className="text-xs text-muted-foreground">{founder.startup_name}</p>
                           </div>
                         </TableCell>
+                        <TableCell>
+                          {rib ? (
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs font-mono truncate max-w-[150px]">{rib}</span>
+                              <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0" onClick={() => { navigator.clipboard.writeText(rib); toast.success("RIB copied"); }}>
+                                <Copy className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : <span className="text-xs text-muted-foreground">—</span>}
+                        </TableCell>
                         <TableCell className="text-right">
                           <InlineInput
                             value={rec.base_amount}
