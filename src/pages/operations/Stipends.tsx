@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Download, Trash2, Pencil, DollarSign, Users, CheckCircle, Clock, Zap, MoreHorizontal, Eye } from "lucide-react";
+import { Download, Trash2, Pencil, DollarSign, Users, CheckCircle, Clock, Zap, MoreHorizontal, Eye, Copy } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import ViewDetailDialog from "@/components/ViewDetailDialog";
@@ -43,7 +43,7 @@ export default function Stipends() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("founders")
-        .select("id, founder_name, startup_name, cohort_year")
+        .select("id, founder_name, startup_name, cohort_year, rib_number")
         .order("founder_name");
       if (error) throw error;
       return data;
@@ -69,7 +69,7 @@ export default function Stipends() {
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [viewing, setViewing] = useState<StipendRecord | null>(null);
   const [bulkBaseOpen, setBulkBaseOpen] = useState(false);
-  const [bulkBaseAmount, setBulkBaseAmount] = useState("5000");
+  const [bulkBaseAmount, setBulkBaseAmount] = useState("12000");
 
   const cohortFounders = useMemo(
     () => founders.filter((f) => f.cohort_year === cohortYear),
@@ -115,10 +115,19 @@ export default function Stipends() {
     [founders]
   );
 
+  const getRib = useCallback(
+    (id: string | null) => {
+      if (!id) return "";
+      const f = founders.find((x) => x.id === id);
+      return f ? f.rib_number || "" : "";
+    },
+    [founders]
+  );
+
   // Initialize a record for a founder
   const initMutation = useMutation({
     mutationFn: async (founderId: string) => {
-      const base = 5000;
+      const base = 12000;
       const { error } = await supabase.from("stipend_records").insert({
         founder_id: founderId,
         cohort_year: cohortYear,
@@ -270,7 +279,7 @@ export default function Stipends() {
     mutationFn: async () => {
       const missing = cohortFounders.filter((f) => !recordsByFounder.has(f.id));
       if (!missing.length) return;
-      const base = 5000;
+      const base = 12000;
       const rows = missing.map((f) => ({
         founder_id: f.id,
         cohort_year: cohortYear,
@@ -329,10 +338,11 @@ export default function Stipends() {
 
   // Export CSV
   function exportCSV() {
-    const headers = ["Founder", "Startup", "Base", "Ded%", "DedFixed", "Add%", "AddFixed", "Reimb", "Net", "Status"];
+    const headers = ["Founder", "Startup", "RIB", "Base", "Ded%", "DedFixed", "Add%", "AddFixed", "Reimb", "Net", "Status"];
     const rows = records.map((r) => [
       getFounderName(r.founder_id),
       getStartupName(r.founder_id),
+      getRib(r.founder_id),
       r.base_amount,
       r.deduction_percent,
       r.deduction_fixed,
@@ -472,6 +482,7 @@ export default function Stipends() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="min-w-[160px]">Founder</TableHead>
+                  <TableHead className="min-w-[180px]">RIB</TableHead>
                   <TableHead className="text-right min-w-[100px]">Base (MAD)</TableHead>
                   <TableHead className="text-right min-w-[70px]">Ded %</TableHead>
                   <TableHead className="text-right min-w-[90px]">Ded Fixed</TableHead>
@@ -485,18 +496,19 @@ export default function Stipends() {
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">Loading...</TableCell>
+                   <TableRow>
+                    <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">Loading...</TableCell>
                   </TableRow>
                 ) : cohortFounders.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
                       No founders found for cohort year {cohortYear}
                     </TableCell>
                   </TableRow>
                 ) : (
                   cohortFounders.map((founder) => {
                     const rec = recordsByFounder.get(founder.id);
+                    const rib = founder.rib_number || "";
                     if (!rec) {
                       return (
                         <TableRow key={founder.id} className="bg-muted/30">
@@ -505,6 +517,16 @@ export default function Stipends() {
                               <p className="font-medium text-sm">{founder.founder_name}</p>
                               <p className="text-xs text-muted-foreground">{founder.startup_name}</p>
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            {rib ? (
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs font-mono truncate max-w-[150px]">{rib}</span>
+                                <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0" onClick={() => { navigator.clipboard.writeText(rib); toast.success("RIB copied"); }}>
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ) : <span className="text-xs text-muted-foreground">—</span>}
                           </TableCell>
                           <TableCell colSpan={8} className="text-center text-muted-foreground text-sm">
                             No record for this month
@@ -534,6 +556,16 @@ export default function Stipends() {
                             <p className="font-medium text-sm">{founder.founder_name}</p>
                             <p className="text-xs text-muted-foreground">{founder.startup_name}</p>
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          {rib ? (
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs font-mono truncate max-w-[150px]">{rib}</span>
+                              <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0" onClick={() => { navigator.clipboard.writeText(rib); toast.success("RIB copied"); }}>
+                                <Copy className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : <span className="text-xs text-muted-foreground">—</span>}
                         </TableCell>
                         <TableCell className="text-right">
                           <InlineInput
@@ -690,6 +722,7 @@ export default function Stipends() {
         fields={viewing ? [
           { label: "Founder", value: getFounderName(viewing.founder_id) },
           { label: "Startup", value: getStartupName(viewing.founder_id) },
+          { label: "RIB Number", value: getRib(viewing.founder_id) || "—" },
           { label: "Cohort Year", value: viewing.cohort_year },
           { label: "Payment Month", value: viewing.payment_month },
           { label: "Base Amount", value: `${Number(viewing.base_amount).toLocaleString()} MAD` },

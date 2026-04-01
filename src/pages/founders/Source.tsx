@@ -55,6 +55,7 @@ interface FounderForm {
   links: LinkItem[];
   cin_number: string;
   passport_number: string;
+  rib_number: string;
   birthday: Date | undefined;
   photo_url: string;
 }
@@ -63,7 +64,7 @@ const emptyForm: FounderForm = {
   founder_name: "", startup_name: "", cohort: "", venture_associate: "",
   nationalities: [], phone: "", email: "", status: "", description: "", tag_ids: [],
   links: [],
-  cin_number: "", passport_number: "", birthday: undefined, photo_url: "",
+  cin_number: "", passport_number: "", rib_number: "", birthday: undefined, photo_url: "",
 };
 
 /* ── Multi-select country combobox (fetches from Supabase) ── */
@@ -255,6 +256,7 @@ export default function FoundersSource() {
         link_url: form.links[0]?.url || null,
         cin_number: form.cin_number || null,
         passport_number: form.passport_number || null,
+        rib_number: form.rib_number || null,
         birthday: form.birthday ? format(form.birthday, "yyyy-MM-dd") : null,
         photo_url: form.photo_url || null,
       };
@@ -309,6 +311,7 @@ export default function FoundersSource() {
       links: links.length > 0 ? links : [],
       cin_number: f.cin_number || "",
       passport_number: f.passport_number || "",
+      rib_number: f.rib_number || "",
       birthday: f.birthday ? new Date(f.birthday) : undefined,
       photo_url: f.photo_url || "",
     });
@@ -500,7 +503,7 @@ export default function FoundersSource() {
             </div>
 
             {/* Identity Fields */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="cin-number">CIN Number</Label>
                 <Input id="cin-number" name="cin_number" value={form.cin_number} onChange={(e) => set("cin_number", e.target.value)} placeholder="e.g. AB123456" />
@@ -508,6 +511,12 @@ export default function FoundersSource() {
               <div className="space-y-2">
                 <Label htmlFor="passport-number">Passport Number</Label>
                 <Input id="passport-number" name="passport_number" value={form.passport_number} onChange={(e) => set("passport_number", e.target.value)} placeholder="e.g. AB1234567" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="rib-number">RIB Number</Label>
+                <Input id="rib-number" name="rib_number" value={form.rib_number} onChange={(e) => set("rib_number", e.target.value)} placeholder="24-digit Moroccan bank RIB" maxLength={24} />
               </div>
               <div className="space-y-2">
                 <Label>Birthday</Label>
