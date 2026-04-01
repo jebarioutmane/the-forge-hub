@@ -43,7 +43,7 @@ export default function Stipends() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("founders")
-        .select("id, founder_name, startup_name, cohort_year")
+        .select("id, founder_name, startup_name, cohort_year, rib_number")
         .order("founder_name");
       if (error) throw error;
       return data;
