@@ -270,7 +270,7 @@ export default function Stipends() {
     mutationFn: async () => {
       const missing = cohortFounders.filter((f) => !recordsByFounder.has(f.id));
       if (!missing.length) return;
-      const base = 5000;
+      const base = 12000;
       const rows = missing.map((f) => ({
         founder_id: f.id,
         cohort_year: cohortYear,
