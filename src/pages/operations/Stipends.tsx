@@ -69,7 +69,7 @@ export default function Stipends() {
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [viewing, setViewing] = useState<StipendRecord | null>(null);
   const [bulkBaseOpen, setBulkBaseOpen] = useState(false);
-  const [bulkBaseAmount, setBulkBaseAmount] = useState("5000");
+  const [bulkBaseAmount, setBulkBaseAmount] = useState("12000");
 
   const cohortFounders = useMemo(
     () => founders.filter((f) => f.cohort_year === cohortYear),
