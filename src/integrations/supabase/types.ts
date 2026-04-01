@@ -1075,6 +1075,7 @@ export type Database = {
           payment_month: string
           reimbursement: number | null
           status: string | null
+          stipend_links: Json | null
           total_net: number | null
         }
         Insert: {
@@ -1091,6 +1092,7 @@ export type Database = {
           payment_month: string
           reimbursement?: number | null
           status?: string | null
+          stipend_links?: Json | null
           total_net?: number | null
         }
         Update: {
@@ -1107,6 +1109,7 @@ export type Database = {
           payment_month?: string
           reimbursement?: number | null
           status?: string | null
+          stipend_links?: Json | null
           total_net?: number | null
         }
         Relationships: [

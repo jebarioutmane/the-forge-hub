@@ -6,20 +6,23 @@ import { logAction } from "@/lib/logAction";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
-import { Download, Trash2, Pencil, DollarSign, Users, CheckCircle, Clock, Zap, MoreHorizontal, Eye, Copy } from "lucide-react";
+import { Download, Trash2, Pencil, DollarSign, Users, CheckCircle, Clock, Zap, MoreHorizontal, Eye, Copy, Plus, Link as LinkIcon, ExternalLink } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import ViewDetailDialog from "@/components/ViewDetailDialog";
+import { formatUrl } from "@/lib/formatUrl";
 import type { Tables } from "@/integrations/supabase/types";
 
 type StipendRecord = Tables<"stipend_records">;
+type StipendLink = { title: string; url: string };
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -32,6 +35,17 @@ const YEARS = Array.from({ length: 5 }, (_, i) => String(currentYear - 2 + i));
 
 function calcNet(base: number, dedPct: number, dedFixed: number, addPct: number, addFixed: number, reimb: number) {
   return (base * (1 - dedPct / 100) - dedFixed) + (base * (addPct / 100) + addFixed) + reimb;
+}
+
+function maskRib(rib: string): string {
+  if (!rib || rib.length <= 4) return rib;
+  return "*".repeat(rib.length - 4) + rib.slice(-4);
+}
+
+function parseLinks(raw: any): StipendLink[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw as StipendLink[];
+  try { return JSON.parse(raw); } catch { return []; }
 }
 
 export default function Stipends() {
@@ -124,7 +138,6 @@ export default function Stipends() {
     [founders]
   );
 
-  // Initialize a record for a founder
   const initMutation = useMutation({
     mutationFn: async (founderId: string) => {
       const base = 12000;
@@ -150,7 +163,6 @@ export default function Stipends() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  // Inline field update
   const updateFieldMutation = useMutation({
     mutationFn: async ({ id, field, value }: { id: string; field: string; value: any }) => {
       const rec = records.find((r) => r.id === id);
@@ -176,7 +188,6 @@ export default function Stipends() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  // Status toggle
   const toggleStatus = (rec: StipendRecord) => {
     const order = ["pending", "approved", "paid"];
     const idx = order.indexOf(rec.status || "pending");
@@ -185,7 +196,6 @@ export default function Stipends() {
     logAction("Operations-Stipends", "UPDATE", rec.id, { status: rec.status }, { status: next }, user?.email || "Unknown");
   };
 
-  // Edit dialog save
   const saveEditMutation = useMutation({
     mutationFn: async () => {
       if (!editRecord) return;
@@ -252,8 +262,7 @@ export default function Stipends() {
   const bulkBaseMutation = useMutation({
     mutationFn: async () => {
       const base = Number(bulkBaseAmount) || 0;
-      const ids = records.map((r) => r.id);
-      if (!ids.length) return;
+      if (!records.length) return;
       for (const rec of records) {
         const net = calcNet(
           base,
@@ -274,7 +283,23 @@ export default function Stipends() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  // Initialize all founders at once
+  // Apply links from first record to all others
+  const applyLinksToAllMutation = useMutation({
+    mutationFn: async () => {
+      if (records.length < 2) return;
+      const firstRec = records[0];
+      const links = firstRec.stipend_links || [];
+      for (let i = 1; i < records.length; i++) {
+        await supabase.from("stipend_records").update({ stipend_links: links }).eq("id", records[i].id);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["stipend_records", cohortYear, paymentMonth] });
+      toast.success("Links applied to all founders");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const initAllMutation = useMutation({
     mutationFn: async () => {
       const missing = cohortFounders.filter((f) => !recordsByFounder.has(f.id));
@@ -299,6 +324,18 @@ export default function Stipends() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stipend_records", cohortYear, paymentMonth] });
       toast.success("All founders initialized");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  // Update links for a single record
+  const updateLinksMutation = useMutation({
+    mutationFn: async ({ id, links }: { id: string; links: StipendLink[] }) => {
+      const { error } = await supabase.from("stipend_records").update({ stipend_links: links as any }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["stipend_records", cohortYear, paymentMonth] });
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -328,15 +365,12 @@ export default function Stipends() {
     );
   }, [editForm]);
 
-  // Summary stats
   const totalDisbursement = records.reduce((sum, r) => sum + (Number(r.total_net) || 0), 0);
   const paidCount = records.filter((r) => r.status === "paid").length;
   const pendingCount = records.filter((r) => r.status === "pending").length;
   const approvedCount = records.filter((r) => r.status === "approved").length;
-
   const uninitializedCount = cohortFounders.filter((f) => !recordsByFounder.has(f.id)).length;
 
-  // Export CSV
   function exportCSV() {
     const headers = ["Founder", "Startup", "RIB", "Base", "Ded%", "DedFixed", "Add%", "AddFixed", "Reimb", "Net", "Status"];
     const rows = records.map((r) => [
@@ -380,6 +414,9 @@ export default function Stipends() {
           <p className="text-sm text-muted-foreground">Monthly financial distributions for founders</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="outline" size="sm" onClick={() => applyLinksToAllMutation.mutate()} disabled={records.length < 2 || applyLinksToAllMutation.isPending}>
+            <LinkIcon className="mr-1 h-3.5 w-3.5" /> Apply Links to All
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setBulkBaseOpen(true)} disabled={records.length === 0}>
             <DollarSign className="mr-1 h-3.5 w-3.5" /> Apply Base to All
           </Button>
@@ -491,6 +528,7 @@ export default function Stipends() {
                   <TableHead className="text-right min-w-[90px]">Reimb.</TableHead>
                   <TableHead className="text-right min-w-[100px] font-bold">Net Total</TableHead>
                   <TableHead className="min-w-[90px]">Status</TableHead>
+                  <TableHead className="min-w-[120px]">Evidence</TableHead>
                   <TableHead className="text-right min-w-[60px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -519,16 +557,9 @@ export default function Stipends() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            {rib ? (
-                              <div className="flex items-center gap-1">
-                                <span className="text-xs font-mono truncate max-w-[150px]">{rib}</span>
-                                <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0" onClick={() => { navigator.clipboard.writeText(rib); toast.success("RIB copied"); }}>
-                                  <Copy className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            ) : <span className="text-xs text-muted-foreground">—</span>}
+                            <RibDisplay rib={rib} />
                           </TableCell>
-                          <TableCell colSpan={8} className="text-center text-muted-foreground text-sm">
+                          <TableCell colSpan={9} className="text-center text-muted-foreground text-sm">
                             No record for this month
                           </TableCell>
                           <TableCell className="text-right">
@@ -549,6 +580,8 @@ export default function Stipends() {
                       Number(rec.reimbursement) || 0
                     );
 
+                    const links = parseLinks(rec.stipend_links);
+
                     return (
                       <TableRow key={rec.id}>
                         <TableCell>
@@ -558,14 +591,7 @@ export default function Stipends() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {rib ? (
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs font-mono truncate max-w-[150px]">{rib}</span>
-                              <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0" onClick={() => { navigator.clipboard.writeText(rib); toast.success("RIB copied"); }}>
-                                <Copy className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          ) : <span className="text-xs text-muted-foreground">—</span>}
+                          <RibDisplay rib={rib} />
                         </TableCell>
                         <TableCell className="text-right">
                           <InlineInput
@@ -613,6 +639,12 @@ export default function Stipends() {
                           >
                             {(rec.status || "pending").charAt(0).toUpperCase() + (rec.status || "pending").slice(1)}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <LinksCell
+                            links={links}
+                            onUpdate={(newLinks) => updateLinksMutation.mutate({ id: rec.id, links: newLinks })}
+                          />
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
@@ -722,7 +754,18 @@ export default function Stipends() {
         fields={viewing ? [
           { label: "Founder", value: getFounderName(viewing.founder_id) },
           { label: "Startup", value: getStartupName(viewing.founder_id) },
-          { label: "RIB Number", value: getRib(viewing.founder_id) || "—" },
+          { label: "RIB Number", value: (() => {
+            const rib = getRib(viewing.founder_id);
+            if (!rib) return "—";
+            return (
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-sm">{maskRib(rib)}</span>
+                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { navigator.clipboard.writeText(rib); toast.success("Full RIB copied"); }}>
+                  <Copy className="h-3 w-3" />
+                </Button>
+              </div>
+            );
+          })() },
           { label: "Cohort Year", value: viewing.cohort_year },
           { label: "Payment Month", value: viewing.payment_month },
           { label: "Base Amount", value: `${Number(viewing.base_amount).toLocaleString()} MAD` },
@@ -734,9 +777,130 @@ export default function Stipends() {
           { label: "Net Total", value: `${Number(viewing.total_net).toLocaleString()} MAD` },
           { label: "Status", value: (viewing.status || "pending").charAt(0).toUpperCase() + (viewing.status || "pending").slice(1) },
           { label: "Notes", value: viewing.notes || "—" },
+          { label: "Evidence Links", value: (() => {
+            const links = parseLinks(viewing.stipend_links);
+            if (!links.length) return "—";
+            return (
+              <div className="space-y-1">
+                {links.map((l, i) => (
+                  <a key={i} href={formatUrl(l.url)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary hover:underline text-sm">
+                    <ExternalLink className="h-3 w-3 shrink-0" /> {l.title || l.url}
+                  </a>
+                ))}
+              </div>
+            );
+          })() },
         ] : []}
       />
     </div>
+  );
+}
+
+/* ── RIB Display with masking ── */
+function RibDisplay({ rib }: { rib: string }) {
+  if (!rib) return <span className="text-xs text-muted-foreground">—</span>;
+  return (
+    <div className="flex items-center gap-1">
+      <span className="text-xs font-mono truncate max-w-[150px]">{maskRib(rib)}</span>
+      <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0" onClick={() => { navigator.clipboard.writeText(rib); toast.success("Full RIB copied"); }}>
+        <Copy className="h-3 w-3" />
+      </Button>
+    </div>
+  );
+}
+
+/* ── Evidence Links Cell ── */
+function LinksCell({ links, onUpdate }: { links: StipendLink[]; onUpdate: (links: StipendLink[]) => void }) {
+  const [newTitle, setNewTitle] = useState("");
+  const [newUrl, setNewUrl] = useState("");
+  const [popOpen, setPopOpen] = useState(false);
+
+  const addLink = () => {
+    const t = newTitle.trim();
+    const u = newUrl.trim();
+    if (!u) { toast.error("URL is required"); return; }
+    onUpdate([...links, { title: t || u, url: u }]);
+    setNewTitle("");
+    setNewUrl("");
+  };
+
+  const removeLink = (idx: number) => {
+    onUpdate(links.filter((_, i) => i !== idx));
+  };
+
+  if (links.length === 0) {
+    return (
+      <Popover open={popOpen} onOpenChange={setPopOpen}>
+        <PopoverTrigger asChild>
+          <Button size="sm" variant="ghost" className="h-7 px-2 text-xs gap-1">
+            <Plus className="h-3 w-3" /> Add
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 p-3 space-y-2" align="start">
+          <Input placeholder="Title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="h-7 text-xs" />
+          <Input placeholder="URL" value={newUrl} onChange={(e) => setNewUrl(e.target.value)} className="h-7 text-xs" />
+          <Button size="sm" className="w-full h-7 text-xs" onClick={addLink}>Add Link</Button>
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
+  if (links.length <= 2) {
+    return (
+      <div className="space-y-1">
+        {links.map((l, i) => (
+          <div key={i} className="flex items-center gap-1">
+            <a href={formatUrl(l.url)} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate max-w-[80px]">
+              {l.title || l.url}
+            </a>
+            <Button size="icon" variant="ghost" className="h-5 w-5 shrink-0" onClick={() => removeLink(i)}>
+              <Trash2 className="h-2.5 w-2.5 text-destructive" />
+            </Button>
+          </div>
+        ))}
+        <Popover open={popOpen} onOpenChange={setPopOpen}>
+          <PopoverTrigger asChild>
+            <Button size="sm" variant="ghost" className="h-5 px-1 text-[10px] gap-0.5">
+              <Plus className="h-2.5 w-2.5" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64 p-3 space-y-2" align="start">
+            <Input placeholder="Title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="h-7 text-xs" />
+            <Input placeholder="URL" value={newUrl} onChange={(e) => setNewUrl(e.target.value)} className="h-7 text-xs" />
+            <Button size="sm" className="w-full h-7 text-xs" onClick={addLink}>Add Link</Button>
+          </PopoverContent>
+        </Popover>
+      </div>
+    );
+  }
+
+  // More than 2 links: show badge that opens popover
+  return (
+    <Popover open={popOpen} onOpenChange={setPopOpen}>
+      <PopoverTrigger asChild>
+        <Badge variant="secondary" className="cursor-pointer text-xs gap-1">
+          <LinkIcon className="h-3 w-3" /> {links.length} links
+        </Badge>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 p-3 space-y-2" align="start">
+        <p className="text-xs font-medium text-muted-foreground mb-1">Evidence Links</p>
+        {links.map((l, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <a href={formatUrl(l.url)} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate flex-1">
+              {l.title || l.url}
+            </a>
+            <Button size="icon" variant="ghost" className="h-5 w-5 shrink-0" onClick={() => removeLink(i)}>
+              <Trash2 className="h-3 w-3 text-destructive" />
+            </Button>
+          </div>
+        ))}
+        <div className="border-t pt-2 space-y-1.5">
+          <Input placeholder="Title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="h-7 text-xs" />
+          <Input placeholder="URL" value={newUrl} onChange={(e) => setNewUrl(e.target.value)} className="h-7 text-xs" />
+          <Button size="sm" className="w-full h-7 text-xs" onClick={addLink}>Add Link</Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
