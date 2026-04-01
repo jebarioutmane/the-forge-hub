@@ -722,6 +722,7 @@ export default function Stipends() {
         fields={viewing ? [
           { label: "Founder", value: getFounderName(viewing.founder_id) },
           { label: "Startup", value: getStartupName(viewing.founder_id) },
+          { label: "RIB Number", value: getRib(viewing.founder_id) || "—" },
           { label: "Cohort Year", value: viewing.cohort_year },
           { label: "Payment Month", value: viewing.payment_month },
           { label: "Base Amount", value: `${Number(viewing.base_amount).toLocaleString()} MAD` },
