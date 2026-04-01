@@ -481,6 +481,7 @@ export default function Stipends() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="min-w-[160px]">Founder</TableHead>
+                  <TableHead className="min-w-[180px]">RIB</TableHead>
                   <TableHead className="text-right min-w-[100px]">Base (MAD)</TableHead>
                   <TableHead className="text-right min-w-[70px]">Ded %</TableHead>
                   <TableHead className="text-right min-w-[90px]">Ded Fixed</TableHead>
