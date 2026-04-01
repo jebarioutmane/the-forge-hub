@@ -311,6 +311,7 @@ export default function FoundersSource() {
       links: links.length > 0 ? links : [],
       cin_number: f.cin_number || "",
       passport_number: f.passport_number || "",
+      rib_number: f.rib_number || "",
       birthday: f.birthday ? new Date(f.birthday) : undefined,
       photo_url: f.photo_url || "",
     });
