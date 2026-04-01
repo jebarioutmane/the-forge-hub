@@ -583,6 +583,7 @@ export default function FoundersSource() {
           { label: "Phone", value: viewing.phone },
           { label: "CIN Number", value: viewing.cin_number },
           { label: "Passport", value: viewing.passport_number },
+          { label: "RIB Number", value: viewing.rib_number },
           { label: "Birthday", value: viewing.birthday ? format(new Date(viewing.birthday), "PPP") : null },
           { label: "Links", value: (() => {
             const links = getFounderLinks(viewing);
