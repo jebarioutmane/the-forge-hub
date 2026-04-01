@@ -495,18 +495,19 @@ export default function Stipends() {
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">Loading...</TableCell>
+                   <TableRow>
+                    <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">Loading...</TableCell>
                   </TableRow>
                 ) : cohortFounders.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
                       No founders found for cohort year {cohortYear}
                     </TableCell>
                   </TableRow>
                 ) : (
                   cohortFounders.map((founder) => {
                     const rec = recordsByFounder.get(founder.id);
+                    const rib = founder.rib_number || "";
                     if (!rec) {
                       return (
                         <TableRow key={founder.id} className="bg-muted/30">
@@ -515,6 +516,16 @@ export default function Stipends() {
                               <p className="font-medium text-sm">{founder.founder_name}</p>
                               <p className="text-xs text-muted-foreground">{founder.startup_name}</p>
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            {rib ? (
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs font-mono truncate max-w-[150px]">{rib}</span>
+                                <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0" onClick={() => { navigator.clipboard.writeText(rib); toast.success("RIB copied"); }}>
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ) : <span className="text-xs text-muted-foreground">—</span>}
                           </TableCell>
                           <TableCell colSpan={8} className="text-center text-muted-foreground text-sm">
                             No record for this month
