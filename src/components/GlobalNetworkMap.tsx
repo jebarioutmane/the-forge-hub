@@ -114,7 +114,7 @@ export default function GlobalNetworkMap() {
   const founderCountries = mapData.filter((c) => c.founderCount > 0);
   const expertCountries = mapData.filter((c) => c.expertCount > 0);
 
-  console.log("Aggregated Map Data:", mapData);
+  
 
   const handleMarkerHover = (event: React.MouseEvent, data: CountryData) => {
     const rect = (event.target as SVGElement).closest("svg")?.getBoundingClientRect();
