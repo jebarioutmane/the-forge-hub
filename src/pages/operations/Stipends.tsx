@@ -178,7 +178,7 @@ export default function Stipends() {
       );
       const { error } = await supabase
         .from("stipend_records")
-        .update({ [field]: value, total_net: net })
+        .update({ [field]: value, total_net: net } as any)
         .eq("id", id);
       if (error) throw error;
     },
