@@ -157,7 +157,7 @@ export default function FoundersTracking() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm(""));
-  const [cohortYear, setCohortYear] = useState(new Date().getFullYear().toString());
+  const [cohortYear, setCohortYear] = useState(getCurrentCohortYear());
 
   const isEditing = !!form.id;
 

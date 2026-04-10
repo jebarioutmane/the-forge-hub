@@ -65,7 +65,7 @@ export default function FounderEvaluation() {
   const [editingEval, setEditingEval] = useState<Evaluation | null>(null);
   const [deleteEvalId, setDeleteEvalId] = useState<string | null>(null);
   const [viewingEval, setViewingEval] = useState<Evaluation | null>(null);
-  const [cohortYear, setCohortYear] = useState(new Date().getFullYear().toString());
+  const [cohortYear, setCohortYear] = useState(getCurrentCohortYear());
 
   const block = BLOCKS.find((b) => b.name === selectedBlock) || BLOCKS[0];
 

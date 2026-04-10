@@ -65,7 +65,7 @@ export default function Stipends() {
     },
   });
 
-  const [cohortYear, setCohortYear] = useState(String(currentYear));
+  const [cohortYear, setCohortYear] = useState(getCurrentCohortYear());
   const [paymentMonth, setPaymentMonth] = useState(MONTHS[currentMonthIndex]);
 
   const [editOpen, setEditOpen] = useState(false);
