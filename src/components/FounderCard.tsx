@@ -95,6 +95,11 @@ export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, o
               {founder.status}
             </Badge>
           )}
+          {founder.cohort_year && (
+            <Badge variant="outline" className="text-[10px] font-medium text-muted-foreground">
+              {founder.cohort_year}
+            </Badge>
+          )}
           {founder.cohort && (
             <Badge variant="outline" className="text-[10px] font-medium text-muted-foreground">
               {founder.cohort}
