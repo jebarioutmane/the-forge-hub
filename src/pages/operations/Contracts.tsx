@@ -1,160 +1,87 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useMemo } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { logAction } from "@/lib/logAction";
 import { useAuth } from "@/hooks/useAuth";
 import { useVendors } from "@/hooks/useRelationalData";
+import { useContracts, useContractPayments, type ContractRow } from "@/hooks/useContracts";
+import { logAction } from "@/lib/logAction";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { Plus, Settings, MoreHorizontal, Pencil, Trash2, X, Eye } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Trash2, Eye } from "lucide-react";
 import { ViewToggle } from "@/components/ViewToggle";
-import StatusPipeline from "@/components/StatusPipeline";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
-import { TagPicker } from "@/components/TagPicker";
-import { TagBadges } from "@/components/TagBadges";
-import ViewDetailDialog from "@/components/ViewDetailDialog";
-import { SearchableSelect } from "@/components/SearchableSelect";
-import type { Tables } from "@/integrations/supabase/types";
+import ContractFormDialog from "@/components/contracts/ContractFormDialog";
+import ContractDetailDialog from "@/components/contracts/ContractDetailDialog";
+import ContractCard from "@/components/contracts/ContractCard";
+import { useQuery } from "@tanstack/react-query";
 
-type Contract = Tables<"contracts">;
-
-const DEFAULT_STAGES = ["Drafting", "Sent", "Signed"];
-
-function getStages(): string[] {
-  try {
-    const stored = localStorage.getItem("forge_contract_stages");
-    if (stored) return JSON.parse(stored);
-  } catch {}
-  return DEFAULT_STAGES;
-}
+const statusColors: Record<string, string> = {
+  Draft: "bg-muted text-muted-foreground",
+  Active: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
+  Completed: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  Cancelled: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+};
 
 export default function OperationsContracts() {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [stages, setStages] = useState(getStages);
-  const [contractDialog, setContractDialog] = useState(false);
-  const [editingContract, setEditingContract] = useState<Contract | null>(null);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [tempStages, setTempStages] = useState(stages);
-  const [newStage, setNewStage] = useState("");
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
-  const [viewing, setViewing] = useState<Contract | null>(null);
-  const [viewMode, setViewMode] = useState<"grid" | "table">("table");
-
-  const [form, setForm] = useState({
-    title: "",
-    stakeholder_name: "",
-    vendor_id: null as string | null,
-    value: "",
-    type: "External",
-    start_date: "",
-    end_date: "",
-    tag_ids: [] as string[],
-  });
-
+  const qc = useQueryClient();
+  const { data: contracts = [], isLoading } = useContracts();
   const { data: vendors = [] } = useVendors();
 
-  const vendorOptions = vendors.map((v) => ({
-    id: v.id,
-    label: v.name,
-    sublabel: v.type || undefined,
-  }));
+  const [viewMode, setViewMode] = useState<"grid" | "table">("table");
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingContract, setEditingContract] = useState<ContractRow | null>(null);
+  const [viewingContract, setViewingContract] = useState<ContractRow | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
 
-  const getVendorName = (vendorId: string | null, stakeholderName: string) => {
-    if (vendorId) {
-      const v = vendors.find((x) => x.id === vendorId);
-      return v ? v.name : stakeholderName;
-    }
-    return stakeholderName;
-  };
-
-  useEffect(() => { localStorage.setItem("forge_contract_stages", JSON.stringify(stages)); }, [stages]);
-
-  const { data: contracts = [], isLoading } = useQuery({
-    queryKey: ["contracts"],
+  // Fetch all payments for summary calculations
+  const { data: allPayments = [] } = useQuery({
+    queryKey: ["all-contract-payments"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("contracts").select("*").order("start_date", { ascending: false });
+      const { data, error } = await supabase.from("contract_payments" as any).select("*");
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 
-  const addMutation = useMutation({
-    mutationFn: async () => {
-      const vendorRecord = vendors.find((v) => v.id === form.vendor_id);
-      const { error } = await supabase.from("contracts").insert({
-        title: form.title,
-        stakeholder_name: vendorRecord?.name || form.stakeholder_name,
-        vendor_id: form.vendor_id,
-        value: form.value ? Number(form.value) : 0,
-        type: form.type,
-        start_date: form.start_date || null,
-        end_date: form.end_date || null,
-        status: stages[0],
-        tag_ids: form.tag_ids,
-      } as any);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      logAction("Operations-Contracts", "INSERT", "new", null, { title: form.title, vendor_id: form.vendor_id, value: form.value }, user?.email || "Unknown");
-      queryClient.invalidateQueries({ queryKey: ["contracts"] });
-      setContractDialog(false);
-      resetForm();
-      toast.success("Contract added");
-    },
-    onError: (e) => toast.error(e.message),
-  });
+  const paidByContract = useMemo(() => {
+    const map: Record<string, number> = {};
+    allPayments.filter((p: any) => p.status === "paid").forEach((p: any) => {
+      map[p.contract_id] = (map[p.contract_id] || 0) + Number(p.amount);
+    });
+    return map;
+  }, [allPayments]);
 
-  const updateMutation = useMutation({
-    mutationFn: async () => {
-      if (!editingContract) return;
-      const vendorRecord = vendors.find((v) => v.id === form.vendor_id);
-      const { error } = await supabase.from("contracts").update({
-        title: form.title,
-        stakeholder_name: vendorRecord?.name || form.stakeholder_name,
-        vendor_id: form.vendor_id,
-        value: form.value ? Number(form.value) : 0,
-        type: form.type,
-        start_date: form.start_date || null,
-        end_date: form.end_date || null,
-        tag_ids: form.tag_ids,
-      } as any).eq("id", editingContract.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      logAction("Operations-Contracts", "UPDATE", editingContract?.id || "", editingContract as any, { title: form.title, vendor_id: form.vendor_id, value: form.value }, user?.email || "Unknown");
-      queryClient.invalidateQueries({ queryKey: ["contracts"] });
-      setEditingContract(null);
-      resetForm();
-      toast.success("Contract updated");
-    },
-    onError: (e) => toast.error(e.message),
-  });
+  const getVendorName = (c: ContractRow) => {
+    if (c.vendor_id) {
+      const v = vendors.find((x) => x.id === c.vendor_id);
+      return v?.name || c.stakeholder_name;
+    }
+    return c.stakeholder_name;
+  };
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("contracts").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: (_data, id) => {
-      const deleted = contracts.find(c => c.id === id);
+    onSuccess: (_d, id) => {
+      const deleted = contracts.find((c) => c.id === id);
       logAction("Operations-Contracts", "DELETE", id, deleted as any, null, user?.email || "Unknown");
-      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      qc.invalidateQueries({ queryKey: ["contracts"] });
+      qc.invalidateQueries({ queryKey: ["all-contract-payments"] });
       setDeleteId(null);
       toast.success("Contract deleted");
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e: any) => toast.error(e.message),
   });
 
   const bulkDeleteMutation = useMutation({
@@ -164,43 +91,14 @@ export default function OperationsContracts() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      qc.invalidateQueries({ queryKey: ["contracts"] });
+      qc.invalidateQueries({ queryKey: ["all-contract-payments"] });
       setSelected(new Set());
       setBulkDeleteOpen(false);
       toast.success("Contracts deleted");
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e: any) => toast.error(e.message),
   });
-
-  const statusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from("contracts").update({ status }).eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: (_data, vars) => {
-      logAction("Operations-Contracts", "UPDATE", vars.id, { status: "previous" }, { status: vars.status }, user?.email || "Unknown");
-      queryClient.invalidateQueries({ queryKey: ["contracts"] });
-    },
-    onError: (e) => toast.error(e.message),
-  });
-
-  function resetForm() {
-    setForm({ title: "", stakeholder_name: "", vendor_id: null, value: "", type: "External", start_date: "", end_date: "", tag_ids: [] });
-  }
-
-  function openEdit(c: Contract) {
-    setForm({
-      title: c.title,
-      stakeholder_name: c.stakeholder_name,
-      vendor_id: (c as any).vendor_id || null,
-      value: c.value ? String(c.value) : "",
-      type: c.type || "External",
-      start_date: c.start_date || "",
-      end_date: c.end_date || "",
-      tag_ids: (c.tag_ids as string[]) || [],
-    });
-    setEditingContract(c);
-  }
 
   function toggleSelect(id: string) {
     setSelected((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
@@ -211,87 +109,60 @@ export default function OperationsContracts() {
     else setSelected(new Set(contracts.map((c) => c.id)));
   }
 
-  const contractFormContent = (
-    <div className="space-y-4 py-2">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Title</Label>
-          <Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
-        </div>
-        <div className="space-y-2">
-          <Label>Vendor / Stakeholder</Label>
-          <SearchableSelect
-            value={form.vendor_id}
-            onValueChange={(v) => {
-              const vendor = vendors.find((x) => x.id === v);
-              setForm((f) => ({
-                ...f,
-                vendor_id: v,
-                stakeholder_name: vendor?.name || f.stakeholder_name,
-              }));
-            }}
-            options={vendorOptions}
-            placeholder="Select a vendor..."
-            searchPlaceholder="Search vendors..."
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Value (MAD)</Label>
-          <Input type="number" value={form.value} onChange={(e) => setForm((f) => ({ ...f, value: e.target.value }))} />
-        </div>
-        <div className="space-y-2">
-          <Label>Type</Label>
-          <Select value={form.type} onValueChange={(v) => setForm((f) => ({ ...f, type: v }))}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="External">External</SelectItem>
-              <SelectItem value="Internal">Internal</SelectItem>
-              <SelectItem value="Partnership">Partnership</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Start Date</Label>
-          <Input type="date" value={form.start_date} onChange={(e) => setForm((f) => ({ ...f, start_date: e.target.value }))} />
-        </div>
-        <div className="space-y-2">
-          <Label>End Date</Label>
-          <Input type="date" value={form.end_date} onChange={(e) => setForm((f) => ({ ...f, end_date: e.target.value }))} />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Label>Tags</Label>
-        <TagPicker value={form.tag_ids} onChange={(ids) => setForm((f) => ({ ...f, tag_ids: ids }))} />
-      </div>
-    </div>
-  );
+  // Summary stats
+  const totalContractValue = contracts.reduce((s, c) => s + (c.value ? Number(c.value) : 0), 0);
+  const totalPaidAll = Object.values(paidByContract).reduce((s, v) => s + v, 0);
+  const totalRemaining = totalContractValue - totalPaidAll;
+  const overallPct = totalContractValue > 0 ? Math.round((totalPaidAll / totalContractValue) * 100) : 0;
 
   return (
     <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h1 className="text-3xl font-bold">Contracts</h1>
-          <p className="text-sm text-muted-foreground">Manage contract lifecycle and vendors</p>
+          <p className="text-sm text-muted-foreground">Manage contracts, payments, and vendor relationships</p>
         </div>
         <div className="flex items-center gap-2">
           <ViewToggle viewMode={viewMode} onChange={setViewMode} />
-          <Button variant="ghost" size="icon" onClick={() => { setTempStages([...stages]); setSettingsOpen(true); }}>
-            <Settings className="h-4 w-4" />
+          <Button onClick={() => { setEditingContract(null); setFormOpen(true); }}>
+            <Plus className="mr-2 h-4 w-4" /> New Contract
           </Button>
-          <Button onClick={() => { resetForm(); setContractDialog(true); }}><Plus className="mr-2 h-4 w-4" /> Add Contract</Button>
         </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground">Total Contracts</p>
+            <p className="text-2xl font-bold">{contracts.length}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground">Total Value</p>
+            <p className="text-2xl font-bold">{totalContractValue.toLocaleString()} <span className="text-sm font-normal">MAD</span></p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground">Total Paid</p>
+            <p className="text-2xl font-bold text-emerald-600">{totalPaidAll.toLocaleString()}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-muted-foreground">Remaining</p>
+            <p className="text-2xl font-bold text-orange-600">{totalRemaining.toLocaleString()}</p>
+            <Progress value={overallPct} className="h-1.5 mt-2" />
+            <p className="text-[10px] text-muted-foreground mt-1">{overallPct}% paid</p>
+          </CardContent>
+        </Card>
       </div>
 
       {selected.size > 0 && (
         <div className="flex items-center gap-3 p-3 rounded-lg bg-muted border">
           <span className="text-sm font-medium">{selected.size} selected</span>
-          <Button size="sm" variant="outline" onClick={() => { const first = contracts.find((c) => selected.has(c.id)); if (first) openEdit(first); }}>
-            <Pencil className="mr-1 h-3 w-3" /> Edit
-          </Button>
           <Button size="sm" variant="destructive" onClick={() => setBulkDeleteOpen(true)}>
             <Trash2 className="mr-1 h-3 w-3" /> Delete
           </Button>
@@ -307,11 +178,11 @@ export default function OperationsContracts() {
                   <TableHead className="w-10"><Checkbox checked={contracts.length > 0 && selected.size === contracts.length} onCheckedChange={toggleAll} /></TableHead>
                   <TableHead>Title</TableHead>
                   <TableHead>Vendor</TableHead>
-                  <TableHead className="text-right">Value (MAD)</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Tags</TableHead>
-                  <TableHead>Start</TableHead>
-                  <TableHead>End</TableHead>
+                  <TableHead className="text-right">Value</TableHead>
+                  <TableHead className="text-right">Paid</TableHead>
+                  <TableHead>Progress</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -321,32 +192,43 @@ export default function OperationsContracts() {
                 ) : contracts.length === 0 ? (
                   <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">No contracts yet</TableCell></TableRow>
                 ) : (
-                  contracts.map((c) => (
-                    <TableRow key={c.id} className={selected.has(c.id) ? "bg-muted/50" : ""}>
-                      <TableCell><Checkbox checked={selected.has(c.id)} onCheckedChange={() => toggleSelect(c.id)} /></TableCell>
-                      <TableCell className="font-medium">{c.title}</TableCell>
-                      <TableCell>{getVendorName((c as any).vendor_id, c.stakeholder_name)}</TableCell>
-                      <TableCell className="text-right">{c.value ? Number(c.value).toLocaleString() : "—"}</TableCell>
-                      <TableCell>
-                        <StatusPipeline stages={stages} currentStage={c.status || stages[0]} onStageClick={(s) => statusMutation.mutate({ id: c.id, status: s })} />
-                      </TableCell>
-                      <TableCell><TagBadges tagIds={c.tag_ids as string[] | null} /></TableCell>
-                      <TableCell className="text-muted-foreground text-sm">{c.start_date || "—"}</TableCell>
-                      <TableCell className="text-muted-foreground text-sm">{c.end_date || "—"}</TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setViewing(c)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => openEdit(c)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(c.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  contracts.map((c) => {
+                    const paid = paidByContract[c.id] || 0;
+                    const val = c.value ? Number(c.value) : 0;
+                    const pct = val > 0 ? Math.round((paid / val) * 100) : 0;
+                    const cur = (c as any).currency || "MAD";
+                    return (
+                      <TableRow key={c.id} className={selected.has(c.id) ? "bg-muted/50" : ""}>
+                        <TableCell><Checkbox checked={selected.has(c.id)} onCheckedChange={() => toggleSelect(c.id)} /></TableCell>
+                        <TableCell className="font-medium">{c.title}</TableCell>
+                        <TableCell>{getVendorName(c)}</TableCell>
+                        <TableCell><span className="capitalize text-sm">{c.type}</span></TableCell>
+                        <TableCell>
+                          <Badge className={statusColors[c.status || "Draft"]}>{c.status || "Draft"}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right">{val.toLocaleString()} {cur}</TableCell>
+                        <TableCell className="text-right text-emerald-600">{paid.toLocaleString()}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2 min-w-[100px]">
+                            <Progress value={pct} className="h-1.5 flex-1" />
+                            <span className="text-xs text-muted-foreground w-8">{pct}%</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => setViewingContract(c)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setEditingContract(c); setFormOpen(true); }}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(c.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
@@ -360,96 +242,33 @@ export default function OperationsContracts() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {contracts.map((c) => (
-              <Card key={c.id} className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 border">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between mb-3">
-                    <Badge variant="outline" className="text-[10px]">{c.type || "External"}</Badge>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button size="icon" variant="ghost" className="h-7 w-7"><MoreHorizontal className="h-3.5 w-3.5" /></Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setViewing(c)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openEdit(c)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(c.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  <h3 className="font-bold text-sm mb-1 truncate">{c.title}</h3>
-                  <p className="text-xs text-muted-foreground mb-2 truncate">{getVendorName((c as any).vendor_id, c.stakeholder_name)}</p>
-                  <p className="text-lg font-semibold mb-2">{c.value ? `${Number(c.value).toLocaleString()} MAD` : "—"}</p>
-                  <StatusPipeline stages={stages} currentStage={c.status || stages[0]} onStageClick={(s) => statusMutation.mutate({ id: c.id, status: s })} />
-                  <div className="mt-2">
-                    <TagBadges tagIds={c.tag_ids as string[] | null} />
-                  </div>
-                </CardContent>
-              </Card>
+              <ContractCard
+                key={c.id}
+                contract={c}
+                vendorName={getVendorName(c)}
+                totalPaid={paidByContract[c.id] || 0}
+                onView={() => setViewingContract(c)}
+                onEdit={() => { setEditingContract(c); setFormOpen(true); }}
+                onDelete={() => setDeleteId(c.id)}
+              />
             ))}
           </div>
         )
       )}
 
-      <Dialog open={contractDialog} onOpenChange={setContractDialog}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>New Contract</DialogTitle></DialogHeader>
-          {contractFormContent}
-          <DialogFooter>
-            <Button onClick={() => addMutation.mutate()} disabled={!form.title || !form.vendor_id}>Add Contract</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ContractFormDialog
+        open={formOpen}
+        onClose={() => { setFormOpen(false); setEditingContract(null); }}
+        editingContract={editingContract}
+      />
 
-      <Dialog open={!!editingContract} onOpenChange={(o) => !o && setEditingContract(null)}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Edit Contract</DialogTitle></DialogHeader>
-          {contractFormContent}
-          <DialogFooter>
-            <Button onClick={() => updateMutation.mutate()} disabled={!form.title || !form.vendor_id}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ContractDetailDialog
+        contract={viewingContract}
+        onClose={() => setViewingContract(null)}
+      />
 
       <ConfirmDeleteDialog open={!!deleteId} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
       <ConfirmDeleteDialog open={bulkDeleteOpen} onConfirm={() => bulkDeleteMutation.mutate()} onCancel={() => setBulkDeleteOpen(false)} />
-
-      <ViewDetailDialog
-        open={!!viewing}
-        onClose={() => setViewing(null)}
-        title="Contract Details"
-        fields={viewing ? [
-          { label: "Title", value: viewing.title },
-          { label: "Vendor", value: getVendorName((viewing as any).vendor_id, viewing.stakeholder_name) },
-          { label: "Value", value: viewing.value ? `${Number(viewing.value).toLocaleString()} MAD` : "—" },
-          { label: "Type", value: viewing.type },
-          { label: "Status", value: viewing.status },
-          { label: "Start Date", value: viewing.start_date },
-          { label: "End Date", value: viewing.end_date },
-          { label: "Tags", value: <TagBadges tagIds={viewing.tag_ids as string[] | null} /> },
-        ] : []}
-      />
-
-      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Contract Stages</DialogTitle></DialogHeader>
-          <div className="space-y-3 py-2">
-            {tempStages.map((s, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <Input value={s} onChange={(e) => setTempStages((ss) => ss.map((x, j) => j === i ? e.target.value : x))} className="h-8" />
-                <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" onClick={() => setTempStages((ss) => ss.filter((_, j) => j !== i))} disabled={tempStages.length <= 1}>
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            ))}
-            <div className="flex gap-2">
-              <Input value={newStage} onChange={(e) => setNewStage(e.target.value)} placeholder="New stage..." className="h-8" />
-              <Button size="sm" variant="outline" disabled={!newStage.trim()} onClick={() => { setTempStages((ss) => [...ss, newStage.trim()]); setNewStage(""); }}>Add</Button>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => { setStages(tempStages.filter(Boolean)); setSettingsOpen(false); toast.success("Stages updated"); }}>Save Stages</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -121,11 +121,166 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_documents: {
+        Row: {
+          contract_id: string
+          created_at: string | null
+          file_name: string
+          file_url: string
+          id: string
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string | null
+          file_name: string
+          file_url: string
+          id?: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string | null
+          file_name?: string
+          file_url?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_documents_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_links: {
+        Row: {
+          contract_id: string
+          created_at: string | null
+          id: string
+          title: string | null
+          url: string
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string | null
+          id?: string
+          title?: string | null
+          url: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string | null
+          id?: string
+          title?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_links_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_milestones: {
+        Row: {
+          contract_id: string
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          payment_amount: number | null
+          status: string
+          title: string
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          payment_amount?: number | null
+          status?: string
+          title: string
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          payment_amount?: number | null
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_milestones_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_payments: {
+        Row: {
+          amount: number
+          contract_id: string
+          created_at: string | null
+          expense_id: string | null
+          id: string
+          payment_date: string | null
+          status: string
+        }
+        Insert: {
+          amount?: number
+          contract_id: string
+          created_at?: string | null
+          expense_id?: string | null
+          id?: string
+          payment_date?: string | null
+          status?: string
+        }
+        Update: {
+          amount?: number
+          contract_id?: string
+          created_at?: string | null
+          expense_id?: string | null
+          id?: string
+          payment_date?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_payments_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_payments_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contracts: {
         Row: {
+          budget_line_id: string | null
+          cohort_id: string | null
+          currency: string | null
+          description: string | null
           end_date: string | null
           id: string
           owner_id: string | null
+          payment_structure: string | null
           stakeholder_name: string
           start_date: string | null
           status: string | null
@@ -136,9 +291,14 @@ export type Database = {
           vendor_id: string | null
         }
         Insert: {
+          budget_line_id?: string | null
+          cohort_id?: string | null
+          currency?: string | null
+          description?: string | null
           end_date?: string | null
           id?: string
           owner_id?: string | null
+          payment_structure?: string | null
           stakeholder_name: string
           start_date?: string | null
           status?: string | null
@@ -149,9 +309,14 @@ export type Database = {
           vendor_id?: string | null
         }
         Update: {
+          budget_line_id?: string | null
+          cohort_id?: string | null
+          currency?: string | null
+          description?: string | null
           end_date?: string | null
           id?: string
           owner_id?: string | null
+          payment_structure?: string | null
           stakeholder_name?: string
           start_date?: string | null
           status?: string | null
@@ -162,6 +327,20 @@ export type Database = {
           vendor_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "contracts_budget_line_id_fkey"
+            columns: ["budget_line_id"]
+            isOneToOne: false
+            referencedRelation: "budget_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "contracts_vendor_id_fkey"
             columns: ["vendor_id"]
