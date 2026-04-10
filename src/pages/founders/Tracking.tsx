@@ -148,7 +148,7 @@ function ScoreBadge({ score }: { score: number | null }) {
   );
 }
 
-const COHORT_YEARS = Array.from({ length: 77 }, (_, i) => String(2024 + i));
+import { COHORT_YEARS, getCurrentCohortYear } from "@/lib/cohortYears";
 
 export default function FoundersTracking() {
   const { user } = useAuth();
@@ -157,7 +157,7 @@ export default function FoundersTracking() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm(""));
-  const [cohortYear, setCohortYear] = useState(new Date().getFullYear().toString());
+  const [cohortYear, setCohortYear] = useState(getCurrentCohortYear());
 
   const isEditing = !!form.id;
 

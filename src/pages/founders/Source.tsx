@@ -34,7 +34,7 @@ import { ViewToggle } from "@/components/ViewToggle";
 
 type Founder = Tables<"founders">;
 
-const COHORT_YEARS = Array.from({ length: 81 }, (_, i) => String(2020 + i));
+import { COHORT_YEARS, getCurrentCohortYear } from "@/lib/cohortYears";
 
 interface LinkItem {
   title: string;
