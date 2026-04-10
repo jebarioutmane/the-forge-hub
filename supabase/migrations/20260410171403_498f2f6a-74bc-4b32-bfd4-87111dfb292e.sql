@@ -1,0 +1,1 @@
+UPDATE public.profiles SET role = 'user' WHERE role IS DISTINCT FROM 'user';
