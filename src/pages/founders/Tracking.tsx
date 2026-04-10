@@ -148,7 +148,7 @@ function ScoreBadge({ score }: { score: number | null }) {
   );
 }
 
-const COHORT_YEARS = Array.from({ length: 77 }, (_, i) => String(2024 + i));
+import { COHORT_YEARS, getCurrentCohortYear } from "@/lib/cohortYears";
 
 export default function FoundersTracking() {
   const { user } = useAuth();

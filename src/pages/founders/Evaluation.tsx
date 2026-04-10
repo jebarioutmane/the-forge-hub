@@ -49,7 +49,7 @@ function initMetricData(block: BlockConfig): Record<string, MetricData> {
   return data;
 }
 
-const COHORT_YEARS = Array.from({ length: 77 }, (_, i) => String(2024 + i));
+import { COHORT_YEARS, getCurrentCohortYear } from "@/lib/cohortYears";
 
 export default function FounderEvaluation() {
   const { user } = useAuth();
