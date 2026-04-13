@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { logAction } from "@/lib/logAction";
@@ -11,22 +11,10 @@ import { toast } from "sonner";
 import { Plus, X, Pencil, Check } from "lucide-react";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 
-const DEFAULT_LABELS = ["Urgent", "Operations", "Event", "Mentoring"];
-const STORAGE_KEY = "forge_global_labels";
-
-function getLabels(): string[] {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch {}
-  return DEFAULT_LABELS;
-}
 
 export default function Settings() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [labels, setLabels] = useState(getLabels);
-  const [newLabel, setNewLabel] = useState("");
 
   // Tags from Supabase
   const [newTagName, setNewTagName] = useState("");
@@ -90,31 +78,6 @@ export default function Settings() {
     onError: (e) => toast.error(e.message),
   });
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(labels));
-  }, [labels]);
-
-  function addLabel() {
-    const trimmed = newLabel.trim();
-    if (!trimmed) return;
-    if (labels.includes(trimmed)) {
-      toast.error("Label already exists");
-      return;
-    }
-    setLabels((l) => [...l, trimmed]);
-    setNewLabel("");
-    toast.success("Label added");
-  }
-
-  function removeLabel(label: string) {
-    setLabels((l) => l.filter((x) => x !== label));
-    toast.success("Label removed");
-  }
-
-  function resetDefaults() {
-    setLabels(DEFAULT_LABELS);
-    toast.success("Labels reset to defaults");
-  }
 
   function startEditTag(tag: { id: string; name: string; color: string }) {
     setEditingTagId(tag.id);
@@ -213,39 +176,6 @@ export default function Settings() {
         </CardContent>
       </Card>
 
-      {/* Legacy Labels */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Quick Labels</CardTitle>
-          <CardDescription>Simple text labels for internal categorization.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            {labels.map((label) => (
-              <Badge key={label} variant="secondary" className="gap-1 pr-1 text-sm">
-                {label}
-                <button onClick={() => removeLabel(label)} className="ml-1 rounded-full hover:bg-muted p-0.5">
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-            {labels.length === 0 && <p className="text-sm text-muted-foreground">No labels configured.</p>}
-          </div>
-          <div className="flex gap-2">
-            <Input
-              value={newLabel}
-              onChange={(e) => setNewLabel(e.target.value)}
-              placeholder="New label..."
-              className="max-w-xs"
-              onKeyDown={(e) => e.key === "Enter" && addLabel()}
-            />
-            <Button size="sm" onClick={addLabel} disabled={!newLabel.trim()}>
-              <Plus className="mr-1 h-3 w-3" /> Add
-            </Button>
-          </div>
-          <Button variant="outline" size="sm" onClick={resetDefaults}>Reset to Defaults</Button>
-        </CardContent>
-      </Card>
 
       <ConfirmDeleteDialog open={!!deleteTagId} onConfirm={() => deleteTagId && deleteTagMutation.mutate(deleteTagId)} onCancel={() => setDeleteTagId(null)} />
     </div>
