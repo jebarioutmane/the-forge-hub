@@ -50,6 +50,24 @@ export default function FoundersLeaderboard() {
     },
   });
 
+  const { data: absences = [] } = useQuery({
+    queryKey: ["program_attendance_absences"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("program_event_attendance")
+        .select("founder_id, status")
+        .eq("status", "Absent");
+      if (error) throw error;
+      return data as { founder_id: string; status: string }[];
+    },
+  });
+
+  const absenceCount = useMemo(() => {
+    const m: Record<string, number> = {};
+    absences.forEach((a) => { m[a.founder_id] = (m[a.founder_id] || 0) + 1; });
+    return m;
+  }, [absences]);
+
   const sparklineMap = useMemo(() => {
     const map: Record<string, number[]> = {};
     const dateMap: Record<string, string[]> = {};
