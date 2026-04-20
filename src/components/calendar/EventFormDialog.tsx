@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -9,96 +9,93 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Plus, X } from "lucide-react";
-import { COHORT_YEARS } from "@/lib/cohortYears";
-import type { ProgramEvent } from "@/pages/events/Calendar";
+import type { Json } from "@/integrations/supabase/types";
+import type { CalendarEvent } from "@/pages/events/Calendar";
 
-const EVENT_TYPES = ["Selection", "Workshop", "Pitch", "1-on-1", "Travel", "General"];
-
-type Founder = { id: string; founder_name: string; startup_name: string };
+const EVENT_TYPES = ["Masterclass", "Mentorship", "Pitch Session", "Networking", "Social", "General"];
+const STATUSES = ["Planning", "Active", "Completed"];
 
 interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  initial: ProgramEvent | null;
-  defaultCohort: string;
+  initial: CalendarEvent | null;
 }
 
-function toLocalInput(iso: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+function parseNeedsExtra(needs: any) {
+  try {
+    if (typeof needs === "string") return JSON.parse(needs);
+    if (needs && typeof needs === "object" && !Array.isArray(needs)) return needs;
+  } catch {}
+  return {};
 }
 
-export function EventFormDialog({ open, onOpenChange, initial, defaultCohort }: Props) {
+export function EventFormDialog({ open, onOpenChange, initial }: Props) {
   const qc = useQueryClient();
-  const [title, setTitle] = useState("");
+  const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [startTime, setStartTime] = useState("09:00");
+  const [endTime, setEndTime] = useState("17:00");
   const [eventType, setEventType] = useState("General");
-  const [cohortYear, setCohortYear] = useState(defaultCohort);
+  const [status, setStatus] = useState("Planning");
   const [location, setLocation] = useState("");
-  const [linkedFounderId, setLinkedFounderId] = useState<string>("");
   const [links, setLinks] = useState<{ title: string; url: string }[]>([]);
-
-  const { data: founders = [] } = useQuery({
-    queryKey: ["founders-min"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("founders").select("id, founder_name, startup_name").order("founder_name");
-      if (error) throw error;
-      return data as Founder[];
-    },
-  });
 
   useEffect(() => {
     if (!open) return;
     if (initial) {
-      setTitle(initial.title);
-      setDescription(initial.description || "");
-      setStartTime(toLocalInput(initial.start_time));
-      setEndTime(toLocalInput(initial.end_time));
-      setEventType(initial.event_type);
-      setCohortYear(initial.cohort_year);
-      setLocation(initial.location || "");
-      setLinkedFounderId(initial.linked_founder_id || "");
-      setLinks(Array.isArray(initial.links) ? initial.links : []);
+      const extra = parseNeedsExtra(initial.needs);
+      setName(initial.name);
+      setDescription(extra.description || "");
+      setStartDate(initial.start_date || "");
+      setEndDate(initial.end_date || "");
+      setStartTime(extra.start_time || "09:00");
+      setEndTime(extra.end_time || "17:00");
+      setEventType(initial.event_type || "General");
+      setStatus(initial.status || "Planning");
+      setLocation((initial as any).location || extra.location || "");
+      setLinks(Array.isArray(initial.links) ? (initial.links as any) : []);
     } else {
-      const now = new Date();
-      const later = new Date(now.getTime() + 60 * 60 * 1000);
-      setTitle(""); setDescription("");
-      setStartTime(toLocalInput(now.toISOString()));
-      setEndTime(toLocalInput(later.toISOString()));
-      setEventType("General"); setCohortYear(defaultCohort);
-      setLocation(""); setLinkedFounderId(""); setLinks([]);
+      const today = new Date().toISOString().slice(0, 10);
+      setName(""); setDescription("");
+      setStartDate(today); setEndDate(today);
+      setStartTime("09:00"); setEndTime("17:00");
+      setEventType("General"); setStatus("Planning");
+      setLocation(""); setLinks([]);
     }
-  }, [open, initial, defaultCohort]);
+  }, [open, initial]);
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!title.trim()) throw new Error("Title required");
-      if (!startTime || !endTime) throw new Error("Start and end times required");
-      const payload = {
-        title: title.trim(),
-        description: description || null,
-        start_time: new Date(startTime).toISOString(),
-        end_time: new Date(endTime).toISOString(),
+      if (!name.trim()) throw new Error("Title required");
+      if (!startDate) throw new Error("Start date required");
+      const needs = JSON.stringify({
+        description: description || "",
+        start_time: startTime,
+        end_time: endTime,
+        location: location || "",
+      }) as unknown as Json;
+      const payload: any = {
+        name: name.trim(),
         event_type: eventType,
-        cohort_year: cohortYear,
-        location: location || null,
-        linked_founder_id: eventType === "1-on-1" && linkedFounderId ? linkedFounderId : null,
-        links,
+        start_date: startDate,
+        end_date: endDate || startDate,
+        status,
+        needs,
+        links: links.filter((l) => l.url) as unknown as Json,
       };
       if (initial) {
-        const { error } = await (supabase as any).from("program_events").update(payload).eq("id", initial.id);
+        const { error } = await supabase.from("events").update(payload).eq("id", initial.id);
         if (error) throw error;
       } else {
-        const { error } = await (supabase as any).from("program_events").insert(payload);
+        const { error } = await supabase.from("events").insert(payload);
         if (error) throw error;
       }
     },
     onSuccess: () => {
       toast.success(initial ? "Event updated" : "Event created");
-      qc.invalidateQueries({ queryKey: ["program_events"] });
+      qc.invalidateQueries({ queryKey: ["events"] });
       onOpenChange(false);
     },
     onError: (e: any) => toast.error(e.message),
@@ -114,16 +111,26 @@ export function EventFormDialog({ open, onOpenChange, initial, defaultCohort }: 
         <div className="space-y-3">
           <div>
             <Label htmlFor="ev-title" className="text-xs">Title</Label>
-            <Input id="ev-title" name="title" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <Input id="ev-title" name="title" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Label htmlFor="ev-start" className="text-xs">Start</Label>
-              <Input id="ev-start" name="start_time" type="datetime-local" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+              <Label htmlFor="ev-sd" className="text-xs">Start date</Label>
+              <Input id="ev-sd" name="start_date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
             </div>
             <div>
-              <Label htmlFor="ev-end" className="text-xs">End</Label>
-              <Input id="ev-end" name="end_time" type="datetime-local" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+              <Label htmlFor="ev-ed" className="text-xs">End date</Label>
+              <Input id="ev-ed" name="end_date" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label htmlFor="ev-st" className="text-xs">Start time</Label>
+              <Input id="ev-st" name="start_time" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+            </div>
+            <div>
+              <Label htmlFor="ev-et" className="text-xs">End time</Label>
+              <Input id="ev-et" name="end_time" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
@@ -137,11 +144,11 @@ export function EventFormDialog({ open, onOpenChange, initial, defaultCohort }: 
               </Select>
             </div>
             <div>
-              <Label className="text-xs">Cohort</Label>
-              <Select value={cohortYear} onValueChange={setCohortYear}>
+              <Label className="text-xs">Status</Label>
+              <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {COHORT_YEARS.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+                  {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -150,17 +157,6 @@ export function EventFormDialog({ open, onOpenChange, initial, defaultCohort }: 
             <Label htmlFor="ev-loc" className="text-xs">Location</Label>
             <Input id="ev-loc" name="location" value={location} onChange={(e) => setLocation(e.target.value)} />
           </div>
-          {eventType === "1-on-1" && (
-            <div>
-              <Label className="text-xs">Linked Founder</Label>
-              <Select value={linkedFounderId} onValueChange={setLinkedFounderId}>
-                <SelectTrigger><SelectValue placeholder="Select founder" /></SelectTrigger>
-                <SelectContent>
-                  {founders.map((f) => <SelectItem key={f.id} value={f.id}>{f.founder_name} — {f.startup_name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
           <div>
             <Label htmlFor="ev-desc" className="text-xs">Description</Label>
             <Textarea id="ev-desc" name="description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
