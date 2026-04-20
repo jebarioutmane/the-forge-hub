@@ -70,7 +70,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    font-size: 16px;
+    font-size: 12.8px; /* 80% of 16px — global zoom */
     line-height: 1.5;
   }
 
@@ -81,6 +81,8 @@
     font-size: 0.875rem;
     line-height: 1.6;
     letter-spacing: -0.011em;
+    padding-left: clamp(0px, 4vw, 80px);
+    padding-right: clamp(0px, 4vw, 80px);
   }
 
   h1, h2, h3, h4, h5, h6 {
