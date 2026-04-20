@@ -9,53 +9,67 @@ import { ChevronLeft, ChevronRight, Plus, AlertTriangle } from "lucide-react";
 import {
   startOfMonth, endOfMonth, eachDayOfInterval, format, parseISO,
   getDay, addMonths, subMonths, isSameDay, isWithinInterval,
-  startOfWeek, endOfWeek, addWeeks, subWeeks, addDays,
+  startOfWeek, endOfWeek, addWeeks, subWeeks,
 } from "date-fns";
-import { COHORT_YEARS, getCurrentCohortYear } from "@/lib/cohortYears";
 import { EventSlideOver } from "@/components/calendar/EventSlideOver";
 import { EventFormDialog } from "@/components/calendar/EventFormDialog";
 import { cn } from "@/lib/utils";
+import type { Tables, Json } from "@/integrations/supabase/types";
 
-export type ProgramEvent = {
-  id: string;
-  title: string;
-  description: string | null;
-  start_time: string;
-  end_time: string;
-  event_type: string;
-  cohort_year: string;
-  location: string | null;
-  linked_founder_id: string | null;
-  links: any;
-  created_at: string;
-  updated_at: string;
+// Unified event type — sourced from the shared `events` table used by the Planning module.
+export type CalendarEvent = Tables<"events"> & {
+  // Derived fields computed on the client for calendar rendering
+  _start: string; // ISO datetime
+  _end: string;   // ISO datetime
 };
 
-const EVENT_TYPES = ["Selection", "Workshop", "Pitch", "1-on-1", "Travel", "General"] as const;
+const EVENT_TYPES = ["Masterclass", "Mentorship", "Pitch Session", "Networking", "Social", "General"] as const;
 
 const TYPE_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
-  Selection:  { bg: "bg-violet-50",  text: "text-violet-700",  dot: "bg-violet-500"  },
-  Workshop:   { bg: "bg-sky-50",     text: "text-sky-700",     dot: "bg-sky-500"     },
-  Pitch:      { bg: "bg-amber-50",   text: "text-amber-800",   dot: "bg-amber-600"   },
-  "1-on-1":   { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
-  Travel:     { bg: "bg-rose-50",    text: "text-rose-700",    dot: "bg-rose-500"    },
-  General:    { bg: "bg-slate-50",   text: "text-slate-700",   dot: "bg-slate-400"   },
+  Masterclass:     { bg: "bg-sky-50",     text: "text-sky-700",     dot: "bg-sky-500"     },
+  Mentorship:      { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
+  "Pitch Session": { bg: "bg-amber-50",   text: "text-amber-800",   dot: "bg-amber-600"   },
+  Networking:      { bg: "bg-violet-50",  text: "text-violet-700",  dot: "bg-violet-500"  },
+  Social:          { bg: "bg-rose-50",    text: "text-rose-700",    dot: "bg-rose-500"    },
+  General:         { bg: "bg-slate-50",   text: "text-slate-700",   dot: "bg-slate-400"   },
 };
 
 function getTypeStyle(t: string) {
   return TYPE_STYLES[t] || TYPE_STYLES.General;
 }
 
-// Detect overlapping events that share a location
-function detectConflicts(events: ProgramEvent[]): Set<string> {
+// Extract time/location info stored inside `events.needs` JSON by the Planning module.
+function parseNeedsExtra(needs: Json | null): { start_time?: string; end_time?: string; location?: string; description?: string } {
+  try {
+    if (typeof needs === "string") return JSON.parse(needs);
+    if (needs && typeof needs === "object" && !Array.isArray(needs)) return needs as any;
+  } catch {}
+  return {};
+}
+
+// Build ISO datetimes from the legacy events schema (start_date + optional time stored in needs).
+function enrich(ev: Tables<"events">): CalendarEvent | null {
+  if (!ev.start_date) return null;
+  const extra = parseNeedsExtra(ev.needs);
+  const startTime = extra.start_time || "09:00";
+  const endTime = extra.end_time || "17:00";
+  const endDate = ev.end_date || ev.start_date;
+  const _start = new Date(`${ev.start_date}T${startTime}:00`).toISOString();
+  const _end = new Date(`${endDate}T${endTime}:00`).toISOString();
+  return { ...ev, _start, _end };
+}
+
+function detectConflicts(events: CalendarEvent[]): Set<string> {
   const conflicts = new Set<string>();
   for (let i = 0; i < events.length; i++) {
     for (let j = i + 1; j < events.length; j++) {
       const a = events[i], b = events[j];
-      if (!a.location || !b.location) continue;
-      if (a.location.trim().toLowerCase() !== b.location.trim().toLowerCase()) continue;
-      const aS = parseISO(a.start_time), aE = parseISO(a.end_time);
-      const bS = parseISO(b.start_time), bE = parseISO(b.end_time);
+      const aLoc = (a as any).location || parseNeedsExtra(a.needs).location;
+      const bLoc = (b as any).location || parseNeedsExtra(b.needs).location;
+      if (!aLoc || !bLoc) continue;
+      if (String(aLoc).trim().toLowerCase() !== String(bLoc).trim().toLowerCase()) continue;
+      const aS = parseISO(a._start), aE = parseISO(a._end);
+      const bS = parseISO(b._start), bE = parseISO(b._end);
       if (aS < bE && bS < aE) {
         conflicts.add(a.id);
         conflicts.add(b.id);
@@ -71,27 +85,27 @@ export default function Calendar() {
   const queryClient = useQueryClient();
   const [view, setView] = useState<View>("month");
   const [cursor, setCursor] = useState(new Date());
-  const [cohort, setCohort] = useState(getCurrentCohortYear());
   const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [selected, setSelected] = useState<ProgramEvent | null>(null);
+  const [selected, setSelected] = useState<CalendarEvent | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<ProgramEvent | null>(null);
+  const [editTarget, setEditTarget] = useState<CalendarEvent | null>(null);
 
-  const { data: events = [], isLoading } = useQuery({
-    queryKey: ["program_events", cohort],
+  const { data: rawEvents = [], isLoading } = useQuery({
+    queryKey: ["events"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("program_events")
-        .select("*")
-        .eq("cohort_year", cohort)
-        .order("start_time");
+      const { data, error } = await supabase.from("events").select("*").order("start_date");
       if (error) throw error;
-      return data as ProgramEvent[];
+      return data as Tables<"events">[];
     },
   });
 
+  const events = useMemo(
+    () => rawEvents.map(enrich).filter((e): e is CalendarEvent => !!e),
+    [rawEvents]
+  );
+
   const filtered = useMemo(
-    () => (typeFilter === "all" ? events : events.filter((e) => e.event_type === typeFilter)),
+    () => (typeFilter === "all" ? events : events.filter((e) => (e.event_type || "General") === typeFilter)),
     [events, typeFilter]
   );
 
@@ -99,12 +113,12 @@ export default function Calendar() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any).from("program_events").delete().eq("id", id);
+      const { error } = await supabase.from("events").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Event deleted");
-      queryClient.invalidateQueries({ queryKey: ["program_events"] });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
       setSelected(null);
     },
     onError: (e: any) => toast.error(e.message),
@@ -118,8 +132,8 @@ export default function Calendar() {
 
   function eventsOnDay(day: Date) {
     return filtered.filter((ev) => {
-      const s = parseISO(ev.start_time);
-      const e = parseISO(ev.end_time);
+      const s = parseISO(ev._start);
+      const e = parseISO(ev._end);
       return isWithinInterval(day, { start: new Date(s.getFullYear(), s.getMonth(), s.getDate()), end: e });
     });
   }
@@ -132,24 +146,22 @@ export default function Calendar() {
   // ---------- Agenda ----------
   const agenda = useMemo(() => {
     const sorted = [...filtered].sort(
-      (a, b) => parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime()
+      (a, b) => parseISO(a._start).getTime() - parseISO(b._start).getTime()
     );
-    const groups = new Map<string, ProgramEvent[]>();
+    const groups = new Map<string, CalendarEvent[]>();
     sorted.forEach((ev) => {
-      const key = format(parseISO(ev.start_time), "yyyy-MM-dd");
+      const key = format(parseISO(ev._start), "yyyy-MM-dd");
       groups.set(key, [...(groups.get(key) || []), ev]);
     });
     return Array.from(groups.entries());
   }, [filtered]);
 
   function navPrev() {
-    if (view === "month") setCursor((d) => subMonths(d, 1));
-    else if (view === "week") setCursor((d) => subWeeks(d, 1));
+    if (view === "week") setCursor((d) => subWeeks(d, 1));
     else setCursor((d) => subMonths(d, 1));
   }
   function navNext() {
-    if (view === "month") setCursor((d) => addMonths(d, 1));
-    else if (view === "week") setCursor((d) => addWeeks(d, 1));
+    if (view === "week") setCursor((d) => addWeeks(d, 1));
     else setCursor((d) => addMonths(d, 1));
   }
 
@@ -160,11 +172,10 @@ export default function Calendar() {
 
   return (
     <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-6">
-      {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Program Calendar</h1>
-          <p className="text-sm text-muted-foreground mt-1">Cohort-synced schedule with conflict detection</p>
+          <p className="text-sm text-muted-foreground mt-1">Synced with the Event Planner · conflict detection enabled</p>
         </div>
         <Button onClick={() => { setEditTarget(null); setFormOpen(true); }} className="rounded-full">
           <Plus className="h-4 w-4 mr-1.5" />
@@ -172,7 +183,6 @@ export default function Calendar() {
         </Button>
       </div>
 
-      {/* Controls */}
       <Card className="p-3 flex flex-wrap items-center gap-2 bg-white/70 backdrop-blur-xl border-border/60 shadow-sm">
         <div className="inline-flex items-center rounded-full border bg-muted/50 p-0.5 gap-0.5">
           {(["month", "week", "agenda"] as View[]).map((v) => (
@@ -202,18 +212,8 @@ export default function Calendar() {
         </div>
 
         <div className="ml-auto flex items-center gap-2">
-          <Select value={cohort} onValueChange={setCohort}>
-            <SelectTrigger className="h-8 w-[140px] rounded-full text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {COHORT_YEARS.map((y) => (
-                <SelectItem key={y} value={y}>{y}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="h-8 w-[130px] rounded-full text-xs">
+            <SelectTrigger className="h-8 w-[150px] rounded-full text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -226,7 +226,6 @@ export default function Calendar() {
         </div>
       </Card>
 
-      {/* Legend */}
       <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
         {EVENT_TYPES.map((t) => (
           <div key={t} className="flex items-center gap-1.5">
@@ -263,7 +262,7 @@ export default function Calendar() {
                   </div>
                   <div className="space-y-0.5">
                     {dayEvents.slice(0, 3).map((ev) => {
-                      const s = getTypeStyle(ev.event_type);
+                      const s = getTypeStyle(ev.event_type || "General");
                       return (
                         <button
                           key={ev.id}
@@ -271,7 +270,7 @@ export default function Calendar() {
                           className={cn("w-full text-left text-[10px] px-1.5 py-0.5 rounded-md truncate flex items-center gap-1 transition-transform hover:scale-[1.02]", s.bg, s.text)}
                         >
                           {conflicts.has(ev.id) && <AlertTriangle className="h-2.5 w-2.5 shrink-0" />}
-                          <span className="truncate">{ev.title}</span>
+                          <span className="truncate">{ev.name}</span>
                         </button>
                       );
                     })}
@@ -289,8 +288,8 @@ export default function Calendar() {
           <div className="grid grid-cols-7 gap-2">
             {weekDays.map((day) => {
               const dayEvents = filtered.filter((ev) => {
-                const s = parseISO(ev.start_time);
-                const e = parseISO(ev.end_time);
+                const s = parseISO(ev._start);
+                const e = parseISO(ev._end);
                 return isWithinInterval(day, { start: new Date(s.getFullYear(), s.getMonth(), s.getDate()), end: e });
               });
               const isToday = isSameDay(day, new Date());
@@ -300,7 +299,7 @@ export default function Calendar() {
                   <div className={cn("text-lg font-mono tabular-nums mb-2", isToday && "text-primary font-semibold")}>{format(day, "d")}</div>
                   <div className="space-y-1">
                     {dayEvents.map((ev) => {
-                      const s = getTypeStyle(ev.event_type);
+                      const s = getTypeStyle(ev.event_type || "General");
                       return (
                         <button
                           key={ev.id}
@@ -309,10 +308,10 @@ export default function Calendar() {
                         >
                           <div className="flex items-center gap-1 font-medium">
                             {conflicts.has(ev.id) && <AlertTriangle className="h-3 w-3" />}
-                            <span className="truncate">{ev.title}</span>
+                            <span className="truncate">{ev.name}</span>
                           </div>
                           <div className="font-mono tabular-nums text-[10px] opacity-80 mt-0.5">
-                            {format(parseISO(ev.start_time), "HH:mm")} – {format(parseISO(ev.end_time), "HH:mm")}
+                            {format(parseISO(ev._start), "HH:mm")} – {format(parseISO(ev._end), "HH:mm")}
                           </div>
                         </button>
                       );
@@ -324,7 +323,6 @@ export default function Calendar() {
           </div>
         </Card>
       ) : (
-        // Agenda
         <Card className="p-6 bg-white/70 backdrop-blur-xl border-border/60 shadow-sm">
           {agenda.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">No events scheduled.</p>
@@ -346,7 +344,8 @@ export default function Calendar() {
                     </div>
                     <div className="space-y-2 pl-10">
                       {list.map((ev) => {
-                        const s = getTypeStyle(ev.event_type);
+                        const s = getTypeStyle(ev.event_type || "General");
+                        const loc = parseNeedsExtra(ev.needs).location;
                         return (
                           <button
                             key={ev.id}
@@ -357,14 +356,14 @@ export default function Calendar() {
                             <div className="flex-1 min-w-0">
                               <div className={cn("text-sm font-medium flex items-center gap-1.5", s.text)}>
                                 {conflicts.has(ev.id) && <AlertTriangle className="h-3.5 w-3.5" />}
-                                <span className="truncate">{ev.title}</span>
+                                <span className="truncate">{ev.name}</span>
                               </div>
                               <div className="text-xs text-muted-foreground font-mono tabular-nums">
-                                {format(parseISO(ev.start_time), "HH:mm")} – {format(parseISO(ev.end_time), "HH:mm")}
-                                {ev.location && <span className="ml-2 font-sans">· {ev.location}</span>}
+                                {format(parseISO(ev._start), "HH:mm")} – {format(parseISO(ev._end), "HH:mm")}
+                                {loc && <span className="ml-2 font-sans">· {loc}</span>}
                               </div>
                             </div>
-                            <span className={cn("text-[10px] uppercase tracking-wider font-medium", s.text)}>{ev.event_type}</span>
+                            <span className={cn("text-[10px] uppercase tracking-wider font-medium", s.text)}>{ev.event_type || "General"}</span>
                           </button>
                         );
                       })}
@@ -389,7 +388,6 @@ export default function Calendar() {
         open={formOpen}
         onOpenChange={setFormOpen}
         initial={editTarget}
-        defaultCohort={cohort}
       />
     </div>
   );
