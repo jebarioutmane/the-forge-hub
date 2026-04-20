@@ -70,6 +70,42 @@ export type Database = {
           },
         ]
       }
+      budget_transactions: {
+        Row: {
+          amount: number
+          category: string
+          cohort_year: string
+          created_at: string
+          date: string
+          description: string | null
+          evidence_url: string | null
+          id: string
+          transaction_type: string
+        }
+        Insert: {
+          amount?: number
+          category: string
+          cohort_year: string
+          created_at?: string
+          date?: string
+          description?: string | null
+          evidence_url?: string | null
+          id?: string
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          cohort_year?: string
+          created_at?: string
+          date?: string
+          description?: string | null
+          evidence_url?: string | null
+          id?: string
+          transaction_type?: string
+        }
+        Relationships: []
+      }
       budgets: {
         Row: {
           category: string
