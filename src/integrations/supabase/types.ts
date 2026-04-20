@@ -1194,6 +1194,86 @@ export type Database = {
         }
         Relationships: []
       }
+      program_event_attendance: {
+        Row: {
+          created_at: string
+          event_id: string
+          founder_id: string
+          id: string
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          founder_id: string
+          id?: string
+          notes?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          founder_id?: string
+          id?: string
+          notes?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_event_attendance_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "program_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      program_events: {
+        Row: {
+          cohort_year: string
+          created_at: string
+          description: string | null
+          end_time: string
+          event_type: string
+          id: string
+          linked_founder_id: string | null
+          links: Json | null
+          location: string | null
+          start_time: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cohort_year?: string
+          created_at?: string
+          description?: string | null
+          end_time: string
+          event_type?: string
+          id?: string
+          linked_founder_id?: string | null
+          links?: Json | null
+          location?: string | null
+          start_time: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cohort_year?: string
+          created_at?: string
+          description?: string | null
+          end_time?: string
+          event_type?: string
+          id?: string
+          linked_founder_id?: string | null
+          links?: Json | null
+          location?: string | null
+          start_time?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       resource_library: {
         Row: {
           created_at: string
