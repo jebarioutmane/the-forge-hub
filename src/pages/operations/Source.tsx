@@ -63,7 +63,7 @@ function fmtMAD(n: number) {
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n) + " MAD";
 }
 
-export default function BudgetDashboard() {
+export default function Source() {
   const qc = useQueryClient();
   const [cohort, setCohort] = useState<string>(getCurrentCohortYear());
   const [open, setOpen] = useState(false);
