@@ -41,7 +41,7 @@ const sections = [
     label: "Program",
     color: "text-module-events",
     items: [
-      { title: "Events Calendar", url: "/events", icon: CalendarDays },
+      { title: "Smart Calendar", url: "/events", icon: CalendarDays },
       { title: "Planning", url: "/events/planning", icon: ClipboardCheck },
       { title: "Logistics", url: "/events/logistics", icon: Truck },
       { title: "Stakeholders", url: "/events/stakeholders", icon: Users2 },
