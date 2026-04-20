@@ -154,8 +154,13 @@ export default function FoundersLeaderboard() {
                       </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[14px] font-medium text-foreground truncate leading-tight">
+                      <p className="text-[14px] font-medium text-foreground truncate leading-tight flex items-center gap-1.5">
                         {entry.founder_name}
+                        {absenceCount[entry.id] > 0 && (
+                          <span title={`${absenceCount[entry.id]} absence(s)`} className="inline-flex items-center h-4 px-1.5 rounded-full bg-rose-100 text-rose-700 text-[9px] font-semibold">
+                            ⚑ {absenceCount[entry.id]}
+                          </span>
+                        )}
                       </p>
                       <p className="text-[12px] text-muted-foreground truncate leading-tight">
                         {entry.startup_name}
@@ -212,8 +217,13 @@ export default function FoundersLeaderboard() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <p className="text-[14px] font-medium text-foreground truncate leading-tight">
+                    <p className="text-[14px] font-medium text-foreground truncate leading-tight flex items-center gap-1.5">
                       {entry.founder_name}
+                      {absenceCount[entry.id] > 0 && (
+                        <span title={`${absenceCount[entry.id]} absence(s)`} className="inline-flex items-center h-4 px-1.5 rounded-full bg-rose-100 text-rose-700 text-[9px] font-semibold">
+                          ⚑ {absenceCount[entry.id]}
+                        </span>
+                      )}
                     </p>
                     <p className="text-[12px] text-muted-foreground truncate leading-tight">
                       {entry.startup_name}
