@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, parseISO } from "date-fns";
-import { MapPin, Calendar as CalIcon, Link as LinkIcon, Pencil, Trash2, AlertTriangle, User } from "lucide-react";
+import { MapPin, Calendar as CalIcon, Link as LinkIcon, Pencil, Trash2, AlertTriangle, User, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { formatUrl } from "@/lib/formatUrl";
 import type { CalendarEvent } from "@/pages/events/Calendar";
