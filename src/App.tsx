@@ -11,7 +11,7 @@ import Source from "./pages/operations/Source";
 import Expenses from "./pages/operations/Expenses";
 import Stipends from "./pages/operations/Stipends";
 import OperationsContracts from "./pages/operations/Contracts";
-import BudgetDashboard from "./pages/operations/BudgetDashboard";
+
 
 import FoundersSource from "./pages/founders/Source";
 import FoundersTracking from "./pages/founders/Tracking";
@@ -40,7 +40,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<MainLayout><Home /></MainLayout>} />
           <Route path="/operations" element={<MainLayout><OperationsDashboard /></MainLayout>} />
-          <Route path="/operations/budget" element={<MainLayout><BudgetDashboard /></MainLayout>} />
+          
           <Route path="/operations/source" element={<MainLayout><Source /></MainLayout>} />
           <Route path="/operations/expenses" element={<MainLayout><Expenses /></MainLayout>} />
           <Route path="/operations/stipends" element={<MainLayout><Stipends /></MainLayout>} />
