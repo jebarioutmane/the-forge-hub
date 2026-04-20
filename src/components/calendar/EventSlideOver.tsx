@@ -191,9 +191,21 @@ export function EventSlideOver({ event, hasConflict, onClose, onEdit, onDelete }
           )}
 
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-2 gap-2">
               <div className="text-xs uppercase tracking-wider text-muted-foreground">Attendance</div>
-              <span className="text-xs font-mono tabular-nums text-muted-foreground">{attendance.length}</span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 rounded-full text-xs"
+                  onClick={() => addAllFounders.mutate()}
+                  disabled={addAllFounders.isPending || founders.length === 0 || attendance.length >= founders.length}
+                >
+                  <UserPlus className="h-3 w-3 mr-1" />
+                  Add all founders
+                </Button>
+                <span className="text-xs font-mono tabular-nums text-muted-foreground">{attendance.length}</span>
+              </div>
             </div>
             <div className="space-y-1.5">
               {attendance.map((a) => {
