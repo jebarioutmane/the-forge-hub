@@ -107,6 +107,24 @@ export function EventSlideOver({ event, hasConflict, onClose, onEdit, onDelete }
     onSuccess: () => qc.invalidateQueries({ queryKey: ["event_attendance", event?.id] }),
   });
 
+  const addAllFounders = useMutation({
+    mutationFn: async () => {
+      if (!event) return;
+      const toAdd = founders.filter((f) => !attendance.some((a) => a.founder_id === f.id));
+      if (toAdd.length === 0) return 0;
+      const rows = toAdd.map((f) => ({ event_id: event.id, founder_id: f.id, status: "Present" }));
+      const { error } = await supabase.from("event_attendance").insert(rows);
+      if (error) throw error;
+      return toAdd.length;
+    },
+    onSuccess: (count) => {
+      qc.invalidateQueries({ queryKey: ["event_attendance", event?.id] });
+      if (count && count > 0) toast.success(`Added ${count} founder${count > 1 ? "s" : ""} as Present`);
+      else toast.info("All founders already added");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   if (!event) return null;
 
   const extra = parseNeedsExtra(event.needs);
