@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, parseISO } from "date-fns";
-import { MapPin, Calendar as CalIcon, Link as LinkIcon, Pencil, Trash2, AlertTriangle, User } from "lucide-react";
+import { MapPin, Calendar as CalIcon, Link as LinkIcon, Pencil, Trash2, AlertTriangle, User, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { formatUrl } from "@/lib/formatUrl";
 import type { CalendarEvent } from "@/pages/events/Calendar";
@@ -107,6 +107,24 @@ export function EventSlideOver({ event, hasConflict, onClose, onEdit, onDelete }
     onSuccess: () => qc.invalidateQueries({ queryKey: ["event_attendance", event?.id] }),
   });
 
+  const addAllFounders = useMutation({
+    mutationFn: async () => {
+      if (!event) return;
+      const toAdd = founders.filter((f) => !attendance.some((a) => a.founder_id === f.id));
+      if (toAdd.length === 0) return 0;
+      const rows = toAdd.map((f) => ({ event_id: event.id, founder_id: f.id, status: "Present" }));
+      const { error } = await supabase.from("event_attendance").insert(rows);
+      if (error) throw error;
+      return toAdd.length;
+    },
+    onSuccess: (count) => {
+      qc.invalidateQueries({ queryKey: ["event_attendance", event?.id] });
+      if (count && count > 0) toast.success(`Added ${count} founder${count > 1 ? "s" : ""} as Present`);
+      else toast.info("All founders already added");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   if (!event) return null;
 
   const extra = parseNeedsExtra(event.needs);
@@ -173,9 +191,21 @@ export function EventSlideOver({ event, hasConflict, onClose, onEdit, onDelete }
           )}
 
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-2 gap-2">
               <div className="text-xs uppercase tracking-wider text-muted-foreground">Attendance</div>
-              <span className="text-xs font-mono tabular-nums text-muted-foreground">{attendance.length}</span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 rounded-full text-xs"
+                  onClick={() => addAllFounders.mutate()}
+                  disabled={addAllFounders.isPending || founders.length === 0 || attendance.length >= founders.length}
+                >
+                  <UserPlus className="h-3 w-3 mr-1" />
+                  Add all founders
+                </Button>
+                <span className="text-xs font-mono tabular-nums text-muted-foreground">{attendance.length}</span>
+              </div>
             </div>
             <div className="space-y-1.5">
               {attendance.map((a) => {
