@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       budget_categories: {
         Row: {
           created_at: string | null
@@ -136,22 +154,34 @@ export type Database = {
       cohorts: {
         Row: {
           created_at: string | null
+          end_date: string | null
           id: string
+          is_archived: boolean
+          label: string
           name: string
+          start_date: string | null
           total_budget: number | null
           year: number
         }
         Insert: {
           created_at?: string | null
+          end_date?: string | null
           id?: string
+          is_archived?: boolean
+          label: string
           name: string
+          start_date?: string | null
           total_budget?: number | null
           year: number
         }
         Update: {
           created_at?: string | null
+          end_date?: string | null
           id?: string
+          is_archived?: boolean
+          label?: string
           name?: string
+          start_date?: string | null
           total_budget?: number | null
           year?: number
         }
