@@ -437,12 +437,7 @@ export default function Stipends() {
         <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex items-center gap-2">
             <Label className="text-sm font-medium whitespace-nowrap">Cohort Year</Label>
-            <Select value={cohortYear} onValueChange={setCohortYear}>
-              <SelectTrigger className="w-28 h-9"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {YEARS.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <CohortSelect value={cohortYear} onChange={setCohortYear} className="w-28 h-9" />
           </div>
           <div className="flex items-center gap-2">
             <Label className="text-sm font-medium whitespace-nowrap">Payment Month</Label>
