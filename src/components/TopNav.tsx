@@ -292,15 +292,6 @@ export function TopNav() {
                     <TeamPresence onlineUserIds={onlineUserIds} />
                     <div className="flex items-center gap-2 pt-2">
                       <MyProfileDialog />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => { handleSignOut(); setMobileOpen(false); }}
-                        className="text-muted-foreground hover:text-destructive gap-2"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        Sign Out
-                      </Button>
                     </div>
                   </div>
                 </div>
