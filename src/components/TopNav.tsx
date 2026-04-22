@@ -131,7 +131,6 @@ function MegaMenuContent({
 }
 
 export function TopNav() {
-  const { signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
@@ -140,11 +139,6 @@ export function TopNav() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const isHome = location.pathname === "/";
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/auth");
-  };
 
   return (
     <>
