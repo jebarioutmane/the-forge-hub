@@ -93,8 +93,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("id, full_name, role, email, status, title, description, phone, status_note")
-        .or(`full_name.ilike.%${trimmed}%,role.ilike.%${trimmed}%,email.ilike.%${trimmed}%,title.ilike.%${trimmed}%,description.ilike.%${trimmed}%,phone.ilike.%${trimmed}%,status_note.ilike.%${trimmed}%,status.ilike.%${trimmed}%`)
+        .select("id, full_name, role, email, status, title, description, phone, status_note, cin_number, passport_number")
+        .or(`full_name.ilike.%${trimmed}%,role.ilike.%${trimmed}%,email.ilike.%${trimmed}%,title.ilike.%${trimmed}%,description.ilike.%${trimmed}%,phone.ilike.%${trimmed}%,status_note.ilike.%${trimmed}%,status.ilike.%${trimmed}%,cin_number.ilike.%${trimmed}%,passport_number.ilike.%${trimmed}%`)
         .limit(6);
       return data ?? [];
     },
