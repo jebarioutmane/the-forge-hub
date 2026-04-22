@@ -222,17 +222,6 @@ export function TopNav() {
           )}
           {!isMobile && !isHome && <TeamPresence onlineUserIds={onlineUserIds} />}
           {!isMobile && <MyProfileDialog />}
-          {!isMobile && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleSignOut}
-              className="text-muted-foreground hover:text-destructive h-8 w-8"
-              title="Sign Out"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
-          )}
 
           {/* Mobile hamburger */}
           {isMobile && (
