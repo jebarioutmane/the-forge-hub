@@ -13,7 +13,7 @@ import {
 import {
   GraduationCap, Users2, CalendarDays, FileText,
   DollarSign, ListTodo, BookOpen, Handshake, Wallet,
-  TrendingUp, ClipboardCheck,
+  TrendingUp, ClipboardCheck, History, Home, Settings, LayoutDashboard,
 } from "lucide-react";
 import { getFlag } from "@/lib/countries";
 
