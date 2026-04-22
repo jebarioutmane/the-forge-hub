@@ -12,7 +12,8 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
 export function MyProfileDialog() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
