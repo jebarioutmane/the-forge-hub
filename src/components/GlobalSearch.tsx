@@ -318,6 +318,110 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     },
   });
 
+  const { data: tags } = useQuery({
+    queryKey: ["global-search-tags", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("tags")
+        .select("id, name, color")
+        .ilike("name", `%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: mentors } = useQuery({
+    queryKey: ["global-search-mentors", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mentors")
+        .select("id, full_name, expertise, email")
+        .or(`full_name.ilike.%${trimmed}%,expertise.ilike.%${trimmed}%,email.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: associates } = useQuery({
+    queryKey: ["global-search-associates", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("venture_associates")
+        .select("id, full_name")
+        .ilike("full_name", `%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: progress } = useQuery({
+    queryKey: ["global-search-progress", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("founder_progress")
+        .select("id, founder_id, week_start_date, manager_notes, product_update, team_update, market_update, traction_update, funding_update, founders(founder_name, startup_name)")
+        .or(`manager_notes.ilike.%${trimmed}%,product_update.ilike.%${trimmed}%,team_update.ilike.%${trimmed}%,market_update.ilike.%${trimmed}%,traction_update.ilike.%${trimmed}%,funding_update.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: contractDocs } = useQuery({
+    queryKey: ["global-search-contract-docs", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("contract_documents")
+        .select("id, contract_id, file_name, file_url, contracts(title)")
+        .ilike("file_name", `%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: contractLinks } = useQuery({
+    queryKey: ["global-search-contract-links", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("contract_links")
+        .select("id, contract_id, title, url, contracts(title)")
+        .or(`title.ilike.%${trimmed}%,url.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: expenseLinks } = useQuery({
+    queryKey: ["global-search-expense-links", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("expense_links")
+        .select("id, expense_id, title, url")
+        .or(`title.ilike.%${trimmed}%,url.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: contractMilestones } = useQuery({
+    queryKey: ["global-search-contract-milestones", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("contract_milestones")
+        .select("id, contract_id, title, description, status, contracts(title)")
+        .or(`title.ilike.%${trimmed}%,description.ilike.%${trimmed}%,status.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
   const go = useCallback(
     (path: string) => {
       onOpenChange(false);
