@@ -646,6 +646,20 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                 ))}
               </CommandGroup>
             )}
+
+            {historyLogs && historyLogs.length > 0 && (
+              <CommandGroup heading="History Log">
+                {historyLogs.map((h: any) => (
+                  <CommandItem key={h.id} value={`history-${h.id}-${h.section_name}`} onSelect={() => go(`/system/history?highlight=${h.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <History className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(h.section_name, trimmed)} · {highlightMatch(h.action, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{h.changed_by_name ?? "—"} · {h.created_at ? new Date(h.created_at).toLocaleString() : ""}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
           </>
         )}
       </CommandList>
