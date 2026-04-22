@@ -259,6 +259,37 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
               </CommandGroup>
             )}
 
+            {tracking && tracking.length > 0 && (
+              <CommandGroup heading="Founder Tracking">
+                {tracking.map((t: any) => {
+                  const snippet = [t.product_dev_update, t.team_structure_update, t.clients_traction_update, t.market_presence_update, t.funding_update, t.other_updates].find((x) => x?.toLowerCase().includes(trimmed.toLowerCase())) ?? "";
+                  return (
+                    <CommandItem key={t.id} value={`tracking-${t.id}-${snippet}`} onSelect={() => go(`/founders/tracking?highlight=${t.id}`)} className="flex items-center gap-3 cursor-pointer">
+                      <TrendingUp className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-medium truncate">{t.founders?.founder_name ?? "Tracking entry"} · Score {t.overall_score ?? "—"}</span>
+                        <span className="text-xs text-muted-foreground truncate">{highlightMatch(snippet.slice(0, 80), trimmed)}</span>
+                      </div>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
+
+            {evaluations && evaluations.length > 0 && (
+              <CommandGroup heading="Evaluations">
+                {evaluations.map((e: any) => (
+                  <CommandItem key={e.id} value={`evaluation-${e.id}-${e.block_name}`} onSelect={() => go(`/founders/evaluation?highlight=${e.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <ClipboardCheck className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(e.block_name, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{e.founders?.founder_name ?? ""} · Total {e.total_score ?? "—"} · {e.evaluation_date ?? ""}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
             {events && events.length > 0 && (
               <CommandGroup heading="Events">
                 {events.map((e) => (
