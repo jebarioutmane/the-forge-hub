@@ -887,6 +887,19 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
               </CommandGroup>
             )}
 
+            {cohortsRes && cohortsRes.length > 0 && (
+              <CommandGroup heading="Cohorts">
+                {cohortsRes.map((c: any) => (
+                  <CommandItem key={c.id} value={`cohort-${c.id}-${c.label}`} onSelect={() => go(`/settings`)} className="flex items-center gap-3 cursor-pointer">
+                    <Tag className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(String(c.label).replace("-", "\u2013"), trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">Cohort · {c.start_date ?? ""} → {c.end_date ?? ""}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
             {tags && tags.length > 0 && (
               <CommandGroup heading="Tags">
                 {tags.map((t: any) => (
