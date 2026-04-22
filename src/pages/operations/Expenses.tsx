@@ -485,6 +485,7 @@ export default function Expenses() {
     mutationFn: async () => {
       const { data, error } = await supabase.from("cohorts").insert({
         name: cohortForm.name,
+        label: cohortForm.name,
         year: Number(cohortForm.year),
         total_budget: cohortForm.total_budget ? Number(cohortForm.total_budget) : 0,
       }).select().single();

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
 import { TagBadges } from "@/components/TagBadges";
+import { formatCohortLabel } from "@/lib/cohortYears";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Founder = Tables<"founders">;
@@ -97,7 +98,7 @@ export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, o
           )}
           {founder.cohort_year && (
             <Badge variant="outline" className="text-[10px] font-medium text-muted-foreground">
-              {founder.cohort_year}
+              {formatCohortLabel(founder.cohort_year)}
             </Badge>
           )}
           {founder.cohort && (

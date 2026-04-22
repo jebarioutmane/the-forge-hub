@@ -31,8 +31,8 @@ const MONTHS = [
 
 const currentYear = new Date().getFullYear();
 const currentMonthIndex = new Date().getMonth();
-import { STIPEND_YEARS, getCurrentCohortYear } from "@/lib/cohortYears";
-const YEARS = STIPEND_YEARS;
+import { getCurrentCohortYear } from "@/lib/cohortYears";
+import { CohortSelect } from "@/components/CohortSelect";
 
 function calcNet(base: number, dedPct: number, dedFixed: number, addPct: number, addFixed: number, reimb: number) {
   return (base * (1 - dedPct / 100) - dedFixed) + (base * (addPct / 100) + addFixed) + reimb;
@@ -437,12 +437,7 @@ export default function Stipends() {
         <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex items-center gap-2">
             <Label className="text-sm font-medium whitespace-nowrap">Cohort Year</Label>
-            <Select value={cohortYear} onValueChange={setCohortYear}>
-              <SelectTrigger className="w-28 h-9"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {YEARS.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <CohortSelect value={cohortYear} onChange={setCohortYear} className="w-28 h-9" />
           </div>
           <div className="flex items-center gap-2">
             <Label className="text-sm font-medium whitespace-nowrap">Payment Month</Label>

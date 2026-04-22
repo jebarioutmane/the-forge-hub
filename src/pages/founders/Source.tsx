@@ -34,7 +34,8 @@ import { ViewToggle } from "@/components/ViewToggle";
 
 type Founder = Tables<"founders">;
 
-import { COHORT_YEARS, getCurrentCohortYear } from "@/lib/cohortYears";
+import { getCurrentCohortYear } from "@/lib/cohortYears";
+import { CohortSelect } from "@/components/CohortSelect";
 
 interface LinkItem {
   title: string;
@@ -465,12 +466,7 @@ export default function FoundersSource() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Cohort Year</Label>
-                <Select value={form.cohort} onValueChange={(v) => set("cohort", v)}>
-                  <SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger>
-                  <SelectContent>
-                    {COHORT_YEARS.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <CohortSelect value={form.cohort} onChange={(v) => set("cohort", v)} placeholder="Select year" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="venture-associate">Venture Associate</Label>
