@@ -14,6 +14,7 @@ import {
   GraduationCap, Users2, CalendarDays, FileText,
   DollarSign, ListTodo, BookOpen, Handshake, Wallet,
   TrendingUp, ClipboardCheck, History, Home, Settings, LayoutDashboard,
+  Tag, UserCog, Briefcase, Link as LinkIcon,
 } from "lucide-react";
 import { getFlag } from "@/lib/countries";
 
@@ -53,8 +54,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     queryFn: async () => {
       const { data } = await supabase
         .from("founders")
-        .select("id, founder_name, startup_name, nationalities, status, email, description, cohort_year")
-        .or(`founder_name.ilike.%${trimmed}%,startup_name.ilike.%${trimmed}%,email.ilike.%${trimmed}%,description.ilike.%${trimmed}%,cohort_year.ilike.%${trimmed}%,status.ilike.%${trimmed}%`)
+        .select("id, founder_name, startup_name, nationalities, status, email, description, cohort_year, cohort, phone, cin_number, passport_number, rib_number, venture_associate")
+        .or(`founder_name.ilike.%${trimmed}%,startup_name.ilike.%${trimmed}%,email.ilike.%${trimmed}%,description.ilike.%${trimmed}%,cohort_year.ilike.%${trimmed}%,cohort.ilike.%${trimmed}%,status.ilike.%${trimmed}%,phone.ilike.%${trimmed}%,cin_number.ilike.%${trimmed}%,passport_number.ilike.%${trimmed}%,rib_number.ilike.%${trimmed}%,venture_associate.ilike.%${trimmed}%`)
         .limit(6);
       return data ?? [];
     },
@@ -92,8 +93,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("id, full_name, role, email, status, title, description, phone, status_note")
-        .or(`full_name.ilike.%${trimmed}%,role.ilike.%${trimmed}%,email.ilike.%${trimmed}%,title.ilike.%${trimmed}%,description.ilike.%${trimmed}%,phone.ilike.%${trimmed}%,status_note.ilike.%${trimmed}%,status.ilike.%${trimmed}%`)
+        .select("id, full_name, role, email, status, title, description, phone, status_note, cin_number, passport_number")
+        .or(`full_name.ilike.%${trimmed}%,role.ilike.%${trimmed}%,email.ilike.%${trimmed}%,title.ilike.%${trimmed}%,description.ilike.%${trimmed}%,phone.ilike.%${trimmed}%,status_note.ilike.%${trimmed}%,status.ilike.%${trimmed}%,cin_number.ilike.%${trimmed}%,passport_number.ilike.%${trimmed}%`)
         .limit(6);
       return data ?? [];
     },
@@ -182,10 +183,19 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     queryKey: ["global-search-expenses", trimmed],
     enabled,
     queryFn: async () => {
+      const numeric = !isNaN(Number(trimmed));
+      const filters = [
+        `description.ilike.%${trimmed}%`,
+        `beneficiary_name.ilike.%${trimmed}%`,
+        `status.ilike.%${trimmed}%`,
+        `type.ilike.%${trimmed}%`,
+        `currency.ilike.%${trimmed}%`,
+      ];
+      if (numeric) filters.push(`amount.eq.${Number(trimmed)}`);
       const { data } = await supabase
         .from("expenses")
-        .select("id, description, beneficiary_name, status, amount, currency, type, cohort_id")
-        .or(`description.ilike.%${trimmed}%,beneficiary_name.ilike.%${trimmed}%,status.ilike.%${trimmed}%,type.ilike.%${trimmed}%,currency.ilike.%${trimmed}%`)
+        .select("id, description, beneficiary_name, status, amount, currency, type, cohort_id, due_date")
+        .or(filters.join(","))
         .limit(6);
       return data ?? [];
     },
@@ -303,6 +313,110 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
         .from("resource_library")
         .select("id, resource_name, module_name, description")
         .or(`resource_name.ilike.%${trimmed}%,module_name.ilike.%${trimmed}%,description.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: tags } = useQuery({
+    queryKey: ["global-search-tags", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("tags")
+        .select("id, name, color")
+        .ilike("name", `%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: mentors } = useQuery({
+    queryKey: ["global-search-mentors", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("mentors")
+        .select("id, full_name, expertise, email")
+        .or(`full_name.ilike.%${trimmed}%,expertise.ilike.%${trimmed}%,email.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: associates } = useQuery({
+    queryKey: ["global-search-associates", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("venture_associates")
+        .select("id, full_name")
+        .ilike("full_name", `%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: progress } = useQuery({
+    queryKey: ["global-search-progress", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("founder_progress")
+        .select("id, founder_id, week_start_date, manager_notes, product_update, team_update, market_update, traction_update, funding_update, founders(founder_name, startup_name)")
+        .or(`manager_notes.ilike.%${trimmed}%,product_update.ilike.%${trimmed}%,team_update.ilike.%${trimmed}%,market_update.ilike.%${trimmed}%,traction_update.ilike.%${trimmed}%,funding_update.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: contractDocs } = useQuery({
+    queryKey: ["global-search-contract-docs", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("contract_documents")
+        .select("id, contract_id, file_name, file_url, contracts(title)")
+        .ilike("file_name", `%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: contractLinks } = useQuery({
+    queryKey: ["global-search-contract-links", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("contract_links")
+        .select("id, contract_id, title, url, contracts(title)")
+        .or(`title.ilike.%${trimmed}%,url.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: expenseLinks } = useQuery({
+    queryKey: ["global-search-expense-links", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("expense_links")
+        .select("id, expense_id, title, url")
+        .or(`title.ilike.%${trimmed}%,url.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: contractMilestones } = useQuery({
+    queryKey: ["global-search-contract-milestones", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("contract_milestones")
+        .select("id, contract_id, title, description, status, contracts(title)")
+        .or(`title.ilike.%${trimmed}%,description.ilike.%${trimmed}%,status.ilike.%${trimmed}%`)
         .limit(6);
       return data ?? [];
     },
@@ -655,6 +769,120 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                     <div className="flex flex-col min-w-0">
                       <span className="text-sm font-medium truncate">{highlightMatch(h.section_name, trimmed)} · {highlightMatch(h.action, trimmed)}</span>
                       <span className="text-xs text-muted-foreground truncate">{h.changed_by_name ?? "—"} · {h.created_at ? new Date(h.created_at).toLocaleString() : ""}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+            {progress && progress.length > 0 && (
+              <CommandGroup heading="Founder Progress">
+                {progress.map((p: any) => {
+                  const snippet = [p.manager_notes, p.product_update, p.team_update, p.market_update, p.traction_update, p.funding_update].find((x) => x?.toLowerCase().includes(trimmed.toLowerCase())) ?? "";
+                  return (
+                    <CommandItem key={p.id} value={`progress-${p.id}-${snippet}`} onSelect={() => go(`/founders/tracking?highlight=${p.id}`)} className="flex items-center gap-3 cursor-pointer">
+                      <TrendingUp className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-medium truncate">{p.founders?.founder_name ?? "Progress"} · {p.week_start_date ?? ""}</span>
+                        <span className="text-xs text-muted-foreground truncate">{highlightMatch(snippet.slice(0, 80), trimmed)}</span>
+                      </div>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
+
+            {contractMilestones && contractMilestones.length > 0 && (
+              <CommandGroup heading="Contract Milestones">
+                {contractMilestones.map((m: any) => (
+                  <CommandItem key={m.id} value={`milestone-${m.id}-${m.title}`} onSelect={() => go(`/operations/contracts?highlight=${m.contract_id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <Briefcase className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(m.title, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{m.contracts?.title ?? ""} · {m.status ?? ""}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {contractDocs && contractDocs.length > 0 && (
+              <CommandGroup heading="Contract Documents">
+                {contractDocs.map((d: any) => (
+                  <CommandItem key={d.id} value={`cdoc-${d.id}-${d.file_name}`} onSelect={() => go(`/operations/contracts?highlight=${d.contract_id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(d.file_name, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{d.contracts?.title ?? "Contract"}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {contractLinks && contractLinks.length > 0 && (
+              <CommandGroup heading="Contract Links">
+                {contractLinks.map((l: any) => (
+                  <CommandItem key={l.id} value={`clink-${l.id}-${l.title ?? l.url}`} onSelect={() => go(`/operations/contracts?highlight=${l.contract_id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <LinkIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(l.title ?? l.url, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{l.contracts?.title ?? ""}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {expenseLinks && expenseLinks.length > 0 && (
+              <CommandGroup heading="Expense Links">
+                {expenseLinks.map((l: any) => (
+                  <CommandItem key={l.id} value={`elink-${l.id}-${l.title ?? l.url}`} onSelect={() => go(`/operations/expenses?highlight=${l.expense_id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <LinkIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(l.title ?? l.url, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{l.url}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {mentors && mentors.length > 0 && (
+              <CommandGroup heading="Mentors">
+                {mentors.map((m: any) => (
+                  <CommandItem key={m.id} value={`mentor-${m.id}-${m.full_name}`} onSelect={() => go(`/events/stakeholders?highlight=${m.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <Users2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(m.full_name, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{m.expertise ?? ""} · {m.email ?? ""}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {associates && associates.length > 0 && (
+              <CommandGroup heading="Venture Associates">
+                {associates.map((a: any) => (
+                  <CommandItem key={a.id} value={`assoc-${a.id}-${a.full_name}`} onSelect={() => go(`/founders/tracking?highlight=${a.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <UserCog className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(a.full_name, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">Venture Associate</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {tags && tags.length > 0 && (
+              <CommandGroup heading="Tags">
+                {tags.map((t: any) => (
+                  <CommandItem key={t.id} value={`tag-${t.id}-${t.name}`} onSelect={() => go(`/settings?highlight=${t.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <Tag className="h-4 w-4 shrink-0" style={{ color: t.color }} />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(t.name, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">Tag · {t.color}</span>
                     </div>
                   </CommandItem>
                 ))}
