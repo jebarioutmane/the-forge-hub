@@ -92,8 +92,22 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("id, full_name, role, email, status")
-        .or(`full_name.ilike.%${trimmed}%,role.ilike.%${trimmed}%,email.ilike.%${trimmed}%`)
+        .select("id, full_name, role, email, status, title, description, phone, status_note")
+        .or(`full_name.ilike.%${trimmed}%,role.ilike.%${trimmed}%,email.ilike.%${trimmed}%,title.ilike.%${trimmed}%,description.ilike.%${trimmed}%,phone.ilike.%${trimmed}%,status_note.ilike.%${trimmed}%,status.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: historyLogs } = useQuery({
+    queryKey: ["global-search-history", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("history_logs")
+        .select("id, section_name, action, changed_by_name, created_at, record_id")
+        .or(`section_name.ilike.%${trimmed}%,action.ilike.%${trimmed}%,changed_by_name.ilike.%${trimmed}%,record_id.ilike.%${trimmed}%`)
+        .order("created_at", { ascending: false })
         .limit(6);
       return data ?? [];
     },
