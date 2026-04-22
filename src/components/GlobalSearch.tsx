@@ -13,7 +13,7 @@ import {
 import {
   GraduationCap, Users2, CalendarDays, FileText,
   DollarSign, ListTodo, BookOpen, Handshake, Wallet,
-  TrendingUp, ClipboardCheck,
+  TrendingUp, ClipboardCheck, History, Home, Settings, LayoutDashboard,
 } from "lucide-react";
 import { getFlag } from "@/lib/countries";
 
@@ -92,8 +92,22 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("id, full_name, role, email, status")
-        .or(`full_name.ilike.%${trimmed}%,role.ilike.%${trimmed}%,email.ilike.%${trimmed}%`)
+        .select("id, full_name, role, email, status, title, description, phone, status_note")
+        .or(`full_name.ilike.%${trimmed}%,role.ilike.%${trimmed}%,email.ilike.%${trimmed}%,title.ilike.%${trimmed}%,description.ilike.%${trimmed}%,phone.ilike.%${trimmed}%,status_note.ilike.%${trimmed}%,status.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: historyLogs } = useQuery({
+    queryKey: ["global-search-history", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("history_logs")
+        .select("id, section_name, action, changed_by_name, created_at, record_id")
+        .or(`section_name.ilike.%${trimmed}%,action.ilike.%${trimmed}%,changed_by_name.ilike.%${trimmed}%,record_id.ilike.%${trimmed}%`)
+        .order("created_at", { ascending: false })
         .limit(6);
       return data ?? [];
     },
@@ -318,6 +332,45 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
         ) : (
           <>
             <CommandEmpty>No results found.</CommandEmpty>
+
+            {(() => {
+              const pages = [
+                { title: "Home", path: "/", icon: Home, keywords: "home command center dashboard" },
+                { title: "Operations Dashboard", path: "/operations", icon: LayoutDashboard, keywords: "operations dashboard budget overview" },
+                { title: "Budget Source", path: "/operations/source", icon: DollarSign, keywords: "budget source categories lines cohorts vendors" },
+                { title: "Expenses", path: "/operations/expenses", icon: DollarSign, keywords: "expenses spending payments" },
+                { title: "Stipends", path: "/operations/stipends", icon: Wallet, keywords: "stipends payouts founders monthly" },
+                { title: "Contracts", path: "/operations/contracts", icon: FileText, keywords: "contracts agreements vendors" },
+                { title: "Events Calendar", path: "/events", icon: CalendarDays, keywords: "events calendar program schedule" },
+                { title: "Planning", path: "/events/planning", icon: CalendarDays, keywords: "planning events masterclass" },
+                { title: "Logistics", path: "/events/logistics", icon: CalendarDays, keywords: "logistics travel accommodation catering" },
+                { title: "Stakeholders", path: "/events/stakeholders", icon: Handshake, keywords: "stakeholders mentors investors partners" },
+                { title: "Founders Directory", path: "/founders", icon: GraduationCap, keywords: "founders directory source startups" },
+                { title: "Founder Tracking", path: "/founders/tracking", icon: TrendingUp, keywords: "tracking weekly progress founders" },
+                { title: "Founder Evaluation", path: "/founders/evaluation", icon: ClipboardCheck, keywords: "evaluation blocks scores assessment" },
+                { title: "Portfolio Dashboard", path: "/founders/portfolio", icon: LayoutDashboard, keywords: "portfolio dashboard founders overview charts" },
+                { title: "Library", path: "/library", icon: BookOpen, keywords: "library resources documents links" },
+                { title: "Team Profiles", path: "/system/profiles", icon: Users2, keywords: "team profiles staff members system" },
+                { title: "History Log", path: "/system/history", icon: History, keywords: "history log audit time machine changes" },
+                { title: "Settings", path: "/settings", icon: Settings, keywords: "settings preferences tags configuration" },
+              ];
+              const q = trimmed.toLowerCase();
+              const matched = pages.filter((p) => p.title.toLowerCase().includes(q) || p.keywords.includes(q));
+              if (matched.length === 0) return null;
+              return (
+                <CommandGroup heading="Pages">
+                  {matched.slice(0, 8).map((p) => (
+                    <CommandItem key={p.path} value={`page-${p.path}-${p.title}`} onSelect={() => go(p.path)} className="flex items-center gap-3 cursor-pointer">
+                      <p.icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-medium truncate">{highlightMatch(p.title, trimmed)}</span>
+                        <span className="text-xs text-muted-foreground truncate">{p.path}</span>
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              );
+            })()}
 
             {founders && founders.length > 0 && (
               <CommandGroup heading="Founders">
@@ -588,6 +641,20 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                     <div className="flex flex-col min-w-0">
                       <span className="text-sm font-medium truncate">{highlightMatch(r.resource_name, trimmed)}</span>
                       <span className="text-xs text-muted-foreground truncate">{highlightMatch(r.module_name, trimmed)}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {historyLogs && historyLogs.length > 0 && (
+              <CommandGroup heading="History Log">
+                {historyLogs.map((h: any) => (
+                  <CommandItem key={h.id} value={`history-${h.id}-${h.section_name}`} onSelect={() => go(`/system/history?highlight=${h.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <History className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(h.section_name, trimmed)} · {highlightMatch(h.action, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{h.changed_by_name ?? "—"} · {h.created_at ? new Date(h.created_at).toLocaleString() : ""}</span>
                     </div>
                   </CommandItem>
                 ))}
