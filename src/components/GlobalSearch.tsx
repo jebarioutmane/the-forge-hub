@@ -14,6 +14,7 @@ import {
   GraduationCap, Users2, CalendarDays, FileText,
   DollarSign, ListTodo, BookOpen, Handshake, Wallet,
   TrendingUp, ClipboardCheck, History, Home, Settings, LayoutDashboard,
+  Tag, UserCog, Briefcase, Link as LinkIcon,
 } from "lucide-react";
 import { getFlag } from "@/lib/countries";
 
