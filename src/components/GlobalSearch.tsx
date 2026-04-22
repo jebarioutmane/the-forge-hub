@@ -317,13 +317,41 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
             )}
 
             {events && events.length > 0 && (
-              <CommandGroup heading="Events">
+              <CommandGroup heading="Planning">
                 {events.map((e) => (
-                  <CommandItem key={e.id} value={`event-${e.name}-${e.location}`} onSelect={() => go(`/events?highlight=${e.id}`)} className="flex items-center gap-3 cursor-pointer">
+                  <CommandItem key={e.id} value={`event-${e.name}-${e.location}`} onSelect={() => go(`/events/planning?highlight=${e.id}`)} className="flex items-center gap-3 cursor-pointer">
                     <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <div className="flex flex-col min-w-0">
                       <span className="text-sm font-medium truncate">{highlightMatch(e.name, trimmed)}</span>
                       <span className="text-xs text-muted-foreground truncate">{e.event_type ?? "Event"} · {e.location ?? ""} · {e.status ?? ""}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {programEvents && programEvents.length > 0 && (
+              <CommandGroup heading="Calendar">
+                {programEvents.map((p: any) => (
+                  <CommandItem key={p.id} value={`program-${p.id}-${p.title}`} onSelect={() => go(`/events?highlight=${p.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(p.title, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{p.event_type ?? "Calendar"} · {p.location ?? ""} · {p.cohort_year ?? ""}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {logistics && logistics.length > 0 && (
+              <CommandGroup heading="Logistics">
+                {logistics.map((l: any) => (
+                  <CommandItem key={l.id} value={`logistics-${l.id}`} onSelect={() => go(`/events/logistics?highlight=${l.event_id ?? l.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{l.events?.name ?? "Logistics entry"}</span>
+                      <span className="text-xs text-muted-foreground truncate">{highlightMatch((l.comments ?? "").slice(0, 80), trimmed)}</span>
                     </div>
                   </CommandItem>
                 ))}
