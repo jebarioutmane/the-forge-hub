@@ -48,7 +48,8 @@ import {
   Plus,
   ExternalLink,
 } from "lucide-react";
-import { COHORT_YEARS, getCurrentCohortYear } from "@/lib/cohortYears";
+import { getCurrentCohortYear } from "@/lib/cohortYears";
+import { CohortSelect } from "@/components/CohortSelect";
 import { toast } from "@/hooks/use-toast";
 
 const CATEGORIES = [
@@ -143,18 +144,7 @@ export default function Source() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Select value={cohort} onValueChange={setCohort}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {COHORT_YEARS.map((y) => (
-                <SelectItem key={y} value={y}>
-                  {y}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <CohortSelect value={cohort} onChange={setCohort} className="w-[160px]" />
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">

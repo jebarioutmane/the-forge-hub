@@ -148,7 +148,8 @@ function ScoreBadge({ score }: { score: number | null }) {
   );
 }
 
-import { COHORT_YEARS, getCurrentCohortYear } from "@/lib/cohortYears";
+import { getCurrentCohortYear } from "@/lib/cohortYears";
+import { CohortSelect } from "@/components/CohortSelect";
 
 export default function FoundersTracking() {
   const { user } = useAuth();
@@ -309,16 +310,12 @@ export default function FoundersTracking() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Cohort Year</Label>
-          <Select value={cohortYear} onValueChange={(v) => { setCohortYear(v); setSelectedFounder(""); }}>
-            <SelectTrigger className="max-w-sm">
-              <SelectValue placeholder="Select year" />
-            </SelectTrigger>
-            <SelectContent>
-              {COHORT_YEARS.map((y) => (
-                <SelectItem key={y} value={y}>{y}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <CohortSelect
+            value={cohortYear}
+            onChange={(v) => { setCohortYear(v); setSelectedFounder(""); }}
+            className="max-w-sm"
+            placeholder="Select year"
+          />
         </div>
         <div className="space-y-2">
           <Label>Select Founder</Label>

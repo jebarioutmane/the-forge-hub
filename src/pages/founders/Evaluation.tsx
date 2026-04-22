@@ -49,7 +49,8 @@ function initMetricData(block: BlockConfig): Record<string, MetricData> {
   return data;
 }
 
-import { COHORT_YEARS, getCurrentCohortYear } from "@/lib/cohortYears";
+import { getCurrentCohortYear } from "@/lib/cohortYears";
+import { CohortSelect } from "@/components/CohortSelect";
 
 export default function FounderEvaluation() {
   const { user } = useAuth();
@@ -213,14 +214,11 @@ export default function FounderEvaluation() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label>Cohort Year</Label>
-          <Select value={cohortYear} onValueChange={(v) => { setCohortYear(v); setSelectedFounder(""); }}>
-            <SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger>
-            <SelectContent>
-              {COHORT_YEARS.map((y) => (
-                <SelectItem key={y} value={y}>{y}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <CohortSelect
+            value={cohortYear}
+            onChange={(v) => { setCohortYear(v); setSelectedFounder(""); }}
+            placeholder="Select year"
+          />
         </div>
         <div className="space-y-2">
           <Label>Select Founder</Label>
