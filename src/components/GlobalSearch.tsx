@@ -774,6 +774,120 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                 ))}
               </CommandGroup>
             )}
+            {progress && progress.length > 0 && (
+              <CommandGroup heading="Founder Progress">
+                {progress.map((p: any) => {
+                  const snippet = [p.manager_notes, p.product_update, p.team_update, p.market_update, p.traction_update, p.funding_update].find((x) => x?.toLowerCase().includes(trimmed.toLowerCase())) ?? "";
+                  return (
+                    <CommandItem key={p.id} value={`progress-${p.id}-${snippet}`} onSelect={() => go(`/founders/tracking?highlight=${p.id}`)} className="flex items-center gap-3 cursor-pointer">
+                      <TrendingUp className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-medium truncate">{p.founders?.founder_name ?? "Progress"} · {p.week_start_date ?? ""}</span>
+                        <span className="text-xs text-muted-foreground truncate">{highlightMatch(snippet.slice(0, 80), trimmed)}</span>
+                      </div>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
+
+            {contractMilestones && contractMilestones.length > 0 && (
+              <CommandGroup heading="Contract Milestones">
+                {contractMilestones.map((m: any) => (
+                  <CommandItem key={m.id} value={`milestone-${m.id}-${m.title}`} onSelect={() => go(`/operations/contracts?highlight=${m.contract_id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <Briefcase className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(m.title, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{m.contracts?.title ?? ""} · {m.status ?? ""}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {contractDocs && contractDocs.length > 0 && (
+              <CommandGroup heading="Contract Documents">
+                {contractDocs.map((d: any) => (
+                  <CommandItem key={d.id} value={`cdoc-${d.id}-${d.file_name}`} onSelect={() => go(`/operations/contracts?highlight=${d.contract_id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(d.file_name, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{d.contracts?.title ?? "Contract"}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {contractLinks && contractLinks.length > 0 && (
+              <CommandGroup heading="Contract Links">
+                {contractLinks.map((l: any) => (
+                  <CommandItem key={l.id} value={`clink-${l.id}-${l.title ?? l.url}`} onSelect={() => go(`/operations/contracts?highlight=${l.contract_id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <LinkIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(l.title ?? l.url, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{l.contracts?.title ?? ""}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {expenseLinks && expenseLinks.length > 0 && (
+              <CommandGroup heading="Expense Links">
+                {expenseLinks.map((l: any) => (
+                  <CommandItem key={l.id} value={`elink-${l.id}-${l.title ?? l.url}`} onSelect={() => go(`/operations/expenses?highlight=${l.expense_id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <LinkIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(l.title ?? l.url, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{l.url}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {mentors && mentors.length > 0 && (
+              <CommandGroup heading="Mentors">
+                {mentors.map((m: any) => (
+                  <CommandItem key={m.id} value={`mentor-${m.id}-${m.full_name}`} onSelect={() => go(`/events/stakeholders?highlight=${m.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <Users2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(m.full_name, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{m.expertise ?? ""} · {m.email ?? ""}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {associates && associates.length > 0 && (
+              <CommandGroup heading="Venture Associates">
+                {associates.map((a: any) => (
+                  <CommandItem key={a.id} value={`assoc-${a.id}-${a.full_name}`} onSelect={() => go(`/founders/tracking?highlight=${a.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <UserCog className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(a.full_name, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">Venture Associate</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {tags && tags.length > 0 && (
+              <CommandGroup heading="Tags">
+                {tags.map((t: any) => (
+                  <CommandItem key={t.id} value={`tag-${t.id}-${t.name}`} onSelect={() => go(`/settings?highlight=${t.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <Tag className="h-4 w-4 shrink-0" style={{ color: t.color }} />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(t.name, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">Tag · {t.color}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
           </>
         )}
       </CommandList>
