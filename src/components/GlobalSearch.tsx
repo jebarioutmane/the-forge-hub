@@ -157,8 +157,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     queryFn: async () => {
       const { data } = await supabase
         .from("contracts")
-        .select("id, title, stakeholder_name, status, type")
-        .or(`title.ilike.%${trimmed}%,stakeholder_name.ilike.%${trimmed}%`)
+        .select("id, title, stakeholder_name, status, type, description, payment_structure, currency, value")
+        .or(`title.ilike.%${trimmed}%,stakeholder_name.ilike.%${trimmed}%,description.ilike.%${trimmed}%,type.ilike.%${trimmed}%,status.ilike.%${trimmed}%,payment_structure.ilike.%${trimmed}%`)
         .limit(6);
       return data ?? [];
     },
@@ -170,8 +170,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     queryFn: async () => {
       const { data } = await supabase
         .from("expenses")
-        .select("id, description, beneficiary_name, status, amount")
-        .or(`description.ilike.%${trimmed}%,beneficiary_name.ilike.%${trimmed}%`)
+        .select("id, description, beneficiary_name, status, amount, currency, type, cohort_id")
+        .or(`description.ilike.%${trimmed}%,beneficiary_name.ilike.%${trimmed}%,status.ilike.%${trimmed}%,type.ilike.%${trimmed}%,currency.ilike.%${trimmed}%`)
         .limit(6);
       return data ?? [];
     },
@@ -195,9 +195,74 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     enabled,
     queryFn: async () => {
       const { data } = await supabase
-        .from("stipends")
-        .select("id, founder_name, status, base_amount")
-        .or(`founder_name.ilike.%${trimmed}%`)
+        .from("stipend_records")
+        .select("id, payment_month, cohort_year, status, total_net, base_amount, notes, founders(founder_name, startup_name)")
+        .or(`payment_month.ilike.%${trimmed}%,cohort_year.ilike.%${trimmed}%,status.ilike.%${trimmed}%,notes.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: budgetCategories } = useQuery({
+    queryKey: ["global-search-budget-categories", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("budget_categories")
+        .select("id, name, total_amount")
+        .ilike("name", `%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: budgetLines } = useQuery({
+    queryKey: ["global-search-budget-lines", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("budget_lines")
+        .select("id, name, code, allocated_amount")
+        .or(`name.ilike.%${trimmed}%,code.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: budgetTx } = useQuery({
+    queryKey: ["global-search-budget-tx", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("budget_transactions")
+        .select("id, description, category, amount, transaction_type, cohort_year, date")
+        .or(`description.ilike.%${trimmed}%,category.ilike.%${trimmed}%,transaction_type.ilike.%${trimmed}%,cohort_year.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: vendors } = useQuery({
+    queryKey: ["global-search-vendors", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("vendors")
+        .select("id, name, type, email")
+        .or(`name.ilike.%${trimmed}%,type.ilike.%${trimmed}%,email.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: cohorts } = useQuery({
+    queryKey: ["global-search-cohorts", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("cohorts")
+        .select("id, name, year, total_budget")
+        .ilike("name", `%${trimmed}%`)
         .limit(6);
       return data ?? [];
     },
@@ -416,12 +481,85 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
             {stipends && stipends.length > 0 && (
               <CommandGroup heading="Stipends">
-                {stipends.map((s) => (
-                  <CommandItem key={s.id} value={`stipend-${s.founder_name}-${s.status}`} onSelect={() => go(`/operations/stipends?highlight=${s.id}`)} className="flex items-center gap-3 cursor-pointer">
-                    <Wallet className="h-4 w-4 shrink-0 text-muted-foreground" />
+                {stipends.map((s: any) => {
+                  const name = s.founders?.founder_name ?? "Stipend";
+                  return (
+                    <CommandItem key={s.id} value={`stipend-${s.id}-${name}`} onSelect={() => go(`/operations/stipends?highlight=${s.id}`)} className="flex items-center gap-3 cursor-pointer">
+                      <Wallet className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-medium truncate">{name} · {s.payment_month ?? ""}</span>
+                        <span className="text-xs text-muted-foreground truncate">{s.status ?? ""} · {s.cohort_year ?? ""} · {s.total_net ?? s.base_amount ?? 0} MAD</span>
+                      </div>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
+
+            {budgetCategories && budgetCategories.length > 0 && (
+              <CommandGroup heading="Budget Categories">
+                {budgetCategories.map((b: any) => (
+                  <CommandItem key={b.id} value={`bcat-${b.id}-${b.name}`} onSelect={() => go(`/operations/source?highlight=${b.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <DollarSign className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-medium truncate">{highlightMatch(s.founder_name, trimmed)}</span>
-                      <span className="text-xs text-muted-foreground truncate">{s.status} · {s.base_amount} MAD</span>
+                      <span className="text-sm font-medium truncate">{highlightMatch(b.name, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">Total: {b.total_amount ?? 0} MAD</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {budgetLines && budgetLines.length > 0 && (
+              <CommandGroup heading="Budget Lines">
+                {budgetLines.map((b: any) => (
+                  <CommandItem key={b.id} value={`bline-${b.id}-${b.name}`} onSelect={() => go(`/operations/source?highlight=${b.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <DollarSign className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(b.name, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{b.code ?? ""} · {b.allocated_amount ?? 0} MAD</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {budgetTx && budgetTx.length > 0 && (
+              <CommandGroup heading="Budget Transactions">
+                {budgetTx.map((t: any) => (
+                  <CommandItem key={t.id} value={`btx-${t.id}-${t.description}`} onSelect={() => go(`/operations?highlight=${t.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <DollarSign className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(t.description ?? t.category, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{t.transaction_type ?? ""} · {t.amount ?? 0} · {t.cohort_year ?? ""} · {t.date ?? ""}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {vendors && vendors.length > 0 && (
+              <CommandGroup heading="Vendors">
+                {vendors.map((v: any) => (
+                  <CommandItem key={v.id} value={`vendor-${v.id}-${v.name}`} onSelect={() => go(`/operations/source?highlight=${v.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <Handshake className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(v.name, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{v.type ?? ""} · {v.email ?? ""}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {cohorts && cohorts.length > 0 && (
+              <CommandGroup heading="Cohorts">
+                {cohorts.map((c: any) => (
+                  <CommandItem key={c.id} value={`cohort-${c.id}-${c.name}`} onSelect={() => go(`/operations/source?highlight=${c.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <DollarSign className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(c.name, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{c.year ?? ""} · Budget: {c.total_budget ?? 0} MAD</span>
                     </div>
                   </CommandItem>
                 ))}
