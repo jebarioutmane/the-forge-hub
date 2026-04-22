@@ -113,6 +113,18 @@ export function MyProfileDialog() {
           <Button onClick={handleSave} disabled={saving} className="w-full">
             {saving ? "Saving..." : "Save Profile"}
           </Button>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              await signOut();
+              setOpen(false);
+              navigate("/auth");
+            }}
+            className="w-full text-destructive hover:text-destructive"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign Out
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
