@@ -4,14 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Camera, User } from "lucide-react";
+import { Camera, User, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 export function MyProfileDialog() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
@@ -110,6 +112,18 @@ export function MyProfileDialog() {
           </div>
           <Button onClick={handleSave} disabled={saving} className="w-full">
             {saving ? "Saving..." : "Save Profile"}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              await signOut();
+              setOpen(false);
+              navigate("/auth");
+            }}
+            className="w-full text-destructive hover:text-destructive"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign Out
           </Button>
         </div>
       </DialogContent>

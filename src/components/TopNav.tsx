@@ -4,7 +4,7 @@ import {
   ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
   Settings, Wallet, PiggyBank, ListTodo,
   ClipboardList, BarChart3, Users2, Truck,
-  LogOut, Menu, ChevronRight, Search,
+  Menu, ChevronRight, Search,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -131,7 +131,6 @@ function MegaMenuContent({
 }
 
 export function TopNav() {
-  const { signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
@@ -140,11 +139,6 @@ export function TopNav() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const isHome = location.pathname === "/";
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/auth");
-  };
 
   return (
     <>
@@ -222,17 +216,6 @@ export function TopNav() {
           )}
           {!isMobile && !isHome && <TeamPresence onlineUserIds={onlineUserIds} />}
           {!isMobile && <MyProfileDialog />}
-          {!isMobile && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleSignOut}
-              className="text-muted-foreground hover:text-destructive h-8 w-8"
-              title="Sign Out"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
-          )}
 
           {/* Mobile hamburger */}
           {isMobile && (
@@ -303,15 +286,6 @@ export function TopNav() {
                     <TeamPresence onlineUserIds={onlineUserIds} />
                     <div className="flex items-center gap-2 pt-2">
                       <MyProfileDialog />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => { handleSignOut(); setMobileOpen(false); }}
-                        className="text-muted-foreground hover:text-destructive gap-2"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        Sign Out
-                      </Button>
                     </div>
                   </div>
                 </div>
