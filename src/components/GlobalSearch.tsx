@@ -331,6 +331,18 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     },
   });
 
+  const { data: cohortsRes } = useQuery({
+    queryKey: ["global-search-cohorts", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("cohorts")
+        .select("id,label,year,start_date,end_date" as any)
+        .or(`label.ilike.%${trimmed}%,name.ilike.%${trimmed}%`)
+        .limit(6);
+      return (data ?? []) as any[];
+    },
+  });
   const { data: mentors } = useQuery({
     queryKey: ["global-search-mentors", trimmed],
     enabled,
