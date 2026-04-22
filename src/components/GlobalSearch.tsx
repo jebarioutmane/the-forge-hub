@@ -106,7 +106,33 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
       const { data } = await supabase
         .from("events")
         .select("id, name, location, event_type, status, start_date")
-        .or(`name.ilike.%${trimmed}%,location.ilike.%${trimmed}%,event_type.ilike.%${trimmed}%`)
+        .or(`name.ilike.%${trimmed}%,location.ilike.%${trimmed}%,event_type.ilike.%${trimmed}%,status.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: programEvents } = useQuery({
+    queryKey: ["global-search-program-events", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("program_events")
+        .select("id, title, description, location, event_type, start_time, cohort_year")
+        .or(`title.ilike.%${trimmed}%,description.ilike.%${trimmed}%,location.ilike.%${trimmed}%,event_type.ilike.%${trimmed}%,cohort_year.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: logistics } = useQuery({
+    queryKey: ["global-search-logistics", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("event_logistics")
+        .select("id, event_id, comments, people_involved, events(name)")
+        .ilike("comments", `%${trimmed}%`)
         .limit(6);
       return data ?? [];
     },
@@ -118,8 +144,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     queryFn: async () => {
       const { data } = await supabase
         .from("stakeholders")
-        .select("id, full_name, institution_name, type, sector")
-        .or(`full_name.ilike.%${trimmed}%,institution_name.ilike.%${trimmed}%,sector.ilike.%${trimmed}%`)
+        .select("id, full_name, institution_name, type, sector, email, title, based_in_country, point_of_contact, description")
+        .or(`full_name.ilike.%${trimmed}%,institution_name.ilike.%${trimmed}%,sector.ilike.%${trimmed}%,email.ilike.%${trimmed}%,title.ilike.%${trimmed}%,based_in_country.ilike.%${trimmed}%,point_of_contact.ilike.%${trimmed}%,description.ilike.%${trimmed}%,type.ilike.%${trimmed}%`)
         .limit(6);
       return data ?? [];
     },
