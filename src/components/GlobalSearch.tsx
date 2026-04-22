@@ -157,8 +157,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     queryFn: async () => {
       const { data } = await supabase
         .from("contracts")
-        .select("id, title, stakeholder_name, status, type")
-        .or(`title.ilike.%${trimmed}%,stakeholder_name.ilike.%${trimmed}%`)
+        .select("id, title, stakeholder_name, status, type, description, payment_structure, currency, value")
+        .or(`title.ilike.%${trimmed}%,stakeholder_name.ilike.%${trimmed}%,description.ilike.%${trimmed}%,type.ilike.%${trimmed}%,status.ilike.%${trimmed}%,payment_structure.ilike.%${trimmed}%`)
         .limit(6);
       return data ?? [];
     },
@@ -170,8 +170,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     queryFn: async () => {
       const { data } = await supabase
         .from("expenses")
-        .select("id, description, beneficiary_name, status, amount")
-        .or(`description.ilike.%${trimmed}%,beneficiary_name.ilike.%${trimmed}%`)
+        .select("id, description, beneficiary_name, status, amount, currency, type, cohort_id")
+        .or(`description.ilike.%${trimmed}%,beneficiary_name.ilike.%${trimmed}%,status.ilike.%${trimmed}%,type.ilike.%${trimmed}%,currency.ilike.%${trimmed}%`)
         .limit(6);
       return data ?? [];
     },
@@ -195,9 +195,74 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     enabled,
     queryFn: async () => {
       const { data } = await supabase
-        .from("stipends")
-        .select("id, founder_name, status, base_amount")
-        .or(`founder_name.ilike.%${trimmed}%`)
+        .from("stipend_records")
+        .select("id, payment_month, cohort_year, status, total_net, base_amount, notes, founders(founder_name, startup_name)")
+        .or(`payment_month.ilike.%${trimmed}%,cohort_year.ilike.%${trimmed}%,status.ilike.%${trimmed}%,notes.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: budgetCategories } = useQuery({
+    queryKey: ["global-search-budget-categories", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("budget_categories")
+        .select("id, name, total_amount")
+        .ilike("name", `%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: budgetLines } = useQuery({
+    queryKey: ["global-search-budget-lines", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("budget_lines")
+        .select("id, name, code, allocated_amount")
+        .or(`name.ilike.%${trimmed}%,code.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: budgetTx } = useQuery({
+    queryKey: ["global-search-budget-tx", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("budget_transactions")
+        .select("id, description, category, amount, transaction_type, cohort_year, date")
+        .or(`description.ilike.%${trimmed}%,category.ilike.%${trimmed}%,transaction_type.ilike.%${trimmed}%,cohort_year.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: vendors } = useQuery({
+    queryKey: ["global-search-vendors", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("vendors")
+        .select("id, name, type, email")
+        .or(`name.ilike.%${trimmed}%,type.ilike.%${trimmed}%,email.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: cohorts } = useQuery({
+    queryKey: ["global-search-cohorts", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("cohorts")
+        .select("id, name, year, total_budget")
+        .ilike("name", `%${trimmed}%`)
         .limit(6);
       return data ?? [];
     },
