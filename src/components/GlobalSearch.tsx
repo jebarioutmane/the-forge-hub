@@ -183,10 +183,19 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     queryKey: ["global-search-expenses", trimmed],
     enabled,
     queryFn: async () => {
+      const numeric = !isNaN(Number(trimmed));
+      const filters = [
+        `description.ilike.%${trimmed}%`,
+        `beneficiary_name.ilike.%${trimmed}%`,
+        `status.ilike.%${trimmed}%`,
+        `type.ilike.%${trimmed}%`,
+        `currency.ilike.%${trimmed}%`,
+      ];
+      if (numeric) filters.push(`amount.eq.${Number(trimmed)}`);
       const { data } = await supabase
         .from("expenses")
-        .select("id, description, beneficiary_name, status, amount, currency, type, cohort_id")
-        .or(`description.ilike.%${trimmed}%,beneficiary_name.ilike.%${trimmed}%,status.ilike.%${trimmed}%,type.ilike.%${trimmed}%,currency.ilike.%${trimmed}%`)
+        .select("id, description, beneficiary_name, status, amount, currency, type, cohort_id, due_date")
+        .or(filters.join(","))
         .limit(6);
       return data ?? [];
     },
