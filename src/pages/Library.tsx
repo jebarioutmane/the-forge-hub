@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { logAction } from "@/lib/logAction";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,7 +57,6 @@ export default function Library({ moduleName }: LibraryProps) {
       if (error) throw error;
     },
     onSuccess: () => {
-      logAction(`${moduleName}-Library`, "INSERT", "new", null, { resource_name: name, url }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["resource_library", moduleName] });
       setDialogOpen(false);
       setName("");
@@ -80,7 +78,6 @@ export default function Library({ moduleName }: LibraryProps) {
       if (error) throw error;
     },
     onSuccess: () => {
-      logAction(`${moduleName}-Library`, "UPDATE", editing?.id || "", editing as any, { resource_name: name, url }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["resource_library", moduleName] });
       setEditing(null);
       setName("");
@@ -98,7 +95,6 @@ export default function Library({ moduleName }: LibraryProps) {
     },
     onSuccess: (_data, id) => {
       const deleted = resources.find(r => r.id === id);
-      logAction(`${moduleName}-Library`, "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["resource_library", moduleName] });
       toast({ title: "Resource deleted" });
     },

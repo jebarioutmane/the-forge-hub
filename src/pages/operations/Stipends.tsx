@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { logAction } from "@/lib/logAction";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -194,7 +193,6 @@ export default function Stipends() {
     const idx = order.indexOf(rec.status || "pending");
     const next = order[(idx + 1) % order.length];
     updateFieldMutation.mutate({ id: rec.id, field: "status", value: next });
-    logAction("Operations-Stipends", "UPDATE", rec.id, { status: rec.status }, { status: next }, user?.email || "Unknown");
   };
 
   const saveEditMutation = useMutation({
@@ -222,7 +220,6 @@ export default function Stipends() {
       if (error) throw error;
     },
     onSuccess: () => {
-      logAction("Operations-Stipends", "UPDATE", editRecord!.id, editRecord as any, editForm as any, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["stipend_records", cohortYear, paymentMonth] });
       setEditOpen(false);
       setEditRecord(null);
@@ -237,7 +234,6 @@ export default function Stipends() {
       if (error) throw error;
     },
     onSuccess: (_d, id) => {
-      logAction("Operations-Stipends", "DELETE", id, null, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["stipend_records", cohortYear, paymentMonth] });
       setDeleteId(null);
       toast.success("Record deleted");

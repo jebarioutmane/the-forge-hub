@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { logAction } from "@/lib/logAction";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,7 +41,6 @@ export default function Settings() {
       if (error) throw error;
     },
     onSuccess: () => {
-      logAction("System-Tags", "INSERT", "new", null, { name: newTagName, color: newTagColor }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       setNewTagName("");
       setNewTagColor("#f97316");
@@ -58,7 +56,6 @@ export default function Settings() {
       if (error) throw error;
     },
     onSuccess: () => {
-      logAction("System-Tags", "UPDATE", editingTagId || "", null, { name: editTagName, color: editTagColor }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       setEditingTagId(null);
       toast.success("Tag updated");
@@ -73,7 +70,6 @@ export default function Settings() {
     },
     onSuccess: (_data, id) => {
       const deleted = tags.find(t => t.id === id);
-      logAction("System-Tags", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       setDeleteTagId(null);
       toast.success("Tag deleted");
@@ -260,7 +256,6 @@ function CohortSettingsCard() {
       if (error) throw error;
     },
     onSuccess: () => {
-      logAction("System-Cohorts", "INSERT", "new", null, newCohort, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["cohorts-all"] });
       setNewCohort({ label: "", start_date: "", end_date: "" });
       toast.success("Cohort added");
@@ -275,7 +270,6 @@ function CohortSettingsCard() {
     },
     onSuccess: (_d, id) => {
       const deleted = cohorts.find((c: any) => c.id === id);
-      logAction("System-Cohorts", "DELETE", id, deleted, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["cohorts-all"] });
       setDeleteCohortId(null);
       toast.success("Cohort deleted");

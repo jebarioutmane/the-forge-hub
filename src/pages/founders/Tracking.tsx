@@ -15,7 +15,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { StarRating } from "@/components/StarRating";
 import { toast } from "sonner";
 import { Plus, MoreHorizontal, Pencil, Trash2, ExternalLink, Link as LinkIcon, X } from "lucide-react";
-import { logAction } from "@/lib/logAction";
 import { format, parseISO } from "date-fns";
 import { formatUrl } from "@/lib/formatUrl";
 import { FounderSparkline } from "@/components/FounderSparkline";
@@ -213,12 +212,10 @@ export default function FoundersTracking() {
         const { error } = await supabase.from("founders_tracking").update(payload).eq("id", form.id);
         if (error) throw error;
         const userName = user?.email || "Unknown";
-        await logAction("Founders-Tracking", "UPDATE", form.id, oldEntry as any, payload, userName);
       } else {
         const { data, error } = await supabase.from("founders_tracking").insert(payload).select().single();
         if (error) throw error;
         const userName = user?.email || "Unknown";
-        await logAction("Founders-Tracking", "INSERT", data.id, null, payload, userName);
       }
     },
     onSuccess: () => {
@@ -235,7 +232,6 @@ export default function FoundersTracking() {
       const { error } = await supabase.from("founders_tracking").delete().eq("id", id);
       if (error) throw error;
       const userName = user?.email || "Unknown";
-      await logAction("Founders-Tracking", "DELETE", id, oldEntry as any, null, userName);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["founders_tracking"] });

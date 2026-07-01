@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { logAction } from "@/lib/logAction";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -163,7 +162,6 @@ export default function Planning() {
       }
     },
     onSuccess: () => {
-      logAction("Events-Planning", editing ? "UPDATE" : "INSERT", editing?.id || "new", editing ? (editing as any) : null, { name: form.name, event_type: form.event_type }, user?.email || "Unknown");
       qc.invalidateQueries({ queryKey: ["events"] });
       setDialogOpen(false);
       setEditing(null);
@@ -180,7 +178,6 @@ export default function Planning() {
     },
     onSuccess: (_data, id) => {
       const deleted = events.find(e => e.id === id);
-      logAction("Events-Planning", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       qc.invalidateQueries({ queryKey: ["events"] });
       setDeleteId(null);
       toast.success("Event deleted");

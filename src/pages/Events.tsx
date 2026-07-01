@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { logAction } from "@/lib/logAction";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -83,7 +82,6 @@ export default function Events() {
       }
     },
     onSuccess: () => {
-      logAction("Events-Timeline", editing ? "UPDATE" : "INSERT", editing?.id || "new", editing ? (editing as any) : null, { name: form.name, status: form.status }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["events"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setDialogOpen(false);
@@ -101,7 +99,6 @@ export default function Events() {
       if (error) throw error;
     },
     onSuccess: (_data, id) => {
-      logAction("Events-Timeline", "DELETE", id, null, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["events"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setDeleteId(null);
