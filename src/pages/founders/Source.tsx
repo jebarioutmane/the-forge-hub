@@ -3,7 +3,6 @@ import { getUniqueFilterValues, matchesFilter, matchesMultiFilter } from "@/lib/
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { logAction } from "@/lib/logAction";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -270,7 +269,6 @@ export default function FoundersSource() {
       }
     },
     onSuccess: () => {
-      logAction("Founders-Directory", editing ? "UPDATE" : "INSERT", editing?.id || "new", editing ? (editing as any) : null, { founder_name: form.founder_name, startup_name: form.startup_name }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["founders"] });
       setDialogOpen(false);
       setEditing(null);
@@ -287,7 +285,6 @@ export default function FoundersSource() {
     },
     onSuccess: (_data, id) => {
       const deleted = founders.find(f => f.id === id);
-      logAction("Founders-Directory", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["founders"] });
       setDeleteId(null);
       toast.success("Founder deleted");

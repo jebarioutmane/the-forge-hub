@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { logAction } from "@/lib/logAction";
 import { useAuth } from "@/hooks/useAuth";
 import { useVendors } from "@/hooks/useRelationalData";
 import { Button } from "@/components/ui/button";
@@ -670,7 +669,6 @@ export default function Expenses() {
       return expense;
     },
     onSuccess: (expense) => {
-      logAction("Operations-Expenses", "INSERT", expense.id, null, { description: form.description, amount: form.amount }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
       setExpenseDialogOpen(false);
       resetForm();
@@ -717,7 +715,6 @@ export default function Expenses() {
       }
     },
     onSuccess: () => {
-      logAction("Operations-Expenses", "UPDATE", editingExpense?.id || "", editingExpense as any, { description: form.description, amount: form.amount }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
       setEditingExpense(null);
       resetForm();
@@ -735,7 +732,6 @@ export default function Expenses() {
       if (error) throw error;
     },
     onSuccess: (_d, id) => {
-      logAction("Operations-Expenses", "DELETE", id, null, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["expenses"] });
       setDeleteId(null);
       toast.success("Expense deleted");

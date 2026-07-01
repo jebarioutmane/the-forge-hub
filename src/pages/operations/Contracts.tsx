@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useVendors } from "@/hooks/useRelationalData";
 import { useContracts, useContractPayments, type ContractRow } from "@/hooks/useContracts";
-import { logAction } from "@/lib/logAction";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -75,7 +74,6 @@ export default function OperationsContracts() {
     },
     onSuccess: (_d, id) => {
       const deleted = contracts.find((c) => c.id === id);
-      logAction("Operations-Contracts", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       qc.invalidateQueries({ queryKey: ["contracts"] });
       qc.invalidateQueries({ queryKey: ["all-contract-payments"] });
       setDeleteId(null);

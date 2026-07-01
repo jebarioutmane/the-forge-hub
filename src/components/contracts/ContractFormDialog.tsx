@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useVendors } from "@/hooks/useRelationalData";
 import { useBudgetLinesByCohort, type ContractRow } from "@/hooks/useContracts";
-import { logAction } from "@/lib/logAction";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,11 +111,9 @@ export default function ContractFormDialog({ open, onClose, editingContract }: C
       if (editingContract) {
         const { error } = await supabase.from("contracts").update(payload).eq("id", editingContract.id);
         if (error) throw error;
-        logAction("Operations-Contracts", "UPDATE", editingContract.id, editingContract as any, payload, user?.email || "Unknown");
       } else {
         const { error } = await supabase.from("contracts").insert(payload);
         if (error) throw error;
-        logAction("Operations-Contracts", "INSERT", "new", null, payload, user?.email || "Unknown");
       }
     },
     onSuccess: () => {

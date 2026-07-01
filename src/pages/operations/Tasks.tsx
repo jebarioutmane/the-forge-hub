@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { logAction } from "@/lib/logAction";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,7 +84,6 @@ export default function OperationsTasks() {
       if (error) throw error;
     },
     onSuccess: () => {
-      logAction("Operations-Tasks", "INSERT", "new", null, { title: form.title, priority: form.priority }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setTaskDialog(false);
       resetForm();
@@ -106,7 +104,6 @@ export default function OperationsTasks() {
       if (error) throw error;
     },
     onSuccess: () => {
-      logAction("Operations-Tasks", "UPDATE", editingTask?.id || "", editingTask as any, { title: form.title, priority: form.priority }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setEditingTask(null);
       resetForm();
@@ -122,7 +119,6 @@ export default function OperationsTasks() {
     },
     onSuccess: (_data, id) => {
       const deleted = tasks.find(t => t.id === id);
-      logAction("Operations-Tasks", "DELETE", id, deleted as any, null, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       setDeleteId(null);
       toast.success("Task deleted");
@@ -136,7 +132,6 @@ export default function OperationsTasks() {
       if (error) throw error;
     },
     onSuccess: (_data, vars) => {
-      logAction("Operations-Tasks", "UPDATE", vars.id, { status: "previous" }, { status: vars.status }, user?.email || "Unknown");
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
     onError: (e) => toast.error(e.message),

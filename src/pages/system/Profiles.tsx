@@ -18,7 +18,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { Plus, Pencil, Eye, User, CalendarIcon, Link2, X, Trash2, Shield, ShieldCheck, ShieldAlert, Search, Check, Mail, Phone, ExternalLink } from "lucide-react";
-import { logAction } from "@/lib/logAction";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { COUNTRIES, getFlag } from "@/lib/countries";
@@ -138,7 +137,6 @@ export default function SystemProfiles() {
         delete safeNewData.passport_number;
         delete safeNewData.phone;
         delete safeNewData.birthday;
-        await logAction("System-Profiles", "UPDATE", selectedProfile.id, safeOldData, safeNewData, form.full_name || user!.email || "Unknown");
       }
     },
     onError: (e) => toast.error(e.message),
