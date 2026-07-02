@@ -902,6 +902,7 @@ export type Database = {
           birthday: string | null
           cin_number: string | null
           cohort: string | null
+          cohort_id: string | null
           cohort_year: string | null
           created_at: string | null
           description: string | null
@@ -926,6 +927,7 @@ export type Database = {
           birthday?: string | null
           cin_number?: string | null
           cohort?: string | null
+          cohort_id?: string | null
           cohort_year?: string | null
           created_at?: string | null
           description?: string | null
@@ -950,6 +952,7 @@ export type Database = {
           birthday?: string | null
           cin_number?: string | null
           cohort?: string | null
+          cohort_id?: string | null
           cohort_year?: string | null
           created_at?: string | null
           description?: string | null
@@ -970,7 +973,15 @@ export type Database = {
           tag_ids?: string[] | null
           venture_associate?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "founders_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       founders_tracking: {
         Row: {
@@ -1440,47 +1451,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "stipend_records_founder_id_fkey"
-            columns: ["founder_id"]
-            isOneToOne: false
-            referencedRelation: "founders"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      stipends: {
-        Row: {
-          base_amount: number
-          created_at: string
-          deductions: number
-          final_payout: number | null
-          founder_id: string | null
-          founder_name: string
-          id: string
-          status: string
-        }
-        Insert: {
-          base_amount: number
-          created_at?: string
-          deductions?: number
-          final_payout?: number | null
-          founder_id?: string | null
-          founder_name: string
-          id?: string
-          status?: string
-        }
-        Update: {
-          base_amount?: number
-          created_at?: string
-          deductions?: number
-          final_payout?: number | null
-          founder_id?: string | null
-          founder_name?: string
-          id?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "stipends_founder_id_fkey"
             columns: ["founder_id"]
             isOneToOne: false
             referencedRelation: "founders"
