@@ -48,15 +48,21 @@ function parseNeedsExtra(needs: Json | null): { start_time?: string; end_time?: 
 }
 
 // Build ISO datetimes from the events row, preferring native start_time/end_time columns.
+function isValidTime(t?: string | null): t is string {
+  return typeof t === "string" && /^\d{2}:\d{2}(:\d{2})?$/.test(t);
+}
 function enrich(ev: Tables<"events">): CalendarEvent | null {
   if (!ev.start_date) return null;
   const extra = parseNeedsExtra(ev.needs);
-  const startTime = ev.start_time || extra.start_time || "09:00";
-  const endTime = ev.end_time || extra.end_time || "17:00";
+  const rawStart = ev.start_time || extra.start_time;
+  const rawEnd = ev.end_time || extra.end_time;
+  const startTime = isValidTime(rawStart) ? rawStart : "09:00";
+  const endTime = isValidTime(rawEnd) ? rawEnd : "17:00";
   const endDate = ev.end_date || ev.start_date;
-  const _start = new Date(`${ev.start_date}T${startTime}:00`).toISOString();
-  const _end = new Date(`${endDate}T${endTime}:00`).toISOString();
-  return { ...ev, _start, _end };
+  const startDt = new Date(`${ev.start_date}T${startTime}:00`);
+  const endDt = new Date(`${endDate}T${endTime}:00`);
+  if (isNaN(startDt.getTime()) || isNaN(endDt.getTime())) return null;
+  return { ...ev, _start: startDt.toISOString(), _end: endDt.toISOString() };
 }
 
 function detectConflicts(events: CalendarEvent[]): Set<string> {
