@@ -22,9 +22,8 @@ const SECTION_TABLE_MAP: Record<string, string> = {
   "Events-Logistics": "event_logistics",
   "Events-Stakeholders": "stakeholders",
   "Founders-Directory": "founders",
-  "Founders-Tracking": "founders_tracking",
+  "Founders-Checkins": "founder_checkins",
   "Founders-Evaluations": "founder_evaluations",
-  "Founders-Progress": "founder_progress",
   "System-Profiles": "profiles",
 };
 

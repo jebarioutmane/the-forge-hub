@@ -52,8 +52,7 @@ const sections = [
     color: "text-module-founders",
     items: [
       { title: "Directory", url: "/founders", icon: GraduationCap },
-      { title: "Progress Tracker", url: "/founders/tracking", icon: TrendingUp },
-      { title: "Evaluations", url: "/founders/evaluation", icon: ClipboardList },
+      { title: "Tracking", url: "/founders/tracking", icon: TrendingUp },
       { title: "Portfolio Dashboard", url: "/founders/portfolio", icon: BarChart3 },
     ],
   },

@@ -15,7 +15,6 @@ import OperationsContracts from "./pages/operations/Contracts";
 
 import FoundersSource from "./pages/founders/Source";
 import FoundersTracking from "./pages/founders/Tracking";
-import FounderEvaluation from "./pages/founders/Evaluation";
 import PortfolioDashboard from "./pages/founders/Portfolio";
 import EventsCalendar from "./pages/events/Calendar";
 import EventsPlanning from "./pages/events/Planning";
@@ -52,7 +51,6 @@ const App = () => (
           <Route path="/events/stakeholders" element={<MainLayout><EventsStakeholders /></MainLayout>} />
           <Route path="/founders" element={<MainLayout><FoundersSource /></MainLayout>} />
           <Route path="/founders/tracking" element={<MainLayout><FoundersTracking /></MainLayout>} />
-          <Route path="/founders/evaluation" element={<MainLayout><FounderEvaluation /></MainLayout>} />
           <Route path="/founders/portfolio" element={<MainLayout><PortfolioDashboard /></MainLayout>} />
           <Route path="/settings" element={<MainLayout><Settings /></MainLayout>} />
           <Route path="/library" element={<MainLayout><Library moduleName="All" /></MainLayout>} />

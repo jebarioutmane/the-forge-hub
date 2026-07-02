@@ -44,8 +44,7 @@ const sections = [
     description: "Manage your portfolio founders, track progress, and run evaluations.",
     items: [
       { title: "Directory", url: "/founders", icon: GraduationCap, desc: "Browse and manage all founders" },
-      { title: "Progress Tracker", url: "/founders/tracking", icon: TrendingUp, desc: "Weekly progress updates" },
-      { title: "Evaluations", url: "/founders/evaluation", icon: ClipboardList, desc: "Structured evaluation blocks" },
+      { title: "Tracking", url: "/founders/tracking", icon: TrendingUp, desc: "Check-ins and block evaluations" },
       { title: "Portfolio Dashboard", url: "/founders/portfolio", icon: BarChart3, desc: "High-level portfolio view" },
     ],
   },
