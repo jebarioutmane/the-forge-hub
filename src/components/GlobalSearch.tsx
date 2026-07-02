@@ -127,18 +127,6 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     },
   });
 
-  const { data: programEvents } = useQuery({
-    queryKey: ["global-search-program-events", trimmed],
-    enabled,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("program_events")
-        .select("id, title, description, location, event_type, start_time, cohort_year")
-        .or(`title.ilike.%${trimmed}%,description.ilike.%${trimmed}%,location.ilike.%${trimmed}%,event_type.ilike.%${trimmed}%,cohort_year.ilike.%${trimmed}%`)
-        .limit(6);
-      return data ?? [];
-    },
-  });
 
   const { data: logistics } = useQuery({
     queryKey: ["global-search-logistics", trimmed],
