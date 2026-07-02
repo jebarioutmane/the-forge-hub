@@ -9,6 +9,7 @@ import GlobalNetworkMap from "@/components/GlobalNetworkMap";
 import EventCountdowns from "@/components/EventCountdowns";
 import TeamPresence from "@/components/TeamPresence";
 import FoundersLeaderboard from "@/components/FoundersLeaderboard";
+import NeedsAttentionPanel from "@/components/NeedsAttentionPanel";
 
 const shortcuts = [
   {
@@ -85,6 +86,9 @@ export default function Home() {
           </Button>
         ))}
       </div>
+
+      {/* Needs Attention */}
+      <NeedsAttentionPanel />
 
       {/* Two KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
