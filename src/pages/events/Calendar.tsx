@@ -47,12 +47,12 @@ function parseNeedsExtra(needs: Json | null): { start_time?: string; end_time?: 
   return {};
 }
 
-// Build ISO datetimes from the legacy events schema (start_date + optional time stored in needs).
+// Build ISO datetimes from the events row, preferring native start_time/end_time columns.
 function enrich(ev: Tables<"events">): CalendarEvent | null {
   if (!ev.start_date) return null;
   const extra = parseNeedsExtra(ev.needs);
-  const startTime = extra.start_time || "09:00";
-  const endTime = extra.end_time || "17:00";
+  const startTime = ev.start_time || extra.start_time || "09:00";
+  const endTime = ev.end_time || extra.end_time || "17:00";
   const endDate = ev.end_date || ev.start_date;
   const _start = new Date(`${ev.start_date}T${startTime}:00`).toISOString();
   const _end = new Date(`${endDate}T${endTime}:00`).toISOString();
