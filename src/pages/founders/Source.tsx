@@ -422,6 +422,8 @@ export default function FoundersSource() {
                 onEdit={openEdit}
                 onDelete={(id) => setDeleteId(id)}
                 highlightId={highlightId}
+                riskStatus={engagementMap[f.id]?.risk ?? null}
+                attendanceRate={engagementMap[f.id]?.attendance ?? null}
               />
             );
           })}
