@@ -8,158 +8,155 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { StarRating } from "@/components/StarRating";
+import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { toast } from "sonner";
 import { Plus, MoreHorizontal, Pencil, Trash2, ExternalLink, Link as LinkIcon, X } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { formatUrl } from "@/lib/formatUrl";
-import { FounderSparkline } from "@/components/FounderSparkline";
+import { getCurrentCohortYear } from "@/lib/cohortYears";
+import { CohortSelect } from "@/components/CohortSelect";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Founder = Tables<"founders">;
-type Tracking = Tables<"founders_tracking">;
+type Checkin = Tables<"founder_checkins">;
+type Evaluation = Tables<"founder_evaluations">;
 
 const AREAS = [
-  { key: "product_dev", label: "Product Development" },
-  { key: "clients_traction", label: "Clients & Traction" },
-  { key: "team_structure", label: "Team Structure" },
-  { key: "market_presence", label: "Market Presence" },
-  { key: "funding_update", label: "Funding Update" },
+  { key: "product", label: "Product" },
+  { key: "team", label: "Team" },
+  { key: "traction", label: "Traction" },
+  { key: "market", label: "Market" },
+  { key: "funding", label: "Funding" },
 ] as const;
 
-type EvidenceLink = { title: string; url: string };
-type SectionLinks = Record<string, EvidenceLink[]>;
+const EFFORT_OPTIONS = [
+  { value: "strong", label: "Strong", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+  { value: "steady", label: "Steady", color: "bg-sky-100 text-sky-700 border-sky-200" },
+  { value: "coasting", label: "Coasting", color: "bg-amber-100 text-amber-700 border-amber-200" },
+  { value: "at_risk", label: "At Risk", color: "bg-rose-100 text-rose-700 border-rose-200" },
+] as const;
 
-type FormState = {
+const DECISION_OPTIONS = [
+  { value: "stay", label: "Stay", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+  { value: "at_risk", label: "At Risk", color: "bg-amber-100 text-amber-700 border-amber-200" },
+  { value: "exit", label: "Exit", color: "bg-rose-100 text-rose-700 border-rose-200" },
+] as const;
+
+type LinkItem = { title: string; url: string };
+
+type CheckinForm = {
   id?: string;
-  founder_id: string;
-  tracking_date: string;
-  product_dev_rating: number;
-  product_dev_update: string;
-  clients_traction_rating: number;
-  clients_traction_update: string;
-  team_structure_rating: number;
-  team_structure_update: string;
-  market_presence_rating: number;
-  market_presence_update: string;
-  funding_update_rating: number;
-  funding_update: string;
-  other_updates: string;
-  section_links: SectionLinks;
-  overall_score: number;
+  checkin_type: "weekly" | "one_on_one";
+  checkin_date: string;
+  effort_signal: string;
+  product_rating: number; product_note: string;
+  team_rating: number; team_note: string;
+  traction_rating: number; traction_note: string;
+  market_rating: number; market_note: string;
+  funding_rating: number; funding_note: string;
+  notes: string;
+  links: LinkItem[];
 };
 
-const emptyForm = (founderId: string): FormState => ({
-  founder_id: founderId,
-  tracking_date: new Date().toISOString().split("T")[0],
-  product_dev_rating: 0, product_dev_update: "",
-  clients_traction_rating: 0, clients_traction_update: "",
-  team_structure_rating: 0, team_structure_update: "",
-  market_presence_rating: 0, market_presence_update: "",
-  funding_update_rating: 0, funding_update: "",
-  other_updates: "",
-  section_links: {},
-  overall_score: 0,
+const emptyCheckin = (): CheckinForm => ({
+  checkin_type: "weekly",
+  checkin_date: new Date().toISOString().split("T")[0],
+  effort_signal: "steady",
+  product_rating: 0, product_note: "",
+  team_rating: 0, team_note: "",
+  traction_rating: 0, traction_note: "",
+  market_rating: 0, market_note: "",
+  funding_rating: 0, funding_note: "",
+  notes: "",
+  links: [],
 });
 
-function SectionLinkEditor({ sectionKey, links, onChange }: { sectionKey: string; links: EvidenceLink[]; onChange: (links: EvidenceLink[]) => void }) {
-  const [adding, setAdding] = useState(false);
+type EvalForm = {
+  id?: string;
+  block_name: string;
+  evaluation_date: string;
+  execution_score: number;
+  traction_score: number;
+  momentum_score: number;
+  overall_confidence: number;
+  decision: string;
+};
 
-  const addLink = () => {
-    onChange([...links, { title: "", url: "" }]);
-    setAdding(true);
-  };
+const emptyEval = (): EvalForm => ({
+  block_name: "",
+  evaluation_date: new Date().toISOString().split("T")[0],
+  execution_score: 0,
+  traction_score: 0,
+  momentum_score: 0,
+  overall_confidence: 0,
+  decision: "stay",
+});
 
-  const updateLink = (idx: number, field: "title" | "url", value: string) => {
-    const updated = links.map((l, i) => i === idx ? { ...l, [field]: value } : l);
-    onChange(updated);
-  };
+function effortBadge(value: string | null | undefined) {
+  const opt = EFFORT_OPTIONS.find((o) => o.value === value);
+  if (!opt) return null;
+  return <Badge className={`text-[10px] font-medium border ${opt.color}`}>{opt.label}</Badge>;
+}
 
-  const removeLink = (idx: number) => {
-    onChange(links.filter((_, i) => i !== idx));
-  };
+function decisionBadge(value: string | null | undefined) {
+  const opt = DECISION_OPTIONS.find((o) => o.value === value);
+  if (!opt) return null;
+  return <Badge className={`text-[10px] font-medium border ${opt.color}`}>{opt.label}</Badge>;
+}
 
+function LinksEditor({ links, onChange }: { links: LinkItem[]; onChange: (v: LinkItem[]) => void }) {
   return (
     <div className="space-y-2">
-      {links.map((link, idx) => (
-        <div key={idx} className="flex items-center gap-2">
-          <Input
-            placeholder="Link title"
-            value={link.title}
-            onChange={(e) => updateLink(idx, "title", e.target.value)}
-            className="h-7 text-xs flex-1"
-          />
-          <Input
-            placeholder="https://..."
-            value={link.url}
-            onChange={(e) => updateLink(idx, "url", e.target.value)}
-            className="h-7 text-xs flex-1"
-          />
-          <button type="button" onClick={() => removeLink(idx)} className="text-muted-foreground hover:text-destructive transition-colors">
+      {links.map((l, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <Input placeholder="Title" value={l.title} onChange={(e) => onChange(links.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} className="h-8 text-xs flex-1" />
+          <Input placeholder="https://..." value={l.url} onChange={(e) => onChange(links.map((x, j) => j === i ? { ...x, url: e.target.value } : x))} className="h-8 text-xs flex-1" />
+          <button type="button" onClick={() => onChange(links.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-destructive">
             <X className="h-3.5 w-3.5" />
           </button>
         </div>
       ))}
-      <button
-        type="button"
-        onClick={addLink}
-        className="inline-flex items-center gap-1 text-xs text-[#0071E3] hover:underline"
-      >
-        <LinkIcon className="h-3 w-3" /> + Add Evidence Link
+      <button type="button" onClick={() => onChange([...links, { title: "", url: "" }])} className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+        <LinkIcon className="h-3 w-3" /> Add link
       </button>
     </div>
   );
 }
 
-function EvidenceLinkDisplay({ links }: { links: EvidenceLink[] }) {
+function LinksDisplay({ links }: { links: LinkItem[] }) {
   if (!links || links.length === 0) return null;
   return (
-    <div className="flex flex-wrap gap-1.5 mt-1.5">
-      {links.map((link, idx) => (
-        <a
-          key={idx}
-          href={formatUrl(link.url)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-[13px] text-[#0071E3] bg-[#0071E3]/10 px-2 py-1 rounded-md hover:bg-[#0071E3]/20 transition-colors"
-        >
+    <div className="flex flex-wrap gap-1.5 mt-2">
+      {links.map((l, i) => (
+        <a key={i} href={formatUrl(l.url)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-md hover:bg-primary/20">
           <ExternalLink className="h-3 w-3" />
-          {link.title || link.url}
+          {l.title || l.url}
         </a>
       ))}
     </div>
   );
 }
 
-function ScoreBadge({ score }: { score: number | null }) {
-  if (score === null || score === undefined) return null;
-  const colorClass = score >= 80 ? "text-emerald-600" : score >= 50 ? "text-amber-500" : "text-red-500";
-  return (
-    <div className="border-t pt-3 mt-3 flex items-center justify-end gap-2">
-      <span className="text-xs font-medium text-[#6E6E73]">Overall Score</span>
-      <span className={`text-2xl font-bold ${colorClass}`}>{score}</span>
-      <span className="text-sm font-medium text-[#6E6E73]">/100</span>
-    </div>
-  );
-}
-
-import { getCurrentCohortYear } from "@/lib/cohortYears";
-import { CohortSelect } from "@/components/CohortSelect";
-
-export default function FoundersTracking() {
+export default function FounderTracking() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [selectedFounder, setSelectedFounder] = useState<string>("");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const [form, setForm] = useState<FormState>(emptyForm(""));
   const [cohortYear, setCohortYear] = useState(getCurrentCohortYear());
+  const [selectedFounder, setSelectedFounder] = useState("");
 
-  const isEditing = !!form.id;
+  // Check-in state
+  const [checkinDialog, setCheckinDialog] = useState(false);
+  const [checkinForm, setCheckinForm] = useState<CheckinForm>(emptyCheckin());
+  const [deleteCheckinId, setDeleteCheckinId] = useState<string | null>(null);
+
+  // Evaluation state
+  const [evalDialog, setEvalDialog] = useState(false);
+  const [evalForm, setEvalForm] = useState<EvalForm>(emptyEval());
+  const [deleteEvalId, setDeleteEvalId] = useState<string | null>(null);
 
   const { data: allFounders = [] } = useQuery({
     queryKey: ["founders"],
@@ -170,155 +167,220 @@ export default function FoundersTracking() {
     },
   });
 
-  const founders = useMemo(() => allFounders.filter(f => f.cohort_year === cohortYear), [allFounders, cohortYear]);
+  const founders = useMemo(
+    () => allFounders.filter((f) => f.cohort_year === cohortYear),
+    [allFounders, cohortYear],
+  );
 
-  const { data: allTracking = [] } = useQuery({
-    queryKey: ["founders_tracking"],
+  const { data: checkins = [] } = useQuery({
+    queryKey: ["founder_checkins", selectedFounder],
+    enabled: !!selectedFounder,
     queryFn: async () => {
-      const { data, error } = await supabase.from("founders_tracking").select("*").order("tracking_date", { ascending: false });
+      const { data, error } = await supabase
+        .from("founder_checkins")
+        .select("*")
+        .eq("founder_id", selectedFounder)
+        .order("checkin_date", { ascending: false });
       if (error) throw error;
       return data;
     },
   });
 
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      // Auto-calculate score from star ratings (5 areas × 5 stars = 25 max → scale to 100)
-      const totalStars = (form.product_dev_rating || 0) + (form.clients_traction_rating || 0) + (form.team_structure_rating || 0) + (form.market_presence_rating || 0) + (form.funding_update_rating || 0);
-      const calculatedScore = Math.round((totalStars / 25) * 100);
-      // Always use star-based calculation; manual field is display-only
-      const finalScore = calculatedScore;
-
-      const payload = {
-        founder_id: form.founder_id,
-        tracking_date: form.tracking_date,
-        product_dev_rating: form.product_dev_rating,
-        product_dev_update: form.product_dev_update || null,
-        clients_traction_rating: form.clients_traction_rating,
-        clients_traction_update: form.clients_traction_update || null,
-        team_structure_rating: form.team_structure_rating,
-        team_structure_update: form.team_structure_update || null,
-        market_presence_rating: form.market_presence_rating,
-        market_presence_update: form.market_presence_update || null,
-        funding_update_rating: form.funding_update_rating,
-        funding_update: form.funding_update || null,
-        other_updates: form.other_updates || null,
-        section_links: form.section_links as any,
-        overall_score: finalScore,
-      };
-
-      if (form.id) {
-        const oldEntry = allTracking.find((t) => t.id === form.id);
-        const { error } = await supabase.from("founders_tracking").update(payload).eq("id", form.id);
-        if (error) throw error;
-        const userName = user?.email || "Unknown";
-      } else {
-        const { data, error } = await supabase.from("founders_tracking").insert(payload).select().single();
-        if (error) throw error;
-        const userName = user?.email || "Unknown";
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["founders_tracking"] });
-      setDialogOpen(false);
-      toast.success(isEditing ? "Update saved" : "Progress logged");
-    },
-    onError: (e) => toast.error(e.message),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const oldEntry = allTracking.find((t) => t.id === id);
-      const { error } = await supabase.from("founders_tracking").delete().eq("id", id);
+  const { data: evaluations = [] } = useQuery({
+    queryKey: ["founder_evaluations", selectedFounder],
+    enabled: !!selectedFounder,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("founder_evaluations")
+        .select("*")
+        .eq("founder_id", selectedFounder)
+        .order("evaluation_date", { ascending: false });
       if (error) throw error;
-      const userName = user?.email || "Unknown";
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["founders_tracking"] });
-      toast.success("Record deleted");
-      setDeleteTarget(null);
-    },
-    onError: (e) => {
-      toast.error(e.message);
-      setDeleteTarget(null);
+      return data;
     },
   });
 
-  const founderTracking = selectedFounder
-    ? allTracking.filter((t) => t.founder_id === selectedFounder)
-    : [];
+  const { data: engagement } = useQuery({
+    queryKey: ["founder_engagement", selectedFounder],
+    enabled: !!selectedFounder,
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("founder_engagement")
+        .select("*")
+        .eq("founder_id", selectedFounder)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { risk_status: string | null; attendance_rate: number | null; last_checkin_date: string | null } | null;
+    },
+  });
 
   const selectedFounderObj = founders.find((f) => f.id === selectedFounder);
 
-  const grouped = founderTracking.reduce((acc, t) => {
-    const month = t.tracking_date ? format(parseISO(t.tracking_date), "MMMM yyyy") : "Unknown";
-    if (!acc[month]) acc[month] = [];
-    acc[month].push(t);
-    return acc;
-  }, {} as Record<string, Tracking[]>);
+  /* ─── Check-in mutations ─── */
+  const saveCheckin = useMutation({
+    mutationFn: async () => {
+      const payload: any = {
+        founder_id: selectedFounder,
+        associate_id: user?.id ?? null,
+        checkin_type: checkinForm.checkin_type,
+        checkin_date: checkinForm.checkin_date,
+        effort_signal: checkinForm.effort_signal,
+        product_rating: checkinForm.product_rating || null,
+        product_note: checkinForm.product_note || null,
+        team_rating: checkinForm.team_rating || null,
+        team_note: checkinForm.team_note || null,
+        traction_rating: checkinForm.traction_rating || null,
+        traction_note: checkinForm.traction_note || null,
+        market_rating: checkinForm.market_rating || null,
+        market_note: checkinForm.market_note || null,
+        funding_rating: checkinForm.funding_rating || null,
+        funding_note: checkinForm.funding_note || null,
+        notes: checkinForm.notes || null,
+        links: checkinForm.links.filter((l) => l.url),
+      };
+      if (checkinForm.id) {
+        const { error } = await supabase.from("founder_checkins").update(payload).eq("id", checkinForm.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("founder_checkins").insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["founder_checkins"] });
+      queryClient.invalidateQueries({ queryKey: ["founder_engagement"] });
+      setCheckinDialog(false);
+      toast.success(checkinForm.id ? "Check-in updated" : "Check-in saved");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
-  function openNewTracking() {
-    setForm(emptyForm(selectedFounder));
-    setDialogOpen(true);
+  const deleteCheckin = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("founder_checkins").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["founder_checkins"] });
+      queryClient.invalidateQueries({ queryKey: ["founder_engagement"] });
+      setDeleteCheckinId(null);
+      toast.success("Check-in deleted");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  function openNewCheckin() {
+    setCheckinForm(emptyCheckin());
+    setCheckinDialog(true);
   }
 
-  function openEditTracking(entry: Tracking) {
-    const sectionLinks = (entry.section_links || {}) as SectionLinks;
-    setForm({
-      id: entry.id,
-      founder_id: entry.founder_id || selectedFounder,
-      tracking_date: entry.tracking_date || new Date().toISOString().split("T")[0],
-      product_dev_rating: entry.product_dev_rating || 0,
-      product_dev_update: entry.product_dev_update || "",
-      clients_traction_rating: entry.clients_traction_rating || 0,
-      clients_traction_update: entry.clients_traction_update || "",
-      team_structure_rating: entry.team_structure_rating || 0,
-      team_structure_update: entry.team_structure_update || "",
-      market_presence_rating: entry.market_presence_rating || 0,
-      market_presence_update: entry.market_presence_update || "",
-      funding_update_rating: entry.funding_update_rating || 0,
-      funding_update: entry.funding_update || "",
-      other_updates: entry.other_updates || "",
-      section_links: sectionLinks,
-      overall_score: entry.overall_score || 0,
+  function openEditCheckin(c: Checkin) {
+    const links = Array.isArray(c.links) ? (c.links as unknown as LinkItem[]) : [];
+    setCheckinForm({
+      id: c.id,
+      checkin_type: (c.checkin_type as "weekly" | "one_on_one") || "weekly",
+      checkin_date: c.checkin_date || new Date().toISOString().split("T")[0],
+      effort_signal: c.effort_signal || "steady",
+      product_rating: c.product_rating || 0, product_note: c.product_note || "",
+      team_rating: c.team_rating || 0, team_note: c.team_note || "",
+      traction_rating: c.traction_rating || 0, traction_note: c.traction_note || "",
+      market_rating: c.market_rating || 0, market_note: c.market_note || "",
+      funding_rating: c.funding_rating || 0, funding_note: c.funding_note || "",
+      notes: c.notes || "",
+      links,
     });
-    setDialogOpen(true);
+    setCheckinDialog(true);
   }
 
-  function getSectionLinks(entry: Tracking, areaKey: string): EvidenceLink[] {
-    if (!entry.section_links || typeof entry.section_links !== "object") return [];
-    const links = entry.section_links as SectionLinks;
-    return links[areaKey] || [];
+  /* ─── Evaluation mutations ─── */
+  const saveEval = useMutation({
+    mutationFn: async () => {
+      const payload: any = {
+        founder_id: selectedFounder,
+        block_name: evalForm.block_name,
+        evaluation_date: evalForm.evaluation_date,
+        execution_score: evalForm.execution_score,
+        traction_score: evalForm.traction_score,
+        momentum_score: evalForm.momentum_score,
+        overall_confidence: evalForm.overall_confidence,
+        decision: evalForm.decision,
+        total_score: Math.round(((evalForm.execution_score || 0) + (evalForm.traction_score || 0) + (evalForm.momentum_score || 0)) / 3),
+      };
+      if (evalForm.id) {
+        const { error } = await supabase.from("founder_evaluations").update(payload).eq("id", evalForm.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("founder_evaluations").insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["founder_evaluations"] });
+      setEvalDialog(false);
+      toast.success(evalForm.id ? "Evaluation updated" : "Evaluation saved");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteEval = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("founder_evaluations").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["founder_evaluations"] });
+      setDeleteEvalId(null);
+      toast.success("Evaluation deleted");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  function openNewEval() {
+    setEvalForm(emptyEval());
+    setEvalDialog(true);
   }
+
+  function openEditEval(ev: Evaluation) {
+    setEvalForm({
+      id: ev.id,
+      block_name: ev.block_name || "",
+      evaluation_date: ev.evaluation_date || new Date().toISOString().split("T")[0],
+      execution_score: Number(ev.execution_score) || 0,
+      traction_score: Number(ev.traction_score) || 0,
+      momentum_score: Number(ev.momentum_score) || 0,
+      overall_confidence: ev.overall_confidence || 0,
+      decision: (ev as any).decision || "stay",
+    });
+    setEvalDialog(true);
+  }
+
+  const riskStyles: Record<string, string> = {
+    on_track: "bg-emerald-100 text-emerald-700 border-emerald-200",
+    watch: "bg-amber-100 text-amber-700 border-amber-200",
+    at_risk: "bg-rose-100 text-rose-700 border-rose-200",
+  };
+  const riskLabels: Record<string, string> = {
+    on_track: "On Track",
+    watch: "Watch",
+    at_risk: "At Risk",
+  };
 
   return (
     <div className="p-6 lg:p-10 space-y-6 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Progress Tracker</h1>
-          <p className="text-sm text-muted-foreground">Weekly founder progress updates</p>
-        </div>
-        {selectedFounder && (
-          <Button onClick={openNewTracking}><Plus className="mr-2 h-4 w-4" /> Log Update</Button>
-        )}
+      <div>
+        <h1 className="text-3xl font-bold">Founder Tracking</h1>
+        <p className="text-sm text-muted-foreground">Check-ins and block-end evaluations</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Cohort Year</Label>
-          <CohortSelect
-            value={cohortYear}
-            onChange={(v) => { setCohortYear(v); setSelectedFounder(""); }}
-            className="max-w-sm"
-            placeholder="Select year"
-          />
+          <CohortSelect value={cohortYear} onChange={(v) => { setCohortYear(v); setSelectedFounder(""); }} placeholder="Select year" />
         </div>
         <div className="space-y-2">
-          <Label>Select Founder</Label>
+          <Label>Founder</Label>
           <Select value={selectedFounder} onValueChange={setSelectedFounder}>
-            <SelectTrigger className="max-w-sm">
-              <SelectValue placeholder="Choose a founder..." />
-            </SelectTrigger>
+            <SelectTrigger><SelectValue placeholder="Choose a founder..." /></SelectTrigger>
             <SelectContent>
               {founders.map((f) => (
                 <SelectItem key={f.id} value={f.id}>{f.founder_name} — {f.startup_name}</SelectItem>
@@ -328,180 +390,276 @@ export default function FoundersTracking() {
         </div>
       </div>
 
-      {selectedFounder && (() => {
-        const chronoTracking = [...founderTracking].sort((a, b) =>
-          (a.tracking_date || "").localeCompare(b.tracking_date || "")
-        );
-        const sparkScores = chronoTracking.map((t) => t.overall_score || 0);
-        const sparkDates = chronoTracking.map((t) => t.tracking_date || "");
+      {selectedFounder && (
+        <>
+          {/* Engagement summary */}
+          <Card>
+            <CardContent className="p-4 flex items-center gap-4 flex-wrap">
+              <div>
+                <p className="text-xs text-muted-foreground">Founder</p>
+                <p className="font-medium">{selectedFounderObj?.founder_name} · {selectedFounderObj?.startup_name}</p>
+              </div>
+              {engagement?.risk_status && (
+                <Badge className={`border ${riskStyles[engagement.risk_status] || ""}`}>
+                  {riskLabels[engagement.risk_status] || engagement.risk_status}
+                </Badge>
+              )}
+              {engagement?.attendance_rate != null && (
+                <Badge variant="outline">Attendance {Math.round(Number(engagement.attendance_rate) * 100)}%</Badge>
+              )}
+              {engagement?.last_checkin_date && (
+                <span className="text-xs text-muted-foreground">Last check-in {format(parseISO(engagement.last_checkin_date), "MMM d, yyyy")}</span>
+              )}
+            </CardContent>
+          </Card>
 
-        return (
-        <div className="space-y-4">
-          {/* Consistency Pattern */}
-          {sparkScores.length >= 2 && (
-            <Card className="overflow-hidden">
-              <CardContent className="py-4 px-5 flex items-center gap-4">
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5">Consistency Pattern</p>
-                  <p className="text-sm font-semibold text-foreground truncate">{selectedFounderObj?.founder_name}</p>
-                </div>
-                <FounderSparkline
-                  scores={sparkScores}
-                  dates={sparkDates}
-                  width={200}
-                  height={48}
-                />
-                <div className="text-right shrink-0">
-                  <p className="text-2xl font-bold text-foreground">{sparkScores[sparkScores.length - 1]}</p>
-                  <p className="text-[10px] text-muted-foreground">Latest Score</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-          {Object.keys(grouped).length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center text-muted-foreground">
-                No progress updates yet for {selectedFounderObj?.founder_name}.
-              </CardContent>
-            </Card>
-          ) : (
-            <Accordion type="multiple" defaultValue={Object.keys(grouped).slice(0, 2)}>
-              {Object.entries(grouped).map(([month, entries]) => (
-                <AccordionItem key={month} value={month}>
-                  <AccordionTrigger className="text-lg font-semibold">{month}</AccordionTrigger>
-                  <AccordionContent>
-                    <div className="space-y-4">
-                      {entries.map((entry) => (
-                        <Card key={entry.id} className="shadow-sm">
-                          <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                            <CardTitle className="text-sm font-medium text-muted-foreground">
-                              {entry.tracking_date ? format(parseISO(entry.tracking_date), "EEEE, MMM d, yyyy") : "Unknown date"}
+          <Tabs defaultValue="checkins">
+            <TabsList>
+              <TabsTrigger value="checkins">Check-Ins ({checkins.length})</TabsTrigger>
+              <TabsTrigger value="evaluations">Block Evaluations ({evaluations.length})</TabsTrigger>
+            </TabsList>
+
+            {/* ─── Check-ins tab ─── */}
+            <TabsContent value="checkins" className="space-y-4">
+              <div className="flex justify-end">
+                <Button onClick={openNewCheckin}><Plus className="mr-2 h-4 w-4" /> New Check-In</Button>
+              </div>
+
+              {checkins.length === 0 ? (
+                <Card><CardContent className="py-12 text-center text-muted-foreground">No check-ins yet.</CardContent></Card>
+              ) : (
+                <div className="relative border-l border-border ml-3 space-y-4 pl-6">
+                  {checkins.map((c) => (
+                    <div key={c.id} className="relative">
+                      <span className="absolute -left-[30px] top-3 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-background" />
+                      <Card>
+                        <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <CardTitle className="text-sm font-medium">
+                              {c.checkin_date ? format(parseISO(c.checkin_date), "EEE, MMM d, yyyy") : "—"}
                             </CardTitle>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => openEditTracking(entry)}>
-                                  <Pencil className="mr-2 h-4 w-4" /> Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive" onClick={() => setDeleteTarget(entry.id)}>
-                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            {AREAS.map((area) => {
-                              const rating = (entry as any)[`${area.key}_rating`];
-                              const update = (entry as any)[area.key === "funding_update" ? "funding_update" : `${area.key}_update`];
-                              const links = getSectionLinks(entry, area.key);
-                              return (
-                                <div key={area.key}>
-                                  <div className="flex items-start gap-3">
-                                    <div className="w-40 shrink-0">
-                                      <p className="text-xs font-medium text-muted-foreground">{area.label}</p>
-                                      <StarRating value={rating || 0} readOnly size={14} />
-                                    </div>
-                                    <div className="flex-1">
-                                      <p className="text-sm text-foreground/80">{update || "—"}</p>
-                                      <EvidenceLinkDisplay links={links} />
-                                    </div>
-                                  </div>
+                            <Badge variant="outline" className="text-[10px]">{c.checkin_type === "one_on_one" ? "1:1" : "Weekly"}</Badge>
+                            {effortBadge(c.effort_signal)}
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-7 w-7"><MoreHorizontal className="h-4 w-4" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => openEditCheckin(c)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive" onClick={() => setDeleteCheckinId(c.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          {AREAS.map((a) => {
+                            const rating = (c as any)[`${a.key}_rating`];
+                            const note = (c as any)[`${a.key}_note`];
+                            if (!rating && !note) return null;
+                            return (
+                              <div key={a.key} className="flex items-start gap-3">
+                                <div className="w-24 shrink-0">
+                                  <p className="text-xs font-medium text-muted-foreground">{a.label}</p>
+                                  <StarRating value={rating || 0} readOnly size={12} />
                                 </div>
-                              );
-                            })}
-                            {entry.other_updates && (
-                              <div className="pt-2 border-t">
-                                <p className="text-xs font-medium text-muted-foreground mb-1">Other Notes</p>
-                                <p className="text-sm">{entry.other_updates}</p>
+                                <p className="text-sm text-foreground/80 flex-1">{note || "—"}</p>
                               </div>
-                            )}
-                            <ScoreBadge score={entry.overall_score} />
-                          </CardContent>
-                        </Card>
-                      ))}
+                            );
+                          })}
+                          {c.notes && (
+                            <div className="pt-2 border-t">
+                              <p className="text-xs font-medium text-muted-foreground mb-1">Overall notes</p>
+                              <p className="text-sm text-foreground/80 whitespace-pre-wrap">{c.notes}</p>
+                            </div>
+                          )}
+                          <LinksDisplay links={(Array.isArray(c.links) ? c.links : []) as unknown as LinkItem[]} />
+                        </CardContent>
+                      </Card>
                     </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          )}
-        </div>
-        );
-      })()}
+                  ))}
+                </div>
+              )}
+            </TabsContent>
 
-      {/* Add/Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+            {/* ─── Evaluations tab ─── */}
+            <TabsContent value="evaluations" className="space-y-4">
+              <div className="flex justify-end">
+                <Button onClick={openNewEval}><Plus className="mr-2 h-4 w-4" /> New Block Evaluation</Button>
+              </div>
+
+              {evaluations.length === 0 ? (
+                <Card><CardContent className="py-12 text-center text-muted-foreground">No block evaluations yet.</CardContent></Card>
+              ) : (
+                <div className="space-y-3">
+                  {evaluations.map((ev) => (
+                    <Card key={ev.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-semibold">{ev.block_name || "Block"}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {ev.evaluation_date ? format(parseISO(ev.evaluation_date), "MMM d, yyyy") : ""}
+                            </span>
+                            {decisionBadge((ev as any).decision)}
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-7 w-7"><MoreHorizontal className="h-4 w-4" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => openEditEval(ev)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive" onClick={() => setDeleteEvalId(ev.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                          <div><span className="text-muted-foreground">Execution:</span> <span className="font-semibold">{ev.execution_score ?? "—"}</span></div>
+                          <div><span className="text-muted-foreground">Traction:</span> <span className="font-semibold">{ev.traction_score ?? "—"}</span></div>
+                          <div><span className="text-muted-foreground">Momentum:</span> <span className="font-semibold">{ev.momentum_score ?? "—"}</span></div>
+                          <div><span className="text-muted-foreground">Confidence:</span> <span className="font-semibold">{ev.overall_confidence ?? "—"}/5</span></div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </>
+      )}
+
+      {/* ─── Check-in Dialog ─── */}
+      <Dialog open={checkinDialog} onOpenChange={setCheckinDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{isEditing ? "Edit Progress Update" : "Log Progress Update"}</DialogTitle>
+            <DialogTitle>{checkinForm.id ? "Edit Check-In" : "New Check-In"}</DialogTitle>
+            <DialogDescription className="sr-only">Record a weekly snapshot or 1:1 for this founder.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>Date</Label>
-              <Input type="date" value={form.tracking_date} onChange={(e) => setForm((f) => ({ ...f, tracking_date: e.target.value }))} />
-            </div>
-            {AREAS.map((area) => (
-              <div key={area.key} className="space-y-2">
-                <Label>{area.label}</Label>
-                <StarRating
-                  value={(form as any)[`${area.key}_rating`]}
-                  onChange={(v) => setForm((f) => ({ ...f, [`${area.key}_rating`]: v }))}
-                />
-                <Textarea
-                  placeholder={`Update on ${area.label.toLowerCase()}...`}
-                  rows={2}
-                  value={(form as any)[area.key === "funding_update" ? "funding_update" : `${area.key}_update`]}
-                  onChange={(e) => setForm((f) => ({ ...f, [area.key === "funding_update" ? "funding_update" : `${area.key}_update`]: e.target.value }))}
-                />
-                <SectionLinkEditor
-                  sectionKey={area.key}
-                  links={(form.section_links || {})[area.key] || []}
-                  onChange={(links) => setForm((f) => ({ ...f, section_links: { ...(f.section_links || {}), [area.key]: links } }))}
-                />
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-2">
+                <Label>Type</Label>
+                <Select value={checkinForm.checkin_type} onValueChange={(v: any) => setCheckinForm({ ...checkinForm, checkin_type: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="weekly">Weekly Snapshot</SelectItem>
+                    <SelectItem value="one_on_one">One-on-One</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            ))}
-            <div className="space-y-2">
-              <Label>Other Notes</Label>
-              <Textarea rows={2} value={form.other_updates} onChange={(e) => setForm((f) => ({ ...f, other_updates: e.target.value }))} />
+              <div className="space-y-2">
+                <Label>Date</Label>
+                <Input type="date" value={checkinForm.checkin_date} onChange={(e) => setCheckinForm({ ...checkinForm, checkin_date: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Effort Signal</Label>
+                <Select value={checkinForm.effort_signal} onValueChange={(v) => setCheckinForm({ ...checkinForm, effort_signal: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {EFFORT_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="border-t pt-4 flex items-center justify-between">
-              <Label className="text-muted-foreground">Overall Score (auto-calculated)</Label>
-              <span className="text-2xl font-bold tabular-nums">
-                {Math.round((((form.product_dev_rating || 0) + (form.clients_traction_rating || 0) + (form.team_structure_rating || 0) + (form.market_presence_rating || 0) + (form.funding_update_rating || 0)) / 25) * 100)}
-                <span className="text-sm font-medium text-muted-foreground">/100</span>
-              </span>
+
+            <div className="space-y-3">
+              {AREAS.map((a) => (
+                <Card key={a.key}>
+                  <CardContent className="p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="font-semibold">{a.label}</Label>
+                      <StarRating
+                        value={(checkinForm as any)[`${a.key}_rating`]}
+                        onChange={(v) => setCheckinForm({ ...checkinForm, [`${a.key}_rating`]: v } as any)}
+                      />
+                    </div>
+                    <Textarea
+                      rows={2}
+                      placeholder={`Notes on ${a.label.toLowerCase()}...`}
+                      value={(checkinForm as any)[`${a.key}_note`]}
+                      onChange={(e) => setCheckinForm({ ...checkinForm, [`${a.key}_note`]: e.target.value } as any)}
+                    />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Overall Notes</Label>
+              <Textarea rows={3} value={checkinForm.notes} onChange={(e) => setCheckinForm({ ...checkinForm, notes: e.target.value })} />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Links</Label>
+              <LinksEditor links={checkinForm.links} onChange={(v) => setCheckinForm({ ...checkinForm, links: v })} />
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={() => saveMutation.mutate()} disabled={!form.founder_id || saveMutation.isPending}>
-              {isEditing ? "Save Changes" : "Log Update"}
-            </Button>
+            <Button variant="outline" onClick={() => setCheckinDialog(false)}>Cancel</Button>
+            <Button onClick={() => saveCheckin.mutate()}>{checkinForm.id ? "Save" : "Create"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>This action cannot be undone. This will permanently delete this progress update.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget)}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* ─── Evaluation Dialog ─── */}
+      <Dialog open={evalDialog} onOpenChange={setEvalDialog}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{evalForm.id ? "Edit Block Evaluation" : "New Block Evaluation"}</DialogTitle>
+            <DialogDescription className="sr-only">Formal block-end evaluation with scores and decision.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Block Name</Label>
+                <Input placeholder="e.g. Block 1 – Validation" value={evalForm.block_name} onChange={(e) => setEvalForm({ ...evalForm, block_name: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Date</Label>
+                <Input type="date" value={evalForm.evaluation_date} onChange={(e) => setEvalForm({ ...evalForm, evaluation_date: e.target.value })} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-2">
+                <Label>Execution (0-100)</Label>
+                <Input type="number" min={0} max={100} value={evalForm.execution_score} onChange={(e) => setEvalForm({ ...evalForm, execution_score: Number(e.target.value) })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Traction (0-100)</Label>
+                <Input type="number" min={0} max={100} value={evalForm.traction_score} onChange={(e) => setEvalForm({ ...evalForm, traction_score: Number(e.target.value) })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Momentum (0-100)</Label>
+                <Input type="number" min={0} max={100} value={evalForm.momentum_score} onChange={(e) => setEvalForm({ ...evalForm, momentum_score: Number(e.target.value) })} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Confidence (1-5)</Label>
+                <StarRating value={evalForm.overall_confidence} onChange={(v) => setEvalForm({ ...evalForm, overall_confidence: v })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Decision</Label>
+                <Select value={evalForm.decision} onValueChange={(v) => setEvalForm({ ...evalForm, decision: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {DECISION_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEvalDialog(false)}>Cancel</Button>
+            <Button onClick={() => saveEval.mutate()} disabled={!evalForm.block_name}>{evalForm.id ? "Save" : "Create"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDeleteDialog open={!!deleteCheckinId} onConfirm={() => deleteCheckinId && deleteCheckin.mutate(deleteCheckinId)} onCancel={() => setDeleteCheckinId(null)} />
+      <ConfirmDeleteDialog open={!!deleteEvalId} onConfirm={() => deleteEvalId && deleteEval.mutate(deleteEvalId)} onCancel={() => setDeleteEvalId(null)} />
     </div>
   );
 }
