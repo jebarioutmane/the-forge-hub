@@ -16,7 +16,7 @@ type HistoryLog = Tables<"history_logs">;
 const SECTION_TABLE_MAP: Record<string, string> = {
   "Ops-Expenses": "expenses",
   "Ops-Contracts": "contracts",
-  "Ops-Stipends": "stipends",
+  "Ops-Stipends": "stipend_records",
   "Ops-Tasks": "tasks",
   "Events-Timeline": "events",
   "Events-Logistics": "event_logistics",
