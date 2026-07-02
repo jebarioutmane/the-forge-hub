@@ -51,14 +51,14 @@ export default function FoundersLeaderboard() {
   });
 
   const { data: absences = [] } = useQuery({
-    queryKey: ["program_attendance_absences"],
+    queryKey: ["event_attendance_absences"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("program_event_attendance")
+      const { data, error } = await supabase
+        .from("event_attendance")
         .select("founder_id, status")
         .eq("status", "Absent");
       if (error) throw error;
-      return data as { founder_id: string; status: string }[];
+      return (data ?? []).filter((a): a is { founder_id: string; status: string } => !!a.founder_id);
     },
   });
 
