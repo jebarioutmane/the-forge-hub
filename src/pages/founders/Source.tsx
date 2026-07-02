@@ -178,28 +178,22 @@ export default function FoundersSource() {
     return countries.find(c => c.name === name)?.emoji || "🏳️";
   };
 
-  const { data: tracking = [] } = useQuery({
-    queryKey: ["founders_tracking"],
+  const { data: engagement = [] } = useQuery({
+    queryKey: ["founder_engagement"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("founders_tracking").select("*").order("tracking_date", { ascending: false });
+      const { data, error } = await (supabase as any)
+        .from("founder_engagement")
+        .select("founder_id, risk_status, attendance_rate");
       if (error) throw error;
-      return data;
+      return (data ?? []) as Array<{ founder_id: string; risk_status: string | null; attendance_rate: number | null }>;
     },
   });
 
-  // Build sparkline scores map (chronological order: oldest→newest)
-  const sparklineMap = useMemo(() => {
-    const scoreMap: Record<string, number[]> = {};
-    const dateMap: Record<string, string[]> = {};
-    const sorted = [...tracking].reverse();
-    sorted.forEach((t) => {
-      if (!t.founder_id || t.overall_score == null) return;
-      if (!scoreMap[t.founder_id]) { scoreMap[t.founder_id] = []; dateMap[t.founder_id] = []; }
-      scoreMap[t.founder_id].push(t.overall_score);
-      dateMap[t.founder_id].push(t.tracking_date || "");
-    });
-    return { scores: scoreMap, dates: dateMap };
-  }, [tracking]);
+  const engagementMap = useMemo(() => {
+    const m: Record<string, { risk: string | null; attendance: number | null }> = {};
+    engagement.forEach((e) => { m[e.founder_id] = { risk: e.risk_status, attendance: e.attendance_rate }; });
+    return m;
+  }, [engagement]);
 
   // Derive unique values for filter dropdowns (case-insensitive dedup)
   const uniqueCohorts = useMemo(() => getUniqueFilterValues(founders.map(f => f.cohort)), [founders]);
@@ -317,16 +311,8 @@ export default function FoundersSource() {
     setDialogOpen(true);
   }
 
-  function getLatestScore(founderId: string) {
-    const latest = tracking.find((t) => t.founder_id === founderId);
-    if (!latest) return 0;
-    const scores = [
-      latest.product_dev_rating, latest.clients_traction_rating,
-      latest.team_structure_rating, latest.market_presence_rating, latest.funding_update_rating,
-    ].filter((s): s is number => s !== null);
-    if (scores.length === 0) return 0;
-    return Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 20);
-  }
+  function getLatestScore(_founderId: string) { return 0; }
+
 
   const set = (key: keyof FounderForm, val: any) => setForm((f) => ({ ...f, [key]: val }));
 
