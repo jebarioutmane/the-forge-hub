@@ -344,18 +344,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     },
   });
 
-  const { data: associates } = useQuery({
-    queryKey: ["global-search-associates", trimmed],
-    enabled,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("venture_associates")
-        .select("id, full_name")
-        .ilike("full_name", `%${trimmed}%`)
-        .limit(6);
-      return data ?? [];
-    },
-  });
+
+
 
 
   const { data: contractDocs } = useQuery({
@@ -821,19 +811,6 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
               </CommandGroup>
             )}
 
-            {associates && associates.length > 0 && (
-              <CommandGroup heading="Venture Associates">
-                {associates.map((a: any) => (
-                  <CommandItem key={a.id} value={`assoc-${a.id}-${a.full_name}`} onSelect={() => go(`/founders/tracking?highlight=${a.id}`)} className="flex items-center gap-3 cursor-pointer">
-                    <UserCog className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-medium truncate">{highlightMatch(a.full_name, trimmed)}</span>
-                      <span className="text-xs text-muted-foreground truncate">Venture Associate</span>
-                    </div>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
 
             {cohortsRes && cohortsRes.length > 0 && (
               <CommandGroup heading="Cohorts">
