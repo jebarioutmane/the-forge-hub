@@ -2,9 +2,9 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Trophy } from "lucide-react";
-import { FounderSparkline } from "@/components/FounderSparkline";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface LeaderboardEntry {
@@ -13,7 +13,20 @@ interface LeaderboardEntry {
   startup_name: string;
   photo_url: string | null;
   avgScore: number;
+  riskStatus: string | null;
+  attendanceRate: number | null;
 }
+
+const RISK_STYLES: Record<string, string> = {
+  on_track: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  watch: "bg-amber-100 text-amber-700 border-amber-200",
+  at_risk: "bg-rose-100 text-rose-700 border-rose-200",
+};
+const RISK_LABELS: Record<string, string> = {
+  on_track: "On Track",
+  watch: "Watch",
+  at_risk: "At Risk",
+};
 
 export default function FoundersLeaderboard() {
   const { data: founders = [] } = useQuery({
@@ -38,47 +51,22 @@ export default function FoundersLeaderboard() {
     },
   });
 
-  const { data: tracking = [] } = useQuery({
-    queryKey: ["founders_tracking_leaderboard"],
+  const { data: engagement = [] } = useQuery({
+    queryKey: ["founder-engagement-leaderboard"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("founders_tracking")
-        .select("founder_id, overall_score, tracking_date")
-        .order("tracking_date", { ascending: true });
+      const { data, error } = await (supabase as any)
+        .from("founder_engagement")
+        .select("founder_id, risk_status, attendance_rate");
       if (error) throw error;
-      return data;
+      return (data ?? []) as Array<{ founder_id: string; risk_status: string | null; attendance_rate: number | null }>;
     },
   });
 
-  const { data: absences = [] } = useQuery({
-    queryKey: ["event_attendance_absences"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("event_attendance")
-        .select("founder_id, status")
-        .eq("status", "Absent");
-      if (error) throw error;
-      return (data ?? []).filter((a): a is { founder_id: string; status: string } => !!a.founder_id);
-    },
-  });
-
-  const absenceCount = useMemo(() => {
-    const m: Record<string, number> = {};
-    absences.forEach((a) => { m[a.founder_id] = (m[a.founder_id] || 0) + 1; });
+  const engagementMap = useMemo(() => {
+    const m: Record<string, { risk: string | null; attendance: number | null }> = {};
+    engagement.forEach((e) => { m[e.founder_id] = { risk: e.risk_status, attendance: e.attendance_rate }; });
     return m;
-  }, [absences]);
-
-  const sparklineMap = useMemo(() => {
-    const map: Record<string, number[]> = {};
-    const dateMap: Record<string, string[]> = {};
-    tracking.forEach((t) => {
-      if (!t.founder_id || t.overall_score == null) return;
-      if (!map[t.founder_id]) { map[t.founder_id] = []; dateMap[t.founder_id] = []; }
-      map[t.founder_id].push(t.overall_score);
-      dateMap[t.founder_id].push(t.tracking_date || "");
-    });
-    return { scores: map, dates: dateMap };
-  }, [tracking]);
+  }, [engagement]);
 
   const leaderboard: LeaderboardEntry[] = useMemo(() => {
     const scoreMap: Record<string, { total: number; count: number }> = {};
@@ -96,10 +84,12 @@ export default function FoundersLeaderboard() {
         startup_name: f.startup_name,
         photo_url: f.photo_url,
         avgScore: scoreMap[f.id] ? Math.round(scoreMap[f.id].total / scoreMap[f.id].count) : 0,
+        riskStatus: engagementMap[f.id]?.risk ?? null,
+        attendanceRate: engagementMap[f.id]?.attendance ?? null,
       }))
-      .filter((f) => f.avgScore > 0)
+      .filter((f) => f.avgScore > 0 || f.riskStatus)
       .sort((a, b) => b.avgScore - a.avgScore);
-  }, [founders, evaluations]);
+  }, [founders, evaluations, engagementMap]);
 
   const getInitials = (name: string) =>
     name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
@@ -130,116 +120,50 @@ export default function FoundersLeaderboard() {
             <p className="text-sm text-muted-foreground text-center py-10">
               No evaluation data yet.
             </p>
-          ) : isMobile ? (
-            /* ── Mobile: stacked card layout ── */
+          ) : (
             <div className="flex flex-col gap-2">
               {leaderboard.map((entry, i) => (
                 <div
                   key={entry.id}
-                  className="rounded-xl bg-card border border-border/60 p-3.5 shadow-sm"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-accent/50 transition-colors"
                 >
-                  {/* Top row: rank, avatar, name, score */}
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`h-7 w-7 shrink-0 rounded-full flex items-center justify-center text-xs font-bold border ${getRankStyle(i + 1)}`}
-                    >
-                      {i + 1}
-                    </span>
-                    <Avatar className="h-9 w-9 shrink-0">
-                      {entry.photo_url && (
-                        <AvatarImage src={entry.photo_url} alt={entry.founder_name} />
-                      )}
-                      <AvatarFallback className="text-xs font-semibold bg-muted text-muted-foreground">
-                        {getInitials(entry.founder_name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[14px] font-medium text-foreground truncate leading-tight flex items-center gap-1.5">
-                        {entry.founder_name}
-                        {absenceCount[entry.id] > 0 && (
-                          <span title={`${absenceCount[entry.id]} absence(s)`} className="inline-flex items-center h-4 px-1.5 rounded-full bg-rose-100 text-rose-700 text-[9px] font-semibold">
-                            ⚑ {absenceCount[entry.id]}
-                          </span>
-                        )}
-                      </p>
-                      <p className="text-[12px] text-muted-foreground truncate leading-tight">
-                        {entry.startup_name}
-                      </p>
-                    </div>
-                    <span className="text-[13px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg shrink-0">
-                      {entry.avgScore}
-                    </span>
-                  </div>
-
-                  {/* Second row: sparkline with inline label */}
-                  {(sparklineMap.scores[entry.id]?.length ?? 0) >= 2 && (
-                    <div className="mt-3 pt-3 border-t border-border/40 flex items-center gap-3">
-                      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider shrink-0">
-                        Consistency
-                      </span>
-                      <FounderSparkline
-                        scores={sparklineMap.scores[entry.id] || []}
-                        dates={sparklineMap.dates[entry.id] || []}
-                        width={100}
-                        height={28}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            /* ── Desktop: grid row layout ── */
-            <>
-              <div className="grid grid-cols-[auto_auto_1fr_100px_70px] items-center gap-3 px-3 pb-1.5 mb-1">
-                <div className="h-7 w-7" />
-                <div className="h-9 w-9" />
-                <div />
-                <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider text-center">Consistency Pattern</span>
-                <span className="text-[9px] font-medium text-muted-foreground uppercase tracking-wider text-center">Blocks Evaluation</span>
-              </div>
-              {leaderboard.map((entry, i) => (
-                <div
-                  key={entry.id}
-                  className="grid grid-cols-[auto_auto_1fr_100px_70px] items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-accent/50 transition-colors"
-                >
-                  <span
-                    className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold border ${getRankStyle(i + 1)}`}
-                  >
+                  <span className={`h-7 w-7 shrink-0 rounded-full flex items-center justify-center text-xs font-bold border ${getRankStyle(i + 1)}`}>
                     {i + 1}
                   </span>
-                  <Avatar className="h-9 w-9">
-                    {entry.photo_url && (
-                      <AvatarImage src={entry.photo_url} alt={entry.founder_name} />
-                    )}
+                  <Avatar className="h-9 w-9 shrink-0">
+                    {entry.photo_url && <AvatarImage src={entry.photo_url} alt={entry.founder_name} />}
                     <AvatarFallback className="text-xs font-semibold bg-muted text-muted-foreground">
                       {getInitials(entry.founder_name)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="min-w-0">
-                    <p className="text-[14px] font-medium text-foreground truncate leading-tight flex items-center gap-1.5">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[14px] font-medium text-foreground truncate leading-tight">
                       {entry.founder_name}
-                      {absenceCount[entry.id] > 0 && (
-                        <span title={`${absenceCount[entry.id]} absence(s)`} className="inline-flex items-center h-4 px-1.5 rounded-full bg-rose-100 text-rose-700 text-[9px] font-semibold">
-                          ⚑ {absenceCount[entry.id]}
-                        </span>
-                      )}
                     </p>
                     <p className="text-[12px] text-muted-foreground truncate leading-tight">
                       {entry.startup_name}
                     </p>
                   </div>
-                  <div className="flex justify-center">
-                    <FounderSparkline scores={sparklineMap.scores[entry.id] || []} dates={sparklineMap.dates[entry.id] || []} />
-                  </div>
-                  <div className="flex justify-center">
-                    <span className="text-[13px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg text-center min-w-[50px]">
-                      {entry.avgScore}
-                    </span>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {entry.riskStatus && (
+                      <Badge className={`text-[10px] border ${RISK_STYLES[entry.riskStatus] || ""}`}>
+                        {RISK_LABELS[entry.riskStatus] || entry.riskStatus}
+                      </Badge>
+                    )}
+                    {entry.attendanceRate != null && (
+                      <Badge variant="outline" className="text-[10px]">
+                        {Math.round(Number(entry.attendanceRate) * 100)}%
+                      </Badge>
+                    )}
+                    {entry.avgScore > 0 && (
+                      <span className="text-[13px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg">
+                        {entry.avgScore}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
-            </>
+            </div>
           )}
         </div>
       </ScrollArea>
