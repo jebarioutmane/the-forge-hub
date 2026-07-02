@@ -61,14 +61,14 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     },
   });
 
-  const { data: tracking } = useQuery({
-    queryKey: ["global-search-tracking", trimmed],
+  const { data: checkins } = useQuery({
+    queryKey: ["global-search-checkins", trimmed],
     enabled,
     queryFn: async () => {
       const { data } = await supabase
-        .from("founders_tracking")
-        .select("id, founder_id, tracking_date, overall_score, product_dev_update, team_structure_update, clients_traction_update, market_presence_update, funding_update, other_updates, founders(founder_name, startup_name)")
-        .or(`product_dev_update.ilike.%${trimmed}%,team_structure_update.ilike.%${trimmed}%,clients_traction_update.ilike.%${trimmed}%,market_presence_update.ilike.%${trimmed}%,funding_update.ilike.%${trimmed}%,other_updates.ilike.%${trimmed}%`)
+        .from("founder_checkins")
+        .select("id, founder_id, checkin_date, checkin_type, effort_signal, notes, product_note, team_note, traction_note, market_note, funding_note, founders(founder_name, startup_name)")
+        .or(`notes.ilike.%${trimmed}%,product_note.ilike.%${trimmed}%,team_note.ilike.%${trimmed}%,traction_note.ilike.%${trimmed}%,market_note.ilike.%${trimmed}%,funding_note.ilike.%${trimmed}%`)
         .limit(6);
       return data ?? [];
     },
@@ -357,18 +357,6 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     },
   });
 
-  const { data: progress } = useQuery({
-    queryKey: ["global-search-progress", trimmed],
-    enabled,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("founder_progress")
-        .select("id, founder_id, week_start_date, manager_notes, product_update, team_update, market_update, traction_update, funding_update, founders(founder_name, startup_name)")
-        .or(`manager_notes.ilike.%${trimmed}%,product_update.ilike.%${trimmed}%,team_update.ilike.%${trimmed}%,market_update.ilike.%${trimmed}%,traction_update.ilike.%${trimmed}%,funding_update.ilike.%${trimmed}%`)
-        .limit(6);
-      return data ?? [];
-    },
-  });
 
   const { data: contractDocs } = useQuery({
     queryKey: ["global-search-contract-docs", trimmed],
