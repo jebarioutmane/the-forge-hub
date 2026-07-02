@@ -889,7 +889,7 @@ export type Database = {
             foreignKeyName: "founder_checkins_associate_id_fkey"
             columns: ["associate_id"]
             isOneToOne: false
-            referencedRelation: "venture_associates"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -976,6 +976,7 @@ export type Database = {
       }
       founders: {
         Row: {
+          associate_id: string | null
           birthday: string | null
           cin_number: string | null
           cohort: string | null
@@ -1001,6 +1002,7 @@ export type Database = {
           venture_associate: string | null
         }
         Insert: {
+          associate_id?: string | null
           birthday?: string | null
           cin_number?: string | null
           cohort?: string | null
@@ -1026,6 +1028,7 @@ export type Database = {
           venture_associate?: string | null
         }
         Update: {
+          associate_id?: string | null
           birthday?: string | null
           cin_number?: string | null
           cohort?: string | null
@@ -1051,6 +1054,13 @@ export type Database = {
           venture_associate?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "founders_associate_id_fkey"
+            columns: ["associate_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "founders_cohort_id_fkey"
             columns: ["cohort_id"]
@@ -1471,24 +1481,6 @@ export type Database = {
           name?: string
           rate?: number | null
           type?: string | null
-        }
-        Relationships: []
-      }
-      venture_associates: {
-        Row: {
-          created_at: string | null
-          full_name: string
-          id: string
-        }
-        Insert: {
-          created_at?: string | null
-          full_name: string
-          id?: string
-        }
-        Update: {
-          created_at?: string | null
-          full_name?: string
-          id?: string
         }
         Relationships: []
       }
