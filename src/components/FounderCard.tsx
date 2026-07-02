@@ -17,9 +17,22 @@ interface FounderCardProps {
   onEdit: (f: Founder) => void;
   onDelete: (id: string) => void;
   highlightId?: string | null;
+  riskStatus?: string | null;
+  attendanceRate?: number | null;
 }
 
-export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, onDelete, highlightId }: FounderCardProps) {
+const RISK_STYLES: Record<string, string> = {
+  on_track: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  watch: "bg-amber-100 text-amber-700 border-amber-200",
+  at_risk: "bg-rose-100 text-rose-700 border-rose-200",
+};
+const RISK_LABELS: Record<string, string> = {
+  on_track: "On Track",
+  watch: "Watch",
+  at_risk: "At Risk",
+};
+
+export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, onDelete, highlightId, riskStatus, attendanceRate }: FounderCardProps) {
   const [imgError, setImgError] = useState(false);
   const initials = founder.founder_name
     .split(" ")
@@ -104,6 +117,16 @@ export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, o
           {founder.cohort && (
             <Badge variant="outline" className="text-[10px] font-medium text-muted-foreground">
               {founder.cohort}
+            </Badge>
+          )}
+          {riskStatus && (
+            <Badge className={`text-[10px] font-medium border ${RISK_STYLES[riskStatus] || ""}`}>
+              {RISK_LABELS[riskStatus] || riskStatus}
+            </Badge>
+          )}
+          {attendanceRate != null && (
+            <Badge variant="outline" className="text-[10px] font-medium">
+              Attendance {Math.round(Number(attendanceRate) * 100)}%
             </Badge>
           )}
         </div>
