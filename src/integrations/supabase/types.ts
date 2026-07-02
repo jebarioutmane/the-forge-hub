@@ -471,6 +471,13 @@ export type Database = {
             foreignKeyName: "event_attendance_founder_id_fkey"
             columns: ["founder_id"]
             isOneToOne: false
+            referencedRelation: "founder_engagement"
+            referencedColumns: ["founder_id"]
+          },
+          {
+            foreignKeyName: "event_attendance_founder_id_fkey"
+            columns: ["founder_id"]
+            isOneToOne: false
             referencedRelation: "founders"
             referencedColumns: ["id"]
           },
@@ -597,6 +604,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_linked_founder_id_fkey"
+            columns: ["linked_founder_id"]
+            isOneToOne: false
+            referencedRelation: "founder_engagement"
+            referencedColumns: ["founder_id"]
           },
           {
             foreignKeyName: "events_linked_founder_id_fkey"
@@ -803,11 +817,103 @@ export type Database = {
           },
         ]
       }
+      founder_checkins: {
+        Row: {
+          associate_id: string | null
+          checkin_date: string
+          checkin_type: string
+          created_at: string
+          effort_signal: string | null
+          founder_id: string
+          funding_note: string | null
+          funding_rating: number | null
+          id: string
+          links: Json | null
+          market_note: string | null
+          market_rating: number | null
+          notes: string | null
+          overall_score: number | null
+          product_note: string | null
+          product_rating: number | null
+          team_note: string | null
+          team_rating: number | null
+          traction_note: string | null
+          traction_rating: number | null
+        }
+        Insert: {
+          associate_id?: string | null
+          checkin_date?: string
+          checkin_type?: string
+          created_at?: string
+          effort_signal?: string | null
+          founder_id: string
+          funding_note?: string | null
+          funding_rating?: number | null
+          id?: string
+          links?: Json | null
+          market_note?: string | null
+          market_rating?: number | null
+          notes?: string | null
+          overall_score?: number | null
+          product_note?: string | null
+          product_rating?: number | null
+          team_note?: string | null
+          team_rating?: number | null
+          traction_note?: string | null
+          traction_rating?: number | null
+        }
+        Update: {
+          associate_id?: string | null
+          checkin_date?: string
+          checkin_type?: string
+          created_at?: string
+          effort_signal?: string | null
+          founder_id?: string
+          funding_note?: string | null
+          funding_rating?: number | null
+          id?: string
+          links?: Json | null
+          market_note?: string | null
+          market_rating?: number | null
+          notes?: string | null
+          overall_score?: number | null
+          product_note?: string | null
+          product_rating?: number | null
+          team_note?: string | null
+          team_rating?: number | null
+          traction_note?: string | null
+          traction_rating?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "founder_checkins_associate_id_fkey"
+            columns: ["associate_id"]
+            isOneToOne: false
+            referencedRelation: "venture_associates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "founder_checkins_founder_id_fkey"
+            columns: ["founder_id"]
+            isOneToOne: false
+            referencedRelation: "founder_engagement"
+            referencedColumns: ["founder_id"]
+          },
+          {
+            foreignKeyName: "founder_checkins_founder_id_fkey"
+            columns: ["founder_id"]
+            isOneToOne: false
+            referencedRelation: "founders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       founder_evaluations: {
         Row: {
           block_name: string
           categories_data: Json | null
-          created_at: string | null
+          created_at: string
+          decision: string | null
           evaluation_date: string | null
           execution_score: number | null
           founder_id: string
@@ -822,7 +928,8 @@ export type Database = {
         Insert: {
           block_name: string
           categories_data?: Json | null
-          created_at?: string | null
+          created_at?: string
+          decision?: string | null
           evaluation_date?: string | null
           execution_score?: number | null
           founder_id: string
@@ -837,7 +944,8 @@ export type Database = {
         Update: {
           block_name?: string
           categories_data?: Json | null
-          created_at?: string | null
+          created_at?: string
+          decision?: string | null
           evaluation_date?: string | null
           execution_score?: number | null
           founder_id?: string
@@ -849,66 +957,16 @@ export type Database = {
           total_score?: number | null
           traction_score?: number | null
         }
-        Relationships: []
-      }
-      founder_progress: {
-        Row: {
-          created_at: string | null
-          founder_id: string | null
-          funding_score: number | null
-          funding_update: string | null
-          id: string
-          manager_notes: string | null
-          market_score: number | null
-          market_update: string | null
-          product_score: number | null
-          product_update: string | null
-          tag_ids: string[] | null
-          team_score: number | null
-          team_update: string | null
-          traction_score: number | null
-          traction_update: string | null
-          week_start_date: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          founder_id?: string | null
-          funding_score?: number | null
-          funding_update?: string | null
-          id?: string
-          manager_notes?: string | null
-          market_score?: number | null
-          market_update?: string | null
-          product_score?: number | null
-          product_update?: string | null
-          tag_ids?: string[] | null
-          team_score?: number | null
-          team_update?: string | null
-          traction_score?: number | null
-          traction_update?: string | null
-          week_start_date?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          founder_id?: string | null
-          funding_score?: number | null
-          funding_update?: string | null
-          id?: string
-          manager_notes?: string | null
-          market_score?: number | null
-          market_update?: string | null
-          product_score?: number | null
-          product_update?: string | null
-          tag_ids?: string[] | null
-          team_score?: number | null
-          team_update?: string | null
-          traction_score?: number | null
-          traction_update?: string | null
-          week_start_date?: string | null
-        }
         Relationships: [
           {
-            foreignKeyName: "founder_progress_founder_id_fkey"
+            foreignKeyName: "founder_evaluations_founder_id_fkey"
+            columns: ["founder_id"]
+            isOneToOne: false
+            referencedRelation: "founder_engagement"
+            referencedColumns: ["founder_id"]
+          },
+          {
+            foreignKeyName: "founder_evaluations_founder_id_fkey"
             columns: ["founder_id"]
             isOneToOne: false
             referencedRelation: "founders"
@@ -998,84 +1056,6 @@ export type Database = {
             columns: ["cohort_id"]
             isOneToOne: false
             referencedRelation: "cohorts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      founders_tracking: {
-        Row: {
-          associate_id: string | null
-          clients_traction_rating: number | null
-          clients_traction_update: string | null
-          created_at: string | null
-          founder_id: string | null
-          funding_update: string | null
-          funding_update_rating: number | null
-          id: string
-          market_presence_rating: number | null
-          market_presence_update: string | null
-          other_updates: string | null
-          overall_score: number | null
-          product_dev_rating: number | null
-          product_dev_update: string | null
-          section_links: Json | null
-          team_structure_rating: number | null
-          team_structure_update: string | null
-          tracking_date: string | null
-        }
-        Insert: {
-          associate_id?: string | null
-          clients_traction_rating?: number | null
-          clients_traction_update?: string | null
-          created_at?: string | null
-          founder_id?: string | null
-          funding_update?: string | null
-          funding_update_rating?: number | null
-          id?: string
-          market_presence_rating?: number | null
-          market_presence_update?: string | null
-          other_updates?: string | null
-          overall_score?: number | null
-          product_dev_rating?: number | null
-          product_dev_update?: string | null
-          section_links?: Json | null
-          team_structure_rating?: number | null
-          team_structure_update?: string | null
-          tracking_date?: string | null
-        }
-        Update: {
-          associate_id?: string | null
-          clients_traction_rating?: number | null
-          clients_traction_update?: string | null
-          created_at?: string | null
-          founder_id?: string | null
-          funding_update?: string | null
-          funding_update_rating?: number | null
-          id?: string
-          market_presence_rating?: number | null
-          market_presence_update?: string | null
-          other_updates?: string | null
-          overall_score?: number | null
-          product_dev_rating?: number | null
-          product_dev_update?: string | null
-          section_links?: Json | null
-          team_structure_rating?: number | null
-          team_structure_update?: string | null
-          tracking_date?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "founders_tracking_associate_id_fkey"
-            columns: ["associate_id"]
-            isOneToOne: false
-            referencedRelation: "venture_associates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "founders_tracking_founder_id_fkey"
-            columns: ["founder_id"]
-            isOneToOne: false
-            referencedRelation: "founders"
             referencedColumns: ["id"]
           },
         ]
@@ -1392,6 +1372,13 @@ export type Database = {
             foreignKeyName: "stipend_records_founder_id_fkey"
             columns: ["founder_id"]
             isOneToOne: false
+            referencedRelation: "founder_engagement"
+            referencedColumns: ["founder_id"]
+          },
+          {
+            foreignKeyName: "stipend_records_founder_id_fkey"
+            columns: ["founder_id"]
+            isOneToOne: false
             referencedRelation: "founders"
             referencedColumns: ["id"]
           },
@@ -1507,7 +1494,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      founder_engagement: {
+        Row: {
+          attendance_rate: number | null
+          cohort_id: string | null
+          days_since_last_checkin: number | null
+          events_attended: number | null
+          events_recorded: number | null
+          founder_id: string | null
+          founder_name: string | null
+          last_checkin_date: string | null
+          latest_effort_signal: string | null
+          risk_status: string | null
+          startup_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "founders_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       bytea_to_text: { Args: { data: string }; Returns: string }

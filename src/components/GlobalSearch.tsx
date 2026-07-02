@@ -61,14 +61,14 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     },
   });
 
-  const { data: tracking } = useQuery({
-    queryKey: ["global-search-tracking", trimmed],
+  const { data: checkins } = useQuery({
+    queryKey: ["global-search-checkins", trimmed],
     enabled,
     queryFn: async () => {
       const { data } = await supabase
-        .from("founders_tracking")
-        .select("id, founder_id, tracking_date, overall_score, product_dev_update, team_structure_update, clients_traction_update, market_presence_update, funding_update, other_updates, founders(founder_name, startup_name)")
-        .or(`product_dev_update.ilike.%${trimmed}%,team_structure_update.ilike.%${trimmed}%,clients_traction_update.ilike.%${trimmed}%,market_presence_update.ilike.%${trimmed}%,funding_update.ilike.%${trimmed}%,other_updates.ilike.%${trimmed}%`)
+        .from("founder_checkins")
+        .select("id, founder_id, checkin_date, checkin_type, effort_signal, notes, product_note, team_note, traction_note, market_note, funding_note, founders(founder_name, startup_name)")
+        .or(`notes.ilike.%${trimmed}%,product_note.ilike.%${trimmed}%,team_note.ilike.%${trimmed}%,traction_note.ilike.%${trimmed}%,market_note.ilike.%${trimmed}%,funding_note.ilike.%${trimmed}%`)
         .limit(6);
       return data ?? [];
     },
@@ -357,18 +357,6 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     },
   });
 
-  const { data: progress } = useQuery({
-    queryKey: ["global-search-progress", trimmed],
-    enabled,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("founder_progress")
-        .select("id, founder_id, week_start_date, manager_notes, product_update, team_update, market_update, traction_update, funding_update, founders(founder_name, startup_name)")
-        .or(`manager_notes.ilike.%${trimmed}%,product_update.ilike.%${trimmed}%,team_update.ilike.%${trimmed}%,market_update.ilike.%${trimmed}%,traction_update.ilike.%${trimmed}%,funding_update.ilike.%${trimmed}%`)
-        .limit(6);
-      return data ?? [];
-    },
-  });
 
   const { data: contractDocs } = useQuery({
     queryKey: ["global-search-contract-docs", trimmed],
@@ -460,8 +448,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                 { title: "Logistics", path: "/events/logistics", icon: CalendarDays, keywords: "logistics travel accommodation catering" },
                 { title: "Stakeholders", path: "/events/stakeholders", icon: Handshake, keywords: "stakeholders mentors investors partners" },
                 { title: "Founders Directory", path: "/founders", icon: GraduationCap, keywords: "founders directory source startups" },
-                { title: "Founder Tracking", path: "/founders/tracking", icon: TrendingUp, keywords: "tracking weekly progress founders" },
-                { title: "Founder Evaluation", path: "/founders/evaluation", icon: ClipboardCheck, keywords: "evaluation blocks scores assessment" },
+                { title: "Founder Tracking", path: "/founders/tracking", icon: TrendingUp, keywords: "tracking check-ins evaluations founders" },
                 { title: "Portfolio Dashboard", path: "/founders/portfolio", icon: LayoutDashboard, keywords: "portfolio dashboard founders overview charts" },
                 { title: "Library", path: "/library", icon: BookOpen, keywords: "library resources documents links" },
                 { title: "Team Profiles", path: "/system/profiles", icon: Users2, keywords: "team profiles staff members system" },
@@ -517,15 +504,15 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
               </CommandGroup>
             )}
 
-            {tracking && tracking.length > 0 && (
-              <CommandGroup heading="Founder Tracking">
-                {tracking.map((t: any) => {
-                  const snippet = [t.product_dev_update, t.team_structure_update, t.clients_traction_update, t.market_presence_update, t.funding_update, t.other_updates].find((x) => x?.toLowerCase().includes(trimmed.toLowerCase())) ?? "";
+            {checkins && checkins.length > 0 && (
+              <CommandGroup heading="Founder Check-Ins">
+                {checkins.map((c: any) => {
+                  const snippet = [c.notes, c.product_note, c.team_note, c.traction_note, c.market_note, c.funding_note].find((x: string | null) => x?.toLowerCase().includes(trimmed.toLowerCase())) ?? "";
                   return (
-                    <CommandItem key={t.id} value={`tracking-${t.id}-${snippet}`} onSelect={() => go(`/founders/tracking?highlight=${t.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <CommandItem key={c.id} value={`checkin-${c.id}-${snippet}`} onSelect={() => go(`/founders/tracking?highlight=${c.id}`)} className="flex items-center gap-3 cursor-pointer">
                       <TrendingUp className="h-4 w-4 shrink-0 text-muted-foreground" />
                       <div className="flex flex-col min-w-0">
-                        <span className="text-sm font-medium truncate">{t.founders?.founder_name ?? "Tracking entry"} · Score {t.overall_score ?? "—"}</span>
+                        <span className="text-sm font-medium truncate">{c.founders?.founder_name ?? "Check-in"} · {c.checkin_date ?? ""}</span>
                         <span className="text-xs text-muted-foreground truncate">{highlightMatch(snippet.slice(0, 80), trimmed)}</span>
                       </div>
                     </CommandItem>
@@ -537,7 +524,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
             {evaluations && evaluations.length > 0 && (
               <CommandGroup heading="Evaluations">
                 {evaluations.map((e: any) => (
-                  <CommandItem key={e.id} value={`evaluation-${e.id}-${e.block_name}`} onSelect={() => go(`/founders/evaluation?highlight=${e.id}`)} className="flex items-center gap-3 cursor-pointer">
+                  <CommandItem key={e.id} value={`evaluation-${e.id}-${e.block_name}`} onSelect={() => go(`/founders/tracking?highlight=${e.id}`)} className="flex items-center gap-3 cursor-pointer">
                     <ClipboardCheck className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <div className="flex flex-col min-w-0">
                       <span className="text-sm font-medium truncate">{highlightMatch(e.block_name, trimmed)}</span>
@@ -761,22 +748,6 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                     </div>
                   </CommandItem>
                 ))}
-              </CommandGroup>
-            )}
-            {progress && progress.length > 0 && (
-              <CommandGroup heading="Founder Progress">
-                {progress.map((p: any) => {
-                  const snippet = [p.manager_notes, p.product_update, p.team_update, p.market_update, p.traction_update, p.funding_update].find((x) => x?.toLowerCase().includes(trimmed.toLowerCase())) ?? "";
-                  return (
-                    <CommandItem key={p.id} value={`progress-${p.id}-${snippet}`} onSelect={() => go(`/founders/tracking?highlight=${p.id}`)} className="flex items-center gap-3 cursor-pointer">
-                      <TrendingUp className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-sm font-medium truncate">{p.founders?.founder_name ?? "Progress"} · {p.week_start_date ?? ""}</span>
-                        <span className="text-xs text-muted-foreground truncate">{highlightMatch(snippet.slice(0, 80), trimmed)}</span>
-                      </div>
-                    </CommandItem>
-                  );
-                })}
               </CommandGroup>
             )}
 
