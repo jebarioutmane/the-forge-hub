@@ -559,6 +559,16 @@ export default function FoundersSource() {
             return nats.length > 0 ? nats.map(n => `${getFlag(n)} ${n}`).join(", ") : null;
           })() },
           { label: "Status", value: viewing.status },
+          { label: "Risk Status", value: (() => {
+            const e = engagementMap[viewing.id];
+            if (!e?.risk) return null;
+            const labels: Record<string, string> = { on_track: "On Track", watch: "Watch", at_risk: "At Risk" };
+            return labels[e.risk] || e.risk;
+          })() },
+          { label: "Attendance Rate", value: (() => {
+            const e = engagementMap[viewing.id];
+            return e?.attendance != null ? `${Math.round(Number(e.attendance) * 100)}%` : null;
+          })() },
           { label: "Venture Associate", value: viewing.venture_associate },
           { label: "Email", value: viewing.email },
           { label: "Phone", value: viewing.phone },
