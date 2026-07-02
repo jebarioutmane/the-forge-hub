@@ -524,12 +524,15 @@ export type Database = {
         Row: {
           all_founders: boolean | null
           checklist: Json | null
+          cohort_year: string | null
           created_at: string
           created_by: string | null
           end_date: string | null
+          end_time: string | null
           event_type: string | null
           expert_id: string | null
           id: string
+          linked_founder_id: string | null
           links: Json | null
           location: string | null
           logistics_needs: Json | null
@@ -537,18 +540,22 @@ export type Database = {
           needs: Json | null
           one_on_one_slots: Json | null
           start_date: string | null
+          start_time: string | null
           status: string | null
           tag_ids: string[] | null
         }
         Insert: {
           all_founders?: boolean | null
           checklist?: Json | null
+          cohort_year?: string | null
           created_at?: string
           created_by?: string | null
           end_date?: string | null
+          end_time?: string | null
           event_type?: string | null
           expert_id?: string | null
           id?: string
+          linked_founder_id?: string | null
           links?: Json | null
           location?: string | null
           logistics_needs?: Json | null
@@ -556,18 +563,22 @@ export type Database = {
           needs?: Json | null
           one_on_one_slots?: Json | null
           start_date?: string | null
+          start_time?: string | null
           status?: string | null
           tag_ids?: string[] | null
         }
         Update: {
           all_founders?: boolean | null
           checklist?: Json | null
+          cohort_year?: string | null
           created_at?: string
           created_by?: string | null
           end_date?: string | null
+          end_time?: string | null
           event_type?: string | null
           expert_id?: string | null
           id?: string
+          linked_founder_id?: string | null
           links?: Json | null
           location?: string | null
           logistics_needs?: Json | null
@@ -575,6 +586,7 @@ export type Database = {
           needs?: Json | null
           one_on_one_slots?: Json | null
           start_date?: string | null
+          start_time?: string | null
           status?: string | null
           tag_ids?: string[] | null
         }
@@ -584,6 +596,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_linked_founder_id_fkey"
+            columns: ["linked_founder_id"]
+            isOneToOne: false
+            referencedRelation: "founders"
             referencedColumns: ["id"]
           },
         ]
@@ -1232,86 +1251,6 @@ export type Database = {
           tags?: string[] | null
           title?: string | null
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      program_event_attendance: {
-        Row: {
-          created_at: string
-          event_id: string
-          founder_id: string
-          id: string
-          notes: string | null
-          status: string
-        }
-        Insert: {
-          created_at?: string
-          event_id: string
-          founder_id: string
-          id?: string
-          notes?: string | null
-          status?: string
-        }
-        Update: {
-          created_at?: string
-          event_id?: string
-          founder_id?: string
-          id?: string
-          notes?: string | null
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "program_event_attendance_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "program_events"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      program_events: {
-        Row: {
-          cohort_year: string
-          created_at: string
-          description: string | null
-          end_time: string
-          event_type: string
-          id: string
-          linked_founder_id: string | null
-          links: Json | null
-          location: string | null
-          start_time: string
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          cohort_year?: string
-          created_at?: string
-          description?: string | null
-          end_time: string
-          event_type?: string
-          id?: string
-          linked_founder_id?: string | null
-          links?: Json | null
-          location?: string | null
-          start_time: string
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          cohort_year?: string
-          created_at?: string
-          description?: string | null
-          end_time?: string
-          event_type?: string
-          id?: string
-          linked_founder_id?: string | null
-          links?: Json | null
-          location?: string | null
-          start_time?: string
-          title?: string
-          updated_at?: string
         }
         Relationships: []
       }

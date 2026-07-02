@@ -127,18 +127,6 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     },
   });
 
-  const { data: programEvents } = useQuery({
-    queryKey: ["global-search-program-events", trimmed],
-    enabled,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("program_events")
-        .select("id, title, description, location, event_type, start_time, cohort_year")
-        .or(`title.ilike.%${trimmed}%,description.ilike.%${trimmed}%,location.ilike.%${trimmed}%,event_type.ilike.%${trimmed}%,cohort_year.ilike.%${trimmed}%`)
-        .limit(6);
-      return data ?? [];
-    },
-  });
 
   const { data: logistics } = useQuery({
     queryKey: ["global-search-logistics", trimmed],
@@ -574,19 +562,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
               </CommandGroup>
             )}
 
-            {programEvents && programEvents.length > 0 && (
-              <CommandGroup heading="Calendar">
-                {programEvents.map((p: any) => (
-                  <CommandItem key={p.id} value={`program-${p.id}-${p.title}`} onSelect={() => go(`/events?highlight=${p.id}`)} className="flex items-center gap-3 cursor-pointer">
-                    <CalendarDays className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-medium truncate">{highlightMatch(p.title, trimmed)}</span>
-                      <span className="text-xs text-muted-foreground truncate">{p.event_type ?? "Calendar"} · {p.location ?? ""} · {p.cohort_year ?? ""}</span>
-                    </div>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
+
+
 
             {logistics && logistics.length > 0 && (
               <CommandGroup heading="Logistics">
