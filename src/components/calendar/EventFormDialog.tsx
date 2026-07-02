@@ -50,8 +50,8 @@ export function EventFormDialog({ open, onOpenChange, initial }: Props) {
       setDescription(extra.description || "");
       setStartDate(initial.start_date || "");
       setEndDate(initial.end_date || "");
-      setStartTime(extra.start_time || "09:00");
-      setEndTime(extra.end_time || "17:00");
+      setStartTime(initial.start_time || extra.start_time || "09:00");
+      setEndTime(initial.end_time || extra.end_time || "17:00");
       setEventType(initial.event_type || "General");
       setStatus(initial.status || "Planning");
       setLocation((initial as any).location || extra.location || "");
@@ -70,19 +70,16 @@ export function EventFormDialog({ open, onOpenChange, initial }: Props) {
     mutationFn: async () => {
       if (!name.trim()) throw new Error("Title required");
       if (!startDate) throw new Error("Start date required");
-      const needs = JSON.stringify({
-        description: description || "",
-        start_time: startTime,
-        end_time: endTime,
-        location: location || "",
-      }) as unknown as Json;
       const payload: any = {
         name: name.trim(),
         event_type: eventType,
         start_date: startDate,
         end_date: endDate || startDate,
+        start_time: startTime || null,
+        end_time: endTime || null,
+        location: location || null,
         status,
-        needs,
+        needs: { description: description || "" } as unknown as Json,
         links: links.filter((l) => l.url) as unknown as Json,
       };
       if (initial) {
