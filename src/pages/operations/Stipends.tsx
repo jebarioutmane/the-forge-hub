@@ -253,6 +253,8 @@ export default function Stipends() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const recordsQueryKey = ["stipend_records", cohortYear, paymentMonth, showArchived] as const;
+
   const updateFieldMutation = useMutation({
     mutationFn: async ({ id, field, value }: { id: string; field: string; value: any }) => {
       const rec = records.find((r) => r.id === id);
@@ -272,8 +274,60 @@ export default function Stipends() {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    // Optimistic: patch cache immediately so Net + KPIs update live without waiting on the roundtrip.
+    onMutate: async ({ id, field, value }) => {
+      await queryClient.cancelQueries({ queryKey: recordsQueryKey });
+      const prev = queryClient.getQueryData<StipendRecord[]>(recordsQueryKey);
+      if (prev) {
+        queryClient.setQueryData<StipendRecord[]>(recordsQueryKey, prev.map((r) => {
+          if (r.id !== id) return r;
+          const updated: any = { ...r, [field]: value };
+          updated.total_net = calcNet(
+            Number(updated.base_amount) || 0,
+            Number(updated.deduction_percent) || 0,
+            Number(updated.deduction_fixed) || 0,
+            Number(updated.addition_percent) || 0,
+            Number(updated.addition_fixed) || 0,
+            Number(updated.reimbursement) || 0
+          );
+          return updated;
+        }));
+      }
+      return { prev };
+    },
+    onError: (e: any, _v, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(recordsQueryKey, ctx.prev);
+      toast.error(e.message);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["stipend_records", cohortYear, paymentMonth] });
+    },
+  });
+
+  // Status flow is manual. When moving into "paid" we also stamp paid_at and
+  // attach the currently selected budget line so the Budget Dashboard rolls it up.
+  const setStatusMutation = useMutation({
+    mutationFn: async ({ id, next }: { id: string; next: string }) => {
+      const patch: any = { status: next };
+      if (next === "paid") {
+        patch.paid_at = new Date().toISOString();
+        if (selectedBudgetLineId) patch.budget_line_id = selectedBudgetLineId;
+      } else {
+        // Reversing a payment: clear paid_at / budget link so it stops counting against budget.
+        patch.paid_at = null;
+        patch.budget_line_id = null;
+      }
+      const { error } = await supabase.from("stipend_records").update(patch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, v) => {
+      queryClient.invalidateQueries({ queryKey: ["stipend_records", cohortYear, paymentMonth] });
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      if (v.next === "paid" && !selectedBudgetLineId) {
+        toast.warning("Marked Paid, but no budget line selected — won't count against budget.");
+      } else {
+        toast.success(`Marked ${v.next}`);
+      }
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -282,7 +336,7 @@ export default function Stipends() {
     const order = ["pending", "approved", "paid"];
     const idx = order.indexOf(rec.status || "pending");
     const next = order[(idx + 1) % order.length];
-    updateFieldMutation.mutate({ id: rec.id, field: "status", value: next });
+    setStatusMutation.mutate({ id: rec.id, next });
   };
 
   const saveEditMutation = useMutation({
@@ -318,30 +372,40 @@ export default function Stipends() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  // Soft-delete: mark archived instead of hard delete. Restore is available via the Archived toggle.
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("stipend_records").delete().eq("id", id);
+      const rec = records.find((r) => r.id === id);
+      const archiving = !rec?.is_archived;
+      const { error } = await supabase
+        .from("stipend_records")
+        .update({ is_archived: archiving, archived_at: archiving ? new Date().toISOString() : null } as any)
+        .eq("id", id);
       if (error) throw error;
+      return archiving;
     },
-    onSuccess: (_d, id) => {
+    onSuccess: (archiving) => {
       queryClient.invalidateQueries({ queryKey: ["stipend_records", cohortYear, paymentMonth] });
       setDeleteId(null);
-      toast.success("Record deleted");
+      toast.success(archiving ? "Record archived" : "Record restored");
     },
     onError: (e: any) => toast.error(e.message),
   });
 
   const bulkDeleteMutation = useMutation({
     mutationFn: async () => {
-      const ids = records.map((r) => r.id);
+      const ids = records.filter((r) => !r.is_archived).map((r) => r.id);
       if (!ids.length) return;
-      const { error } = await supabase.from("stipend_records").delete().in("id", ids);
+      const { error } = await supabase
+        .from("stipend_records")
+        .update({ is_archived: true, archived_at: new Date().toISOString() } as any)
+        .in("id", ids);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stipend_records", cohortYear, paymentMonth] });
       setBulkDeleteOpen(false);
-      toast.success("All records for this month deleted");
+      toast.success("All records for this month archived");
     },
     onError: (e: any) => toast.error(e.message),
   });
