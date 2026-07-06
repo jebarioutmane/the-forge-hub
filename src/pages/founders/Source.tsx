@@ -897,6 +897,32 @@ export default function FoundersSource() {
                 )}
               </section>
 
+              {/* Startup profile */}
+              <section className="space-y-3">
+                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                  Startup profile
+                </h3>
+                <DetailRow
+                  icon={<Rocket className="h-4 w-4" />}
+                  label="Sector"
+                  value={(viewing as any).sector}
+                />
+                <DetailRow
+                  icon={<TrendingUp className="h-4 w-4" />}
+                  label="Stage"
+                  value={(viewing as any).stage}
+                />
+                <DetailRow
+                  icon={<DollarSign className="h-4 w-4" />}
+                  label="Funding raised"
+                  value={
+                    (viewing as any).funding_raised != null
+                      ? `${Number((viewing as any).funding_raised).toLocaleString()} ${(viewing as any).funding_currency || "MAD"}`
+                      : null
+                  }
+                />
+              </section>
+
               {/* Identity docs */}
               <section className="space-y-3">
                 <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
