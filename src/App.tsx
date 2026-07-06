@@ -23,6 +23,7 @@ import Settings from "./pages/Settings";
 import Library from "./pages/Library";
 import SystemProfiles from "./pages/system/Profiles";
 import HistoryLog from "./pages/system/HistoryLog";
+import SystemTags from "./pages/system/Tags";
 import NotFound from "./pages/NotFound";
 import { InstallPrompt } from "./components/InstallPrompt";
 import { CohortProvider } from "./contexts/CohortContext";
@@ -56,6 +57,7 @@ const App = () => (
           <Route path="/library" element={<MainLayout><Library moduleName="All" /></MainLayout>} />
           <Route path="/system/profiles" element={<MainLayout><SystemProfiles /></MainLayout>} />
           <Route path="/system/history" element={<MainLayout><HistoryLog /></MainLayout>} />
+          <Route path="/system/tags" element={<MainLayout><SystemTags /></MainLayout>} />
         <Route path="*" element={<NotFound />} />
         </Routes>
         <InstallPrompt />
