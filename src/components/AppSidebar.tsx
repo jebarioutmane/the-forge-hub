@@ -60,9 +60,10 @@ const sections = [
     label: "System",
     color: "text-muted-foreground",
     items: [
-      { title: "Library", url: "/library", icon: BookOpen },
+      { title: "Budget Lines", url: "/operations/budget-lines", icon: Layers },
       { title: "Team Profiles", url: "/system/profiles", icon: UserCircle },
       { title: "History Log", url: "/system/history", icon: History },
+      { title: "Library", url: "/library", icon: BookOpen },
       { title: "Settings", url: "/settings", icon: Settings },
     ],
   },
