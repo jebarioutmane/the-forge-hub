@@ -462,6 +462,10 @@ export default function FoundersSource() {
       passport_number: f.passport_number || "",
       birthday: f.birthday || "",
       photo_url: f.photo_url || "",
+      sector: (f as any).sector || "",
+      stage: (f as any).stage || "",
+      funding_raised: (f as any).funding_raised != null ? String((f as any).funding_raised) : "",
+      funding_currency: (f as any).funding_currency || "MAD",
     });
     setEditing(f);
     setDialogOpen(true);
