@@ -30,13 +30,18 @@ export default function ContractDetailDialog({ contract, onClose }: ContractDeta
   const { data: payments = [] } = useContractPayments(contract?.id ?? null);
   const { data: milestones = [] } = useContractMilestones(contract?.id ?? null);
 
+  const { data: budgetLines = [] } = useAllBudgetLines();
+
   if (!contract) return null;
 
   const vendor = vendors.find((v) => v.id === contract.vendor_id);
+  const budgetLine = budgetLines.find((b) => b.id === contract.budget_line_id);
   const totalValue = contract.value ? Number(contract.value) : 0;
-  const totalPaid = payments.filter((p) => p.status === "paid").reduce((s, p) => s + Number(p.amount), 0);
-  const remaining = totalValue - totalPaid;
+  const totalPaid = payments.filter((p) => isPaid(p.status)).reduce((s, p) => s + Number(p.amount), 0);
+  const totalCommitted = payments.filter((p) => isCommitted(p.status)).reduce((s, p) => s + Number(p.amount), 0);
+  const remaining = Math.max(totalValue - totalPaid, 0);
   const pctPaid = totalValue > 0 ? Math.round((totalPaid / totalValue) * 100) : 0;
+  const pctCommitted = totalValue > 0 ? Math.round((totalCommitted / totalValue) * 100) : 0;
   const currency = (contract as any).currency || "MAD";
 
   return (
@@ -62,27 +67,36 @@ export default function ContractDetailDialog({ contract, onClose }: ContractDeta
 
           <TabsContent value="overview" className="space-y-6 mt-4">
             {/* Financial Summary */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-3">
               <div className="rounded-lg border p-4">
-                <p className="text-xs text-muted-foreground mb-1">Total Value</p>
-                <p className="text-lg font-bold">{totalValue.toLocaleString()} {currency}</p>
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Total Value</p>
+                <p className="text-lg font-semibold">{totalValue.toLocaleString()} {currency}</p>
               </div>
               <div className="rounded-lg border p-4">
-                <p className="text-xs text-muted-foreground mb-1">Paid</p>
-                <p className="text-lg font-bold text-emerald-600">{totalPaid.toLocaleString()} {currency}</p>
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Committed</p>
+                <p className="text-lg font-semibold text-amber-700">{totalCommitted.toLocaleString()} {currency}</p>
+                <p className="text-[10px] text-muted-foreground">{pctCommitted}% of value</p>
               </div>
               <div className="rounded-lg border p-4">
-                <p className="text-xs text-muted-foreground mb-1">Remaining</p>
-                <p className="text-lg font-bold text-orange-600">{remaining.toLocaleString()} {currency}</p>
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Paid</p>
+                <p className="text-lg font-semibold text-emerald-700">{totalPaid.toLocaleString()} {currency}</p>
+                <p className="text-[10px] text-muted-foreground">{pctPaid}% of value</p>
+              </div>
+              <div className="rounded-lg border p-4">
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">Remaining</p>
+                <p className="text-lg font-semibold">{remaining.toLocaleString()} {currency}</p>
               </div>
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-2">
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>Payment Progress</span>
-                <span>{pctPaid}%</span>
+                <span>Paid {pctPaid}% · Committed {pctCommitted}%</span>
               </div>
-              <Progress value={pctPaid} className="h-2" />
+              <div className="relative h-2 rounded-full bg-muted overflow-hidden">
+                <div className="absolute inset-y-0 left-0 bg-amber-400/60" style={{ width: `${Math.min(pctPaid + pctCommitted, 100)}%` }} />
+                <div className="absolute inset-y-0 left-0 bg-emerald-500" style={{ width: `${Math.min(pctPaid, 100)}%` }} />
+              </div>
             </div>
 
             {/* Details Grid */}
