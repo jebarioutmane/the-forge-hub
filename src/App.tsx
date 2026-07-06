@@ -7,7 +7,6 @@ import { MainLayout } from "./components/MainLayout";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import OperationsDashboard from "./pages/operations/Dashboard";
-import Source from "./pages/operations/Source";
 import Expenses from "./pages/operations/Expenses";
 import Stipends from "./pages/operations/Stipends";
 import OperationsContracts from "./pages/operations/Contracts";
