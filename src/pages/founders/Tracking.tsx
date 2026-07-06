@@ -203,12 +203,12 @@ export default function Tracking() {
     queryFn: async () => {
       let q = supabase
         .from("founders")
-        .select("id, founder_name, startup_name, avatar_url, cohort_id, associate_id, is_archived")
+        .select("id, founder_name, startup_name, cohort_id, associate_id, is_archived")
         .eq("is_archived", false);
       if (selectedCohortId !== ALL_COHORTS) q = q.eq("cohort_id", selectedCohortId);
       const { data, error } = await q.order("startup_name", { ascending: true });
       if (error) throw error;
-      return (data ?? []) as Pick<Founder, "id" | "founder_name" | "startup_name" | "avatar_url" | "cohort_id" | "associate_id" | "is_archived">[];
+      return (data ?? []) as Pick<Founder, "id" | "founder_name" | "startup_name" | "cohort_id" | "associate_id" | "is_archived">[];
     },
   });
 
