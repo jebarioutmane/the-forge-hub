@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { TagBadges } from "@/components/TagBadges";
 import type { ContractRow } from "@/hooks/useContracts";
-import { useContractPayments, useContractMilestones } from "@/hooks/useContracts";
+import { useContractPayments, useContractMilestones, isCommitted, isPaid, useAllBudgetLines } from "@/hooks/useContracts";
 import { useVendors } from "@/hooks/useRelationalData";
 import ContractPaymentsTab from "./ContractPaymentsTab";
 import ContractMilestonesTab from "./ContractMilestonesTab";
