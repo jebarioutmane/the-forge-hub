@@ -2,7 +2,7 @@ import {
   LayoutDashboard, DollarSign, FileText, CalendarDays,
   ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
   Settings, ChevronDown, Wallet, PiggyBank,
-  ClipboardList, BarChart3, Users2, Truck, UserCircle, History,
+  ClipboardList, BarChart3, Users2, Truck, UserCircle, History, Layers,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
@@ -60,9 +60,10 @@ const sections = [
     label: "System",
     color: "text-muted-foreground",
     items: [
-      { title: "Library", url: "/library", icon: BookOpen },
+      { title: "Budget Lines", url: "/operations/budget-lines", icon: Layers },
       { title: "Team Profiles", url: "/system/profiles", icon: UserCircle },
       { title: "History Log", url: "/system/history", icon: History },
+      { title: "Library", url: "/library", icon: BookOpen },
       { title: "Settings", url: "/settings", icon: Settings },
     ],
   },
