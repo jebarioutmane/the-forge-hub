@@ -215,19 +215,6 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     },
   });
 
-  const { data: budgetCategories } = useQuery({
-    queryKey: ["global-search-budget-categories", trimmed],
-    enabled,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("budget_categories")
-        .select("id, name, total_amount")
-        .ilike("name", `%${trimmed}%`)
-        .limit(6);
-      return data ?? [];
-    },
-  });
-
   const { data: budgetLines } = useQuery({
     queryKey: ["global-search-budget-lines", trimmed],
     enabled,
@@ -241,18 +228,6 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     },
   });
 
-  const { data: budgetTx } = useQuery({
-    queryKey: ["global-search-budget-tx", trimmed],
-    enabled,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("budget_transactions")
-        .select("id, description, category, amount, transaction_type, cohort_year, date")
-        .or(`description.ilike.%${trimmed}%,category.ilike.%${trimmed}%,transaction_type.ilike.%${trimmed}%,cohort_year.ilike.%${trimmed}%`)
-        .limit(6);
-      return data ?? [];
-    },
-  });
 
   const { data: vendors } = useQuery({
     queryKey: ["global-search-vendors", trimmed],
