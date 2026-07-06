@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useCohort, ALL_COHORTS } from "@/contexts/CohortContext";
 import { useVendors } from "@/hooks/useRelationalData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,411 +9,162 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { toast } from "sonner";
-import { Plus, MoreHorizontal, Pencil, Trash2, Eye, X, PiggyBank, TrendingDown, Wallet, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
-import ViewDetailDialog from "@/components/ViewDetailDialog";
-import { SearchableSelect } from "@/components/SearchableSelect";
+import { TagPicker } from "@/components/TagPicker";
 import { cn } from "@/lib/utils";
+import {
+  Plus, MoreHorizontal, Pencil, Trash2, Eye, X, Search, Check, ChevronsUpDown,
+  Filter, Wallet, CheckCircle2, Clock, CircleDollarSign, Archive, ArchiveRestore,
+  ExternalLink, Loader2, Receipt,
+} from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Expense = Tables<"expenses">;
-type Cohort = Tables<"cohorts">;
-type BudgetLine = Tables<"budget_lines">;
 
-/* ─── Cohort Selector ─── */
-function CohortSelector({
-  cohorts,
-  selectedId,
-  onSelect,
-  onCreateNew,
-  onEdit,
-  onDelete,
-}: {
-  cohorts: Cohort[];
-  selectedId: string | null;
-  onSelect: (id: string) => void;
-  onCreateNew: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <Select value={selectedId || ""} onValueChange={onSelect}>
-        <SelectTrigger className="w-[260px]">
-          <SelectValue placeholder="Select a cohort..." />
-        </SelectTrigger>
-        <SelectContent>
-          {cohorts.map((c) => (
-            <SelectItem key={c.id} value={c.id}>
-              {c.name} ({c.year})
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      {selectedId && (
-        <>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onEdit} title="Edit cohort">
-            <Pencil className="h-3.5 w-3.5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={onDelete} title="Delete cohort">
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        </>
-      )}
-      <Button variant="outline" size="sm" onClick={onCreateNew}>
-        <Plus className="mr-1 h-3.5 w-3.5" /> New Cohort
-      </Button>
-    </div>
-  );
+const STATUS_OPTIONS = ["Pending", "Approved", "Paid"] as const;
+const TYPE_OPTIONS = ["Purchase", "Reimbursement", "Payment", "Stipend", "Service", "Other"] as const;
+const CURRENCIES = ["MAD", "USD", "EUR", "GBP"] as const;
+
+function formatMoney(amount: number, currency: string | null) {
+  const c = currency || "MAD";
+  try {
+    return new Intl.NumberFormat("en-US", { style: "currency", currency: c, maximumFractionDigits: 2 }).format(amount);
+  } catch {
+    return `${amount.toLocaleString()} ${c}`;
+  }
 }
 
-/* ─── Generic Multi-Select with Inline Creation ─── */
-function MultiSelectPicker({
-  value,
-  onChange,
-  options,
-  placeholder,
-  searchPlaceholder,
-  onCreateNew,
-  createLabel,
-  onDelete,
+function statusTone(s: string | null) {
+  switch (s) {
+    case "Paid": return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    case "Approved": return "bg-blue-50 text-blue-700 border-blue-200";
+    case "Pending": return "bg-amber-50 text-amber-700 border-amber-200";
+    default: return "bg-muted text-muted-foreground border-border";
+  }
+}
+
+/* ─── Multi-select filter dropdown ─── */
+function FilterMultiSelect({
+  label, icon: Icon, options, value, onChange,
 }: {
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  options: { id: string; label: string }[];
   value: string[];
-  onChange: (ids: string[]) => void;
-  options: { id: string; label: string; sublabel?: string }[];
-  placeholder?: string;
-  searchPlaceholder?: string;
-  onCreateNew?: (name: string) => Promise<string | null>;
-  createLabel?: string;
-  onDelete?: (id: string) => void;
+  onChange: (v: string[]) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [saving, setSaving] = useState(false);
-
+  const [q, setQ] = useState("");
   const filtered = useMemo(() => {
-    if (!search.trim()) return options;
-    const q = search.toLowerCase();
-    return options.filter(
-      (o) => o.label.toLowerCase().includes(q) || (o.sublabel && o.sublabel.toLowerCase().includes(q))
-    );
-  }, [options, search]);
-
-  async function handleCreate() {
-    if (!newName.trim() || !onCreateNew) return;
-    setSaving(true);
-    const newId = await onCreateNew(newName.trim());
-    setSaving(false);
-    if (newId) {
-      onChange([...value, newId]);
-      setIsCreating(false);
-      setNewName("");
-    }
-  }
+    if (!q.trim()) return options;
+    const s = q.toLowerCase();
+    return options.filter((o) => o.label.toLowerCase().includes(s));
+  }, [options, q]);
 
   return (
-    <div className="space-y-2">
-      <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setIsCreating(false); setNewName(""); } }}>
-        <PopoverTrigger asChild>
-          <Button variant="outline" role="combobox" className="w-full justify-between font-normal h-auto min-h-9">
-            <span className="truncate text-left">
-              {value.length > 0 ? `${value.length} selected` : placeholder || "Select..."}
-            </span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
-          <div className="p-2">
-            <Input
-              placeholder={searchPlaceholder || "Search..."}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-8"
-              autoFocus
-            />
-          </div>
-          <ScrollArea className="max-h-[200px]">
-            {filtered.length === 0 && !isCreating ? (
-              <p className="text-sm text-muted-foreground text-center py-4">No results found</p>
-            ) : (
-              <div className="p-1">
-                {filtered.map((option) => {
-                  const isSelected = value.includes(option.id);
-                  return (
-                    <div
-                      key={option.id}
-                      className={cn(
-                        "flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-accent text-left group",
-                        isSelected && "bg-accent"
-                      )}
-                    >
-                      <button
-                        onClick={() => {
-                          onChange(isSelected ? value.filter((id) => id !== option.id) : [...value, option.id]);
-                        }}
-                        className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
-                      >
-                        <Check className={cn("h-3.5 w-3.5 shrink-0", isSelected ? "opacity-100" : "opacity-0")} />
-                        <div className="flex flex-col min-w-0">
-                          <span className="truncate">{option.label}</span>
-                          {option.sublabel && (
-                            <span className="text-xs text-muted-foreground truncate">{option.sublabel}</span>
-                          )}
-                        </div>
-                      </button>
-                      {onDelete && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); onDelete(option.id); }}
-                          className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-destructive/10 text-destructive shrink-0 transition-opacity"
-                          title="Delete"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </ScrollArea>
-
-          {onCreateNew && (
-            <div className="border-t p-1">
-              {isCreating ? (
-                <div className="flex items-center gap-1.5 p-1">
-                  <Input
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Name..."
-                    className="h-8 text-sm"
-                    autoFocus
-                    onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") setIsCreating(false); }}
-                  />
-                  <Button size="sm" className="h-8 px-2.5 shrink-0" onClick={handleCreate} disabled={!newName.trim() || saving}>
-                    {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                  </Button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setIsCreating(true)}
-                  className="flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-accent cursor-pointer text-primary font-medium"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  {createLabel || "Add new"}
-                </button>
-              )}
-            </div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="h-9 font-normal">
+          {Icon && <Icon className="mr-1.5 h-3.5 w-3.5" />}
+          {label}
+          {value.length > 0 && (
+            <Badge variant="secondary" className="ml-1.5 h-5 px-1.5">{value.length}</Badge>
           )}
-        </PopoverContent>
-      </Popover>
-      {value.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {options
-            .filter((o) => value.includes(o.id))
-            .map((o) => (
-              <Badge key={o.id} variant="secondary" className="gap-1 pr-1">
-                {o.label}
-                <button
-                  onClick={() => onChange(value.filter((id) => id !== o.id))}
-                  className="ml-0.5 rounded-full hover:bg-muted-foreground/20 p-0.5"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
+          <ChevronsUpDown className="ml-1.5 h-3.5 w-3.5 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-0" align="start">
+        <div className="p-2 border-b">
+          <Input placeholder={`Search ${label.toLowerCase()}...`} value={q} onChange={(e) => setQ(e.target.value)} className="h-8" />
         </div>
-      )}
-    </div>
+        <ScrollArea className="max-h-64">
+          <div className="p-1">
+            {filtered.length === 0 && (
+              <p className="text-xs text-muted-foreground text-center py-3">No options</p>
+            )}
+            {filtered.map((o) => {
+              const on = value.includes(o.id);
+              return (
+                <button
+                  key={o.id}
+                  onClick={() => onChange(on ? value.filter((v) => v !== o.id) : [...value, o.id])}
+                  className={cn("flex items-center gap-2 w-full rounded px-2 py-1.5 text-sm hover:bg-accent text-left", on && "bg-accent")}
+                >
+                  <Check className={cn("h-3.5 w-3.5 shrink-0", on ? "opacity-100" : "opacity-0")} />
+                  <span className="truncate">{o.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </ScrollArea>
+        {value.length > 0 && (
+          <div className="border-t p-1">
+            <button
+              onClick={() => onChange([])}
+              className="w-full text-xs text-muted-foreground hover:text-foreground py-1.5 px-2 rounded hover:bg-accent"
+            >
+              Clear
+            </button>
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
   );
 }
 
-/* ─── Vendor Multi-Select with Type Field ─── */
-function VendorMultiSelect({
-  value,
-  onChange,
-  options,
-  onCreateNew,
-  onDelete,
-}: {
-  value: string[];
-  onChange: (ids: string[]) => void;
-  options: { id: string; name: string; type: string | null }[];
-  onCreateNew?: (name: string, type: string | null) => Promise<string | null>;
-  onDelete?: (id: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [isCreating, setIsCreating] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [newType, setNewType] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  const filtered = useMemo(() => {
-    if (!search.trim()) return options;
-    const q = search.toLowerCase();
-    return options.filter(
-      (o) => o.name.toLowerCase().includes(q) || (o.type && o.type.toLowerCase().includes(q))
-    );
-  }, [options, search]);
-
-  async function handleCreate() {
-    if (!newName.trim() || !onCreateNew) return;
-    setSaving(true);
-    const newId = await onCreateNew(newName.trim(), newType.trim() || null);
-    setSaving(false);
-    if (newId) {
-      onChange([...value, newId]);
-      setIsCreating(false);
-      setNewName("");
-      setNewType("");
-    }
-  }
-
-  return (
-    <div className="space-y-2">
-      <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setIsCreating(false); setNewName(""); setNewType(""); } }}>
-        <PopoverTrigger asChild>
-          <Button variant="outline" role="combobox" className="w-full justify-between font-normal h-auto min-h-9">
-            <span className="truncate text-left">
-              {value.length > 0 ? `${value.length} selected` : "Select stakeholders..."}
-            </span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
-          <div className="p-2">
-            <Input placeholder="Search vendors..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-8" autoFocus />
-          </div>
-          <ScrollArea className="max-h-[200px]">
-            {filtered.length === 0 && !isCreating ? (
-              <p className="text-sm text-muted-foreground text-center py-4">No vendors found</p>
-            ) : (
-              <div className="p-1">
-                {filtered.map((option) => {
-                  const isSelected = value.includes(option.id);
-                  return (
-                    <div key={option.id} className={cn("flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-accent text-left group", isSelected && "bg-accent")}>
-                      <button
-                        onClick={() => onChange(isSelected ? value.filter((id) => id !== option.id) : [...value, option.id])}
-                        className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
-                      >
-                        <Check className={cn("h-3.5 w-3.5 shrink-0", isSelected ? "opacity-100" : "opacity-0")} />
-                        <div className="flex flex-col min-w-0">
-                          <span className="truncate">{option.name}</span>
-                          {option.type && <span className="text-xs text-muted-foreground truncate">{option.type}</span>}
-                        </div>
-                      </button>
-                      {onDelete && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); onDelete(option.id); }}
-                          className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-destructive/10 text-destructive shrink-0 transition-opacity"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </ScrollArea>
-
-          {onCreateNew && (
-            <div className="border-t p-1">
-              {isCreating ? (
-                <div className="space-y-1.5 p-1">
-                  <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Vendor name..." className="h-8 text-sm" autoFocus
-                    onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") setIsCreating(false); }} />
-                  <div className="flex items-center gap-1.5">
-                    <Select value={newType} onValueChange={setNewType}>
-                      <SelectTrigger className="h-8 text-sm flex-1"><SelectValue placeholder="Type (optional)" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="mentor">Mentor</SelectItem>
-                        <SelectItem value="expert">Expert</SelectItem>
-                        <SelectItem value="consultant">Consultant</SelectItem>
-                        <SelectItem value="vendor">Vendor</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button size="sm" className="h-8 px-2.5 shrink-0" onClick={handleCreate} disabled={!newName.trim() || saving}>
-                      {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <button onClick={() => setIsCreating(true)} className="flex items-center gap-2 w-full rounded-md px-2 py-1.5 text-sm hover:bg-accent cursor-pointer text-primary font-medium">
-                  <Plus className="h-3.5 w-3.5" /> Add new stakeholder
-                </button>
-              )}
-            </div>
-          )}
-        </PopoverContent>
-      </Popover>
-      {value.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {options.filter((o) => value.includes(o.id)).map((o) => (
-            <Badge key={o.id} variant="secondary" className="gap-1 pr-1">
-              {o.name}
-              <button onClick={() => onChange(value.filter((id) => id !== o.id))} className="ml-0.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
-                <X className="h-3 w-3" />
-              </button>
-            </Badge>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ─── Main Component ─── */
+/* ─── Main ─── */
 export default function Expenses() {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [selectedCohortId, setSelectedCohortId] = useState<string | null>(null);
-  const [cohortDialogOpen, setCohortDialogOpen] = useState(false);
-  const [editingCohort, setEditingCohort] = useState<Cohort | null>(null);
-  const [deleteCohortId, setDeleteCohortId] = useState<string | null>(null);
-  const [cohortForm, setCohortForm] = useState({ name: "", year: String(new Date().getFullYear()), total_budget: "" });
+  const qc = useQueryClient();
+  const { selectedCohortId, selectedCohortLabel, cohorts } = useCohort();
+  const isAllCohorts = selectedCohortId === ALL_COHORTS;
 
-  // Budget line management
-  const [budgetLineDialogOpen, setBudgetLineDialogOpen] = useState(false);
-  const [editingBudgetLine, setEditingBudgetLine] = useState<BudgetLine | null>(null);
-  const [deleteBudgetLineId, setDeleteBudgetLineId] = useState<string | null>(null);
-  const [budgetLineForm, setBudgetLineForm] = useState({ name: "", code: "", allocated_amount: "" });
+  const [search, setSearch] = useState("");
+  const [fStatus, setFStatus] = useState<string[]>([]);
+  const [fType, setFType] = useState<string[]>([]);
+  const [fBudget, setFBudget] = useState<string[]>([]);
+  const [fCategory, setFCategory] = useState<string[]>([]);
+  const [fVendor, setFVendor] = useState<string[]>([]);
+  const [showArchived, setShowArchived] = useState(false);
 
-  const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
-  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<Expense | null>(null);
   const [viewing, setViewing] = useState<Expense | null>(null);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const [form, setForm] = useState({
+  const emptyForm = {
     description: "",
-    detail: "",
-    budget_line_id: null as string | null,
-    category_ids: [] as string[],
-    currency: "MAD",
     amount: "",
-    stakeholder_ids: [] as string[],
-    links: [] as { title: string; url: string }[],
-  });
+    currency: "MAD",
+    type: "" as string,
+    status: "Pending" as string,
+    beneficiary_name: "",
+    due_date: "",
+    budget_line_id: null as string | null,
+    category_id: null as string | null,
+    vendor_id: null as string | null,
+    tag_ids: [] as string[],
+    proof_document_url: "",
+  };
+  const [form, setForm] = useState(emptyForm);
+  function set<K extends keyof typeof emptyForm>(k: K, v: typeof emptyForm[K]) {
+    setForm((f) => ({ ...f, [k]: v }));
+  }
 
+  /* ─── Data ─── */
   const { data: vendors = [] } = useVendors();
 
-  // Expense categories
-  const { data: expenseCategories = [] } = useQuery({
-    queryKey: ["expense-categories-list"],
+  const { data: categories = [] } = useQuery({
+    queryKey: ["expense-categories"],
     queryFn: async () => {
       const { data, error } = await supabase.from("expense_categories").select("*").order("name");
       if (error) throw error;
@@ -421,848 +172,688 @@ export default function Expenses() {
     },
   });
 
-  const categoryOptions = expenseCategories.map((c) => ({
-    id: c.id,
-    label: c.name,
-  }));
-
-  const { data: cohorts = [] } = useQuery({
-    queryKey: ["cohorts"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("cohorts").select("*").order("year", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const activeCohortId = selectedCohortId || (cohorts.length > 0 ? cohorts[0].id : null);
-  const activeCohort = cohorts.find((c) => c.id === activeCohortId);
-
-  // Budget lines for active cohort
   const { data: budgetLines = [] } = useQuery({
-    queryKey: ["budget-lines", activeCohortId],
+    queryKey: ["budget-lines", isAllCohorts ? "all" : selectedCohortId],
     queryFn: async () => {
-      if (!activeCohortId) return [];
-      const { data, error } = await supabase.from("budget_lines").select("*").eq("cohort_id", activeCohortId).order("code");
+      let q = supabase.from("budget_lines").select("*").eq("is_archived", false).order("name");
+      if (!isAllCohorts && selectedCohortId) q = q.eq("cohort_id", selectedCohortId);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
-    enabled: !!activeCohortId,
+    enabled: !!selectedCohortId,
   });
 
-  const budgetLineOptions = budgetLines.map((bl) => ({
-    id: bl.id,
-    label: bl.code ? `${bl.code} — ${bl.name}` : bl.name,
-    sublabel: bl.allocated_amount ? `${Number(bl.allocated_amount).toLocaleString()} MAD` : undefined,
-  }));
+  const { data: tags = [] } = useQuery({
+    queryKey: ["tags"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("tags").select("*").order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: expenses = [], isLoading } = useQuery({
-    queryKey: ["expenses", activeCohortId],
+    queryKey: ["expenses", isAllCohorts ? "all" : selectedCohortId, showArchived],
     queryFn: async () => {
-      if (!activeCohortId) return [];
-      const { data, error } = await supabase
-        .from("expenses")
-        .select("*")
-        .eq("cohort_id", activeCohortId)
-        .order("created_at", { ascending: false });
+      let q = supabase.from("expenses").select("*").order("created_at", { ascending: false });
+      if (!isAllCohorts && selectedCohortId) q = q.eq("cohort_id", selectedCohortId);
+      q = q.eq("is_archived", showArchived);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
-    enabled: !!activeCohortId,
+    enabled: !!selectedCohortId,
   });
 
-  const [viewStakeholders, setViewStakeholders] = useState<string[]>([]);
-  const [viewLinks, setViewLinks] = useState<{ title: string; url: string }[]>([]);
-  const [viewCategoryIds, setViewCategoryIds] = useState<string[]>([]);
+  /* ─── Lookups ─── */
+  const budgetMap = useMemo(() => new Map(budgetLines.map((b) => [b.id, b])), [budgetLines]);
+  const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
+  const vendorMap = useMemo(() => new Map(vendors.map((v) => [v.id, v])), [vendors]);
+  const tagMap = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags]);
 
-  const totalBudget = Number(activeCohort?.total_budget || 0);
-  const totalExpenses = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
-  const remaining = totalBudget - totalExpenses;
-
-  // ─── Cohort Mutations ───
-  const createCohortMutation = useMutation({
-    mutationFn: async () => {
-      const { data, error } = await supabase.from("cohorts").insert({
-        name: cohortForm.name,
-        label: cohortForm.name,
-        year: Number(cohortForm.year),
-        total_budget: cohortForm.total_budget ? Number(cohortForm.total_budget) : 0,
-      }).select().single();
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["cohorts"] });
-      setSelectedCohortId(data.id);
-      setCohortDialogOpen(false);
-      setCohortForm({ name: "", year: String(new Date().getFullYear()), total_budget: "" });
-      toast.success("Cohort created");
-    },
-    onError: (e) => toast.error(e.message),
-  });
-
-  const updateCohortMutation = useMutation({
-    mutationFn: async () => {
-      if (!editingCohort) return;
-      const { error } = await supabase.from("cohorts").update({
-        name: cohortForm.name,
-        year: Number(cohortForm.year),
-        total_budget: cohortForm.total_budget ? Number(cohortForm.total_budget) : 0,
-      }).eq("id", editingCohort.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cohorts"] });
-      setCohortDialogOpen(false);
-      setEditingCohort(null);
-      setCohortForm({ name: "", year: String(new Date().getFullYear()), total_budget: "" });
-      toast.success("Cohort updated");
-    },
-    onError: (e) => toast.error(e.message),
-  });
-
-  const deleteCohortMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { data: expenseIds } = await supabase.from("expenses").select("id").eq("cohort_id", id);
-      if (expenseIds && expenseIds.length > 0) {
-        const ids = expenseIds.map((e) => e.id);
-        await supabase.from("expense_stakeholders").delete().in("expense_id", ids);
-        await supabase.from("expense_links").delete().in("expense_id", ids);
-        await supabase.from("expense_category_links").delete().in("expense_id", ids);
-        await supabase.from("expenses").delete().eq("cohort_id", id);
-      }
-      await supabase.from("budget_lines").delete().eq("cohort_id", id);
-      const { error } = await supabase.from("cohorts").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cohorts"] });
-      queryClient.invalidateQueries({ queryKey: ["expenses"] });
-      queryClient.invalidateQueries({ queryKey: ["budget-lines"] });
-      setSelectedCohortId(null);
-      setDeleteCohortId(null);
-      toast.success("Cohort deleted");
-    },
-    onError: (e) => toast.error(e.message),
-  });
-
-  // ─── Budget Line Mutations ───
-  const createBudgetLineMutation = useMutation({
-    mutationFn: async () => {
-      const trimmedCode = budgetLineForm.code.trim();
-      if (trimmedCode) {
-        const dup = budgetLines.find((bl) => bl.code?.trim().toLowerCase() === trimmedCode.toLowerCase());
-        if (dup) throw new Error(`Code "${trimmedCode}" already exists in this cohort`);
-      }
-      const { data, error } = await supabase.from("budget_lines").insert({
-        name: budgetLineForm.name.trim(),
-        code: trimmedCode || null,
-        cohort_id: activeCohortId,
-        allocated_amount: budgetLineForm.allocated_amount ? Number(budgetLineForm.allocated_amount) : 0,
-      }).select().single();
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["budget-lines"] });
-      setBudgetLineDialogOpen(false);
-      setBudgetLineForm({ name: "", code: "", allocated_amount: "" });
-      toast.success("Budget line created");
-    },
-    onError: (e) => toast.error(e.message),
-  });
-
-  const updateBudgetLineMutation = useMutation({
-    mutationFn: async () => {
-      if (!editingBudgetLine) return;
-      const trimmedCode = budgetLineForm.code.trim();
-      if (trimmedCode) {
-        const dup = budgetLines.find((bl) => bl.id !== editingBudgetLine.id && bl.code?.trim().toLowerCase() === trimmedCode.toLowerCase());
-        if (dup) throw new Error(`Code "${trimmedCode}" already exists in this cohort`);
-      }
-      const { error } = await supabase.from("budget_lines").update({
-        name: budgetLineForm.name.trim(),
-        code: trimmedCode || null,
-        allocated_amount: budgetLineForm.allocated_amount ? Number(budgetLineForm.allocated_amount) : 0,
-      }).eq("id", editingBudgetLine.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["budget-lines"] });
-      setBudgetLineDialogOpen(false);
-      setEditingBudgetLine(null);
-      setBudgetLineForm({ name: "", code: "", allocated_amount: "" });
-      toast.success("Budget line updated");
-    },
-    onError: (e) => toast.error(e.message),
-  });
-
-  const deleteBudgetLineMutation = useMutation({
-    mutationFn: async (id: string) => {
-      // Unlink expenses from this budget line
-      await supabase.from("expenses").update({ budget_line_id: null } as any).eq("budget_line_id", id);
-      const { error } = await supabase.from("budget_lines").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["budget-lines"] });
-      queryClient.invalidateQueries({ queryKey: ["expenses"] });
-      setDeleteBudgetLineId(null);
-      toast.success("Budget line deleted");
-    },
-    onError: (e) => toast.error(e.message),
-  });
-
-  // Inline create budget line from dropdown
-  async function handleCreateBudgetLine(name: string): Promise<string | null> {
-    const trimmed = name.trim();
-    const existing = budgetLines.find((bl) => bl.name.trim().toLowerCase() === trimmed.toLowerCase());
-    if (existing) {
-      toast.info(`"${existing.name}" already exists — selected it.`);
-      return existing.id;
-    }
-    const { data, error } = await supabase.from("budget_lines").insert({
-      name: trimmed,
-      cohort_id: activeCohortId,
-    }).select().single();
-    if (error) { toast.error(error.message); return null; }
-    queryClient.invalidateQueries({ queryKey: ["budget-lines"] });
-    toast.success(`Budget line "${trimmed}" created`);
-    return data.id;
-  }
-
-  // ─── Expense Mutations ───
-  const addExpenseMutation = useMutation({
-    mutationFn: async () => {
-      const { data: expense, error } = await supabase.from("expenses").insert({
-        cohort_id: activeCohortId,
-        description: form.description,
-        budget_line_id: form.budget_line_id,
-        currency: form.currency,
-        amount: Number(form.amount),
-        beneficiary_name: form.detail || null,
-      } as any).select().single();
-      if (error) throw error;
-
-      // Insert category links
-      if (form.category_ids.length > 0) {
-        await supabase.from("expense_category_links").insert(
-          form.category_ids.map((category_id) => ({ expense_id: expense.id, category_id }))
-        );
-      }
-
-      // Insert stakeholders
-      if (form.stakeholder_ids.length > 0) {
-        await supabase.from("expense_stakeholders").insert(
-          form.stakeholder_ids.map((vendor_id) => ({ expense_id: expense.id, vendor_id }))
-        );
-      }
-
-      // Insert links
-      const validLinks = form.links.filter((l) => l.url.trim());
-      if (validLinks.length > 0) {
-        await supabase.from("expense_links").insert(
-          validLinks.map((l) => ({ expense_id: expense.id, title: l.title || null, url: l.url }))
-        );
-      }
-
-      return expense;
-    },
-    onSuccess: (expense) => {
-      queryClient.invalidateQueries({ queryKey: ["expenses"] });
-      setExpenseDialogOpen(false);
-      resetForm();
-      toast.success("Expense added");
-    },
-    onError: (e) => toast.error(e.message),
-  });
-
-  const updateExpenseMutation = useMutation({
-    mutationFn: async () => {
-      if (!editingExpense) return;
-      const { error } = await supabase.from("expenses").update({
-        description: form.description,
-        budget_line_id: form.budget_line_id,
-        currency: form.currency,
-        amount: Number(form.amount),
-        beneficiary_name: form.detail || null,
-      } as any).eq("id", editingExpense.id);
-      if (error) throw error;
-
-      // Replace category links
-      await supabase.from("expense_category_links").delete().eq("expense_id", editingExpense.id);
-      if (form.category_ids.length > 0) {
-        await supabase.from("expense_category_links").insert(
-          form.category_ids.map((category_id) => ({ expense_id: editingExpense.id, category_id }))
-        );
-      }
-
-      // Replace stakeholders
-      await supabase.from("expense_stakeholders").delete().eq("expense_id", editingExpense.id);
-      if (form.stakeholder_ids.length > 0) {
-        await supabase.from("expense_stakeholders").insert(
-          form.stakeholder_ids.map((vendor_id) => ({ expense_id: editingExpense.id, vendor_id }))
-        );
-      }
-
-      // Replace links
-      await supabase.from("expense_links").delete().eq("expense_id", editingExpense.id);
-      const validLinks = form.links.filter((l) => l.url.trim());
-      if (validLinks.length > 0) {
-        await supabase.from("expense_links").insert(
-          validLinks.map((l) => ({ expense_id: editingExpense.id, title: l.title || null, url: l.url }))
-        );
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["expenses"] });
-      setEditingExpense(null);
-      resetForm();
-      toast.success("Expense updated");
-    },
-    onError: (e) => toast.error(e.message),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await supabase.from("expense_stakeholders").delete().eq("expense_id", id);
-      await supabase.from("expense_links").delete().eq("expense_id", id);
-      await supabase.from("expense_category_links").delete().eq("expense_id", id);
-      const { error } = await supabase.from("expenses").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: (_d, id) => {
-      queryClient.invalidateQueries({ queryKey: ["expenses"] });
-      setDeleteId(null);
-      toast.success("Expense deleted");
-    },
-    onError: (e) => toast.error(e.message),
-  });
-
-  const bulkDeleteMutation = useMutation({
-    mutationFn: async () => {
-      const ids = Array.from(selected);
-      for (const id of ids) {
-        await supabase.from("expense_stakeholders").delete().eq("expense_id", id);
-        await supabase.from("expense_links").delete().eq("expense_id", id);
-        await supabase.from("expense_category_links").delete().eq("expense_id", id);
-      }
-      const { error } = await supabase.from("expenses").delete().in("id", ids);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["expenses"] });
-      setSelected(new Set());
-      setBulkDeleteOpen(false);
-      toast.success("Expenses deleted");
-    },
-    onError: (e) => toast.error(e.message),
-  });
-
-  function resetForm() {
-    setForm({ description: "", detail: "", budget_line_id: null, category_ids: [], currency: "MAD", amount: "", stakeholder_ids: [], links: [] });
-  }
-
-  async function openEdit(e: Expense) {
-    const { data: sData } = await supabase.from("expense_stakeholders").select("vendor_id").eq("expense_id", e.id);
-    const stakeholderIds = (sData || []).map((s) => s.vendor_id).filter(Boolean) as string[];
-
-    const { data: lData } = await supabase.from("expense_links").select("title, url").eq("expense_id", e.id);
-    const links = (lData || []).map((l) => ({ title: l.title || "", url: l.url || "" }));
-
-    const { data: cData } = await supabase.from("expense_category_links").select("category_id").eq("expense_id", e.id);
-    const catIds = (cData || []).map((c) => c.category_id).filter(Boolean) as string[];
-
-    setForm({
-      description: e.description,
-      detail: e.beneficiary_name || "",
-      budget_line_id: e.budget_line_id || null,
-      category_ids: catIds,
-      currency: e.currency || "MAD",
-      amount: String(e.amount),
-      stakeholder_ids: stakeholderIds,
-      links,
+  const filtered = useMemo(() => {
+    const s = search.trim().toLowerCase();
+    return expenses.filter((e) => {
+      if (s && !(
+        e.description?.toLowerCase().includes(s) ||
+        e.beneficiary_name?.toLowerCase().includes(s)
+      )) return false;
+      if (fStatus.length && !fStatus.includes(e.status || "")) return false;
+      if (fType.length && !fType.includes(e.type || "")) return false;
+      if (fBudget.length && !fBudget.includes(e.budget_line_id || "")) return false;
+      if (fCategory.length && !fCategory.includes(e.category_id || "")) return false;
+      if (fVendor.length && !fVendor.includes(e.vendor_id || "")) return false;
+      return true;
     });
-    setEditingExpense(e);
-  }
+  }, [expenses, search, fStatus, fType, fBudget, fCategory, fVendor]);
 
-  async function openView(e: Expense) {
-    const { data: sData } = await supabase.from("expense_stakeholders").select("vendor_id").eq("expense_id", e.id);
-    setViewStakeholders((sData || []).map((s) => s.vendor_id).filter(Boolean) as string[]);
-
-    const { data: lData } = await supabase.from("expense_links").select("title, url").eq("expense_id", e.id);
-    setViewLinks((lData || []).map((l) => ({ title: l.title || "", url: l.url || "" })));
-
-    const { data: cData } = await supabase.from("expense_category_links").select("category_id").eq("expense_id", e.id);
-    setViewCategoryIds((cData || []).map((c) => c.category_id).filter(Boolean) as string[]);
-
-    setViewing(e);
-  }
-
-  function toggleSelect(id: string) {
-    setSelected((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
-  }
-  function toggleAll() {
-    if (selected.size === expenses.length) setSelected(new Set());
-    else setSelected(new Set(expenses.map((e) => e.id)));
-  }
-
-  const getBudgetLineName = (budgetId: string | null) => {
-    if (!budgetId) return "—";
-    const bl = budgetLines.find((b) => b.id === budgetId);
-    if (!bl) return "—";
-    return bl.code ? `${bl.code} — ${bl.name}` : bl.name;
-  };
-
-  // Inline creation: Expense Category (duplicate-safe)
-  async function handleCreateCategory(name: string): Promise<string | null> {
-    const trimmed = name.trim();
-    const existing = expenseCategories.find((c) => c.name.trim().toLowerCase() === trimmed.toLowerCase());
-    if (existing) {
-      toast.info(`"${existing.name}" already exists — selected it.`);
-      return existing.id;
+  const totals = useMemo(() => {
+    const t = { all: 0, Paid: 0, Approved: 0, Pending: 0 };
+    for (const e of filtered) {
+      const a = Number(e.amount) || 0;
+      t.all += a;
+      if (e.status === "Paid") t.Paid += a;
+      else if (e.status === "Approved") t.Approved += a;
+      else if (e.status === "Pending") t.Pending += a;
     }
-    const { data, error } = await supabase.from("expense_categories").insert({ name: trimmed }).select().single();
-    if (error) { toast.error(error.message); return null; }
-    queryClient.invalidateQueries({ queryKey: ["expense-categories-list"] });
-    toast.success(`Category "${trimmed}" created`);
-    return data.id;
+    return t;
+  }, [filtered]);
+
+  const activeFilterCount =
+    fStatus.length + fType.length + fBudget.length + fCategory.length + fVendor.length + (search ? 1 : 0);
+
+  function clearAllFilters() {
+    setSearch(""); setFStatus([]); setFType([]); setFBudget([]); setFCategory([]); setFVendor([]);
   }
 
-  async function handleDeleteCategory(id: string) {
-    await supabase.from("expense_category_links").delete().eq("category_id", id);
-    const { error } = await supabase.from("expense_categories").delete().eq("id", id);
-    if (error) { toast.error(error.message); return; }
-    queryClient.invalidateQueries({ queryKey: ["expense-categories-list"] });
-    setForm((f) => ({ ...f, category_ids: f.category_ids.filter((cid) => cid !== id) }));
-    toast.success("Category deleted");
+  /* ─── Mutations ─── */
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (!form.description.trim()) throw new Error("Description is required");
+      if (!form.amount || Number.isNaN(Number(form.amount))) throw new Error("Amount is required");
+      if (!selectedCohortId || isAllCohorts) throw new Error("Select a specific cohort first");
+
+      const payload = {
+        description: form.description.trim(),
+        amount: Number(form.amount),
+        currency: form.currency || "MAD",
+        type: form.type || null,
+        status: form.status || null,
+        beneficiary_name: form.beneficiary_name.trim() || null,
+        due_date: form.due_date || null,
+        budget_line_id: form.budget_line_id,
+        category_id: form.category_id,
+        vendor_id: form.vendor_id,
+        tag_ids: form.tag_ids.length ? form.tag_ids : null,
+        proof_document_url: form.proof_document_url.trim() || null,
+        cohort_id: selectedCohortId,
+      };
+
+      if (editing) {
+        const { error } = await supabase.from("expenses").update(payload).eq("id", editing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("expenses").insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["expenses"] });
+      setDialogOpen(false); setEditing(null); setForm(emptyForm);
+      toast.success(editing ? "Expense updated" : "Expense added");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const archiveMutation = useMutation({
+    mutationFn: async ({ id, archived }: { id: string; archived: boolean }) => {
+      const { error } = await supabase.from("expenses").update({
+        is_archived: archived,
+        archived_at: archived ? new Date().toISOString() : null,
+      }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ["expenses"] });
+      setDeleteId(null);
+      setViewing(null);
+      toast.success(v.archived ? "Expense archived" : "Expense restored");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  function openCreate() {
+    if (isAllCohorts) { toast.error("Select a specific cohort to add an expense"); return; }
+    setEditing(null); setForm(emptyForm); setDialogOpen(true);
+  }
+  function openEdit(e: Expense) {
+    setEditing(e);
+    setForm({
+      description: e.description || "",
+      amount: String(e.amount ?? ""),
+      currency: e.currency || "MAD",
+      type: e.type || "",
+      status: e.status || "Pending",
+      beneficiary_name: e.beneficiary_name || "",
+      due_date: e.due_date || "",
+      budget_line_id: e.budget_line_id,
+      category_id: e.category_id,
+      vendor_id: e.vendor_id,
+      tag_ids: (e.tag_ids as string[] | null) || [],
+      proof_document_url: e.proof_document_url || "",
+    });
+    setDialogOpen(true);
   }
 
-  // Inline creation: Vendor (duplicate-safe)
-  async function handleCreateVendor(name: string, type: string | null): Promise<string | null> {
-    const trimmed = name.trim();
-    const existing = vendors.find((v) => v.name.trim().toLowerCase() === trimmed.toLowerCase());
-    if (existing) {
-      toast.info(`"${existing.name}" already exists — added it.`);
-      return existing.id;
-    }
-    const { data, error } = await supabase.from("vendors").insert({ name: trimmed, type }).select().single();
-    if (error) { toast.error(error.message); return null; }
-    queryClient.invalidateQueries({ queryKey: ["vendors-list"] });
-    toast.success(`Stakeholder "${trimmed}" created`);
-    return data.id;
-  }
-
-  async function handleDeleteVendor(id: string) {
-    setForm((f) => ({ ...f, stakeholder_ids: f.stakeholder_ids.filter((sid) => sid !== id) }));
-    const { error } = await supabase.from("vendors").delete().eq("id", id);
-    if (error) { toast.error(error.message); return; }
-    queryClient.invalidateQueries({ queryKey: ["vendors-list"] });
-    toast.success("Stakeholder deleted");
-  }
-
-  async function handleDeleteBudgetLine(id: string) {
-    setForm((f) => ({ ...f, budget_line_id: f.budget_line_id === id ? null : f.budget_line_id }));
-    await supabase.from("expenses").update({ budget_line_id: null } as any).eq("budget_line_id", id);
-    const { error } = await supabase.from("budget_lines").delete().eq("id", id);
-    if (error) { toast.error(error.message); return; }
-    queryClient.invalidateQueries({ queryKey: ["budget-lines"] });
-    queryClient.invalidateQueries({ queryKey: ["expenses"] });
-    toast.success("Budget line deleted");
-  }
-
-  const expenseFormContent = (
-    <div className="space-y-6 py-2">
-      {/* Basic Info */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Basic Info</h3>
-        <div className="space-y-2">
-          <Label>Title / Description</Label>
-          <Input value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="e.g. Venue rental for Demo Day" />
-        </div>
-        <div className="space-y-2">
-          <Label>Details</Label>
-          <Textarea value={form.detail} onChange={(e) => setForm((f) => ({ ...f, detail: e.target.value }))} placeholder="Additional details..." rows={3} />
-        </div>
-
-        {/* Budget Line */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label>Budget Line</Label>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-6 px-2 text-xs"
-              onClick={() => {
-                setEditingBudgetLine(null);
-                setBudgetLineForm({ name: "", code: "", allocated_amount: "" });
-                setBudgetLineDialogOpen(true);
-              }}
-            >
-              <Plus className="mr-1 h-3 w-3" /> Manage
-            </Button>
-          </div>
-          <SearchableSelect
-            value={form.budget_line_id}
-            onValueChange={(v) => setForm((f) => ({ ...f, budget_line_id: v }))}
-            options={budgetLineOptions}
-            placeholder="Select budget line..."
-            searchPlaceholder="Search budget lines..."
-            onCreateNew={handleCreateBudgetLine}
-            createLabel="Add budget line"
-            onDelete={handleDeleteBudgetLine}
-          />
-        </div>
-
-        {/* Categories (multi-select) */}
-        <div className="space-y-2">
-          <Label>Categories</Label>
-          <MultiSelectPicker
-            value={form.category_ids}
-            onChange={(ids) => setForm((f) => ({ ...f, category_ids: ids }))}
-            options={categoryOptions}
-            placeholder="Select categories..."
-            searchPlaceholder="Search categories..."
-            onCreateNew={handleCreateCategory}
-            createLabel="Add new category"
-            onDelete={handleDeleteCategory}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Currency</Label>
-            <Select value={form.currency} onValueChange={(v) => setForm((f) => ({ ...f, currency: v }))}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="MAD">MAD</SelectItem>
-                <SelectItem value="USD">USD</SelectItem>
-                <SelectItem value="EUR">EUR</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Amount</Label>
-            <Input type="number" value={form.amount} onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))} placeholder="0.00" />
-          </div>
-        </div>
-      </div>
-
-      {/* Stakeholders */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Stakeholders</h3>
-        <VendorMultiSelect
-          value={form.stakeholder_ids}
-          onChange={(ids) => setForm((f) => ({ ...f, stakeholder_ids: ids }))}
-          options={vendors}
-          onCreateNew={handleCreateVendor}
-          onDelete={handleDeleteVendor}
+  /* ─── Render ─── */
+  if (!selectedCohortId && cohorts.length === 0) {
+    return (
+      <div className="p-8">
+        <EmptyState
+          title="No cohorts yet"
+          hint="Create a cohort in Settings to start tracking expenses."
         />
       </div>
-
-      {/* Links */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Links</h3>
-          <Button type="button" variant="outline" size="sm" onClick={() => setForm((f) => ({ ...f, links: [...f.links, { title: "", url: "" }] }))}>
-            <Plus className="mr-1 h-3 w-3" /> Add Link
-          </Button>
-        </div>
-        {form.links.length === 0 && <p className="text-sm text-muted-foreground">No links added yet.</p>}
-        {form.links.map((link, i) => (
-          <div key={i} className="flex gap-2 items-start">
-            <Input placeholder="Title" value={link.title} onChange={(e) => { const updated = [...form.links]; updated[i] = { ...updated[i], title: e.target.value }; setForm((f) => ({ ...f, links: updated })); }} className="flex-1" />
-            <Input placeholder="https://..." value={link.url} onChange={(e) => { const updated = [...form.links]; updated[i] = { ...updated[i], url: e.target.value }; setForm((f) => ({ ...f, links: updated })); }} className="flex-[2]" />
-            <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => setForm((f) => ({ ...f, links: f.links.filter((_, idx) => idx !== i) }))}><X className="h-4 w-4" /></Button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+    );
+  }
 
   return (
-    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
+    <div className="p-6 md:p-8 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-3xl font-bold">Expenses</h1>
-          <p className="text-sm text-muted-foreground">Cohort-based expense tracking</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Expenses</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            {selectedCohortLabel ? `Cohort — ${selectedCohortLabel}` : "All cohorts"}
+          </p>
         </div>
-        <CohortSelector
-          cohorts={cohorts}
-          selectedId={activeCohortId}
-          onSelect={(id) => setSelectedCohortId(id)}
-          onCreateNew={() => { setEditingCohort(null); setCohortForm({ name: "", year: String(new Date().getFullYear()), total_budget: "" }); setCohortDialogOpen(true); }}
-          onEdit={() => {
-            if (activeCohort) {
-              setEditingCohort(activeCohort);
-              setCohortForm({ name: activeCohort.name, year: String(activeCohort.year), total_budget: String(activeCohort.total_budget || 0) });
-              setCohortDialogOpen(true);
-            }
-          }}
-          onDelete={() => activeCohortId && setDeleteCohortId(activeCohortId)}
-        />
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 rounded-md border px-3 h-9">
+            <Archive className="h-3.5 w-3.5 text-muted-foreground" />
+            <Label htmlFor="arch" className="text-sm font-normal cursor-pointer">Archived</Label>
+            <Switch id="arch" checked={showArchived} onCheckedChange={setShowArchived} />
+          </div>
+          <Button onClick={openCreate} disabled={isAllCohorts}>
+            <Plus className="mr-1.5 h-4 w-4" /> New expense
+          </Button>
+        </div>
       </div>
 
-      {/* Budget Summary */}
-      {activeCohort && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="p-5 flex items-center gap-4">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center"><PiggyBank className="h-5 w-5 text-primary" /></div>
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Total Budget</p>
-                <p className="text-xl font-bold">{totalBudget.toLocaleString()} MAD</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-5 flex items-center gap-4">
-              <div className="h-10 w-10 rounded-lg bg-destructive/10 flex items-center justify-center"><TrendingDown className="h-5 w-5 text-destructive" /></div>
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Total Expenses</p>
-                <p className="text-xl font-bold">{totalExpenses.toLocaleString()} MAD</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-5 flex items-center gap-4">
-              <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center", remaining >= 0 ? "bg-emerald-500/10" : "bg-destructive/10")}>
-                <Wallet className={cn("h-5 w-5", remaining >= 0 ? "text-emerald-600" : "text-destructive")} />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Remaining</p>
-                <p className={cn("text-xl font-bold", remaining < 0 && "text-destructive")}>{remaining.toLocaleString()} MAD</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      {/* Totals bar */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard label="Total (filtered)" value={formatMoney(totals.all, "MAD")} icon={Wallet} tone="default" sub={`${filtered.length} expenses`} />
+        <StatCard label="Paid" value={formatMoney(totals.Paid, "MAD")} icon={CheckCircle2} tone="emerald" />
+        <StatCard label="Approved" value={formatMoney(totals.Approved, "MAD")} icon={CircleDollarSign} tone="blue" />
+        <StatCard label="Pending" value={formatMoney(totals.Pending, "MAD")} icon={Clock} tone="amber" />
+      </div>
 
-      {/* Budget Lines Section */}
-      {activeCohort && budgetLines.length > 0 && (
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Budget Lines</h3>
-              <Button variant="outline" size="sm" onClick={() => { setEditingBudgetLine(null); setBudgetLineForm({ name: "", code: "", allocated_amount: "" }); setBudgetLineDialogOpen(true); }}>
-                <Plus className="mr-1 h-3 w-3" /> Add Line
+      {/* Filter bar */}
+      <Card>
+        <CardContent className="p-3 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[220px]">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Search description or beneficiary..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-8 h-9"
+              />
+            </div>
+            <FilterMultiSelect
+              label="Status" icon={Filter}
+              options={STATUS_OPTIONS.map((s) => ({ id: s, label: s }))}
+              value={fStatus} onChange={setFStatus}
+            />
+            <FilterMultiSelect
+              label="Type" icon={Filter}
+              options={TYPE_OPTIONS.map((s) => ({ id: s, label: s }))}
+              value={fType} onChange={setFType}
+            />
+            <FilterMultiSelect
+              label="Budget line" icon={Filter}
+              options={budgetLines.map((b) => ({ id: b.id, label: b.code ? `${b.code} — ${b.name}` : b.name }))}
+              value={fBudget} onChange={setFBudget}
+            />
+            <FilterMultiSelect
+              label="Category" icon={Filter}
+              options={categories.map((c) => ({ id: c.id, label: c.name }))}
+              value={fCategory} onChange={setFCategory}
+            />
+            <FilterMultiSelect
+              label="Vendor" icon={Filter}
+              options={vendors.map((v) => ({ id: v.id, label: v.name }))}
+              value={fVendor} onChange={setFVendor}
+            />
+            {activeFilterCount > 0 && (
+              <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-9 text-muted-foreground">
+                <X className="mr-1 h-3.5 w-3.5" /> Clear all
               </Button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {budgetLines.map((bl) => (
-                <div key={bl.id} className="group flex items-center gap-1.5 rounded-lg border bg-muted/30 px-3 py-1.5 text-sm">
-                  <span className="font-mono text-xs text-muted-foreground">{bl.code || "—"}</span>
-                  <span className="font-medium">{bl.name}</span>
-                  <span className="text-xs text-muted-foreground">({Number(bl.allocated_amount || 0).toLocaleString()} MAD)</span>
-                  <button
-                    onClick={() => {
-                      setEditingBudgetLine(bl);
-                      setBudgetLineForm({ name: bl.name, code: bl.code || "", allocated_amount: String(bl.allocated_amount || 0) });
-                      setBudgetLineDialogOpen(true);
-                    }}
-                    className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-accent transition-opacity"
-                  >
-                    <Pencil className="h-3 w-3" />
-                  </button>
-                  <button
-                    onClick={() => setDeleteBudgetLineId(bl.id)}
-                    className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-destructive/10 text-destructive transition-opacity"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {!activeCohort ? (
-        <Card>
-          <CardContent className="py-16 text-center">
-            <p className="text-muted-foreground mb-4">No cohort selected. Create one to start tracking expenses.</p>
-            <Button onClick={() => setCohortDialogOpen(true)}><Plus className="mr-2 h-4 w-4" /> Create Cohort</Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          {/* Actions bar */}
-          <div className="flex items-center justify-between">
-            <div>
-              {selected.size > 0 && (
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted border">
-                  <span className="text-sm font-medium">{selected.size} selected</span>
-                  <Button size="sm" variant="destructive" onClick={() => setBulkDeleteOpen(true)}>
-                    <Trash2 className="mr-1 h-3 w-3" /> Delete
-                  </Button>
-                </div>
-              )}
-            </div>
-            <Button onClick={() => { resetForm(); setExpenseDialogOpen(true); }}>
-              <Plus className="mr-2 h-4 w-4" /> Add Expense
-            </Button>
+            )}
           </div>
 
-          {/* Expenses Table */}
-          <Card>
-            <CardContent className="p-0">
+          {/* Chips */}
+          {activeFilterCount > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {search && <FilterChip label={`Search: ${search}`} onRemove={() => setSearch("")} />}
+              {fStatus.map((s) => <FilterChip key={"s" + s} label={`Status: ${s}`} onRemove={() => setFStatus(fStatus.filter((x) => x !== s))} />)}
+              {fType.map((s) => <FilterChip key={"t" + s} label={`Type: ${s}`} onRemove={() => setFType(fType.filter((x) => x !== s))} />)}
+              {fBudget.map((id) => <FilterChip key={"b" + id} label={`Budget: ${budgetMap.get(id)?.name || id}`} onRemove={() => setFBudget(fBudget.filter((x) => x !== id))} />)}
+              {fCategory.map((id) => <FilterChip key={"c" + id} label={`Category: ${categoryMap.get(id)?.name || id}`} onRemove={() => setFCategory(fCategory.filter((x) => x !== id))} />)}
+              {fVendor.map((id) => <FilterChip key={"v" + id} label={`Vendor: ${vendorMap.get(id)?.name || id}`} onRemove={() => setFVendor(fVendor.filter((x) => x !== id))} />)}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Table */}
+      <Card>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="p-12 flex items-center justify-center text-muted-foreground">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading expenses...
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="p-12">
+              <EmptyState
+                title={expenses.length === 0 ? (showArchived ? "No archived expenses" : "No expenses yet") : "No expenses match your filters"}
+                hint={expenses.length === 0 && !showArchived ? "Add your first expense to start tracking spend." : "Try clearing some filters."}
+              />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-10"><Checkbox checked={expenses.length > 0 && selected.size === expenses.length} onCheckedChange={toggleAll} /></TableHead>
                     <TableHead>Description</TableHead>
-                    <TableHead>Budget Line</TableHead>
-                    <TableHead>Currency</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Beneficiary</TableHead>
+                    <TableHead>Due</TableHead>
+                    <TableHead>Budget line</TableHead>
+                    <TableHead>Vendor</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead className="w-10" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {isLoading ? (
-                    <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
-                  ) : expenses.length === 0 ? (
-                    <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No expenses yet for this cohort</TableCell></TableRow>
-                  ) : (
-                    expenses.map((e) => (
-                      <TableRow key={e.id} className={selected.has(e.id) ? "bg-muted/50" : ""}>
-                        <TableCell><Checkbox checked={selected.has(e.id)} onCheckedChange={() => toggleSelect(e.id)} /></TableCell>
-                        <TableCell className="font-medium max-w-[200px] truncate">{e.description}</TableCell>
-                        <TableCell className="text-sm">{getBudgetLineName(e.budget_line_id)}</TableCell>
-                        <TableCell><Badge variant="outline" className="text-[10px]">{e.currency || "MAD"}</Badge></TableCell>
-                        <TableCell className="text-right font-medium">{Number(e.amount).toLocaleString()}</TableCell>
-                        <TableCell className="text-muted-foreground text-sm">{e.created_at ? new Date(e.created_at).toLocaleDateString() : "—"}</TableCell>
-                        <TableCell className="text-right">
+                  {filtered.map((e) => {
+                    const bl = e.budget_line_id ? budgetMap.get(e.budget_line_id) : null;
+                    const v = e.vendor_id ? vendorMap.get(e.vendor_id) : null;
+                    const c = e.category_id ? categoryMap.get(e.category_id) : null;
+                    return (
+                      <TableRow key={e.id} className="cursor-pointer" onClick={() => setViewing(e)}>
+                        <TableCell className="font-medium max-w-[280px] truncate">{e.description}</TableCell>
+                        <TableCell className="text-right tabular-nums">{formatMoney(Number(e.amount), e.currency)}</TableCell>
+                        <TableCell className="text-muted-foreground">{e.type || "—"}</TableCell>
+                        <TableCell>
+                          {e.status ? (
+                            <Badge variant="outline" className={cn("font-normal", statusTone(e.status))}>{e.status}</Badge>
+                          ) : "—"}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground max-w-[160px] truncate">{e.beneficiary_name || "—"}</TableCell>
+                        <TableCell className="text-muted-foreground">{e.due_date || "—"}</TableCell>
+                        <TableCell className="text-muted-foreground max-w-[180px] truncate">
+                          {bl ? (bl.code ? `${bl.code} — ${bl.name}` : bl.name) : "—"}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground max-w-[140px] truncate">{v?.name || "—"}</TableCell>
+                        <TableCell className="text-muted-foreground max-w-[140px] truncate">{c?.name || "—"}</TableCell>
+                        <TableCell onClick={(ev) => ev.stopPropagation()}>
                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild><Button size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => openView(e)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => openEdit(e)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(e.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setViewing(e)}>
+                                <Eye className="mr-2 h-3.5 w-3.5" /> View
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => openEdit(e)}>
+                                <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
+                              </DropdownMenuItem>
+                              {e.is_archived ? (
+                                <DropdownMenuItem onClick={() => archiveMutation.mutate({ id: e.id, archived: false })}>
+                                  <ArchiveRestore className="mr-2 h-3.5 w-3.5" /> Restore
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem onClick={() => setDeleteId(e.id)} className="text-destructive focus:text-destructive">
+                                  <Trash2 className="mr-2 h-3.5 w-3.5" /> Archive
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
+                    );
+                  })}
                 </TableBody>
               </Table>
-            </CardContent>
-          </Card>
-        </>
-      )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Cohort Dialog */}
-      <Dialog open={cohortDialogOpen} onOpenChange={(o) => { setCohortDialogOpen(o); if (!o) setEditingCohort(null); }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader><DialogTitle>{editingCohort ? "Edit Cohort" : "New Cohort"}</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>Name</Label>
-              <Input value={cohortForm.name} onChange={(e) => setCohortForm((f) => ({ ...f, name: e.target.value }))} placeholder="e.g. Cohort 5" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Year</Label>
-                <Input type="number" value={cohortForm.year} onChange={(e) => setCohortForm((f) => ({ ...f, year: e.target.value }))} />
+      {/* Add/Edit Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) { setEditing(null); setForm(emptyForm); } }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editing ? "Edit expense" : "New expense"}</DialogTitle>
+            <DialogDescription>
+              {editing ? "Update expense details below." : "Add a new expense to the current cohort."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-2">
+            {/* Basics */}
+            <FormSection title="Basics">
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="desc">Description *</Label>
+                  <Textarea
+                    id="desc" name="description" rows={2}
+                    value={form.description}
+                    onChange={(e) => set("description", e.target.value)}
+                    placeholder="What is this expense for?"
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="col-span-2">
+                    <Label htmlFor="amount">Amount *</Label>
+                    <Input
+                      id="amount" name="amount" type="number" step="0.01"
+                      value={form.amount}
+                      onChange={(e) => set("amount", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="currency">Currency</Label>
+                    <Select value={form.currency} onValueChange={(v) => set("currency", v)}>
+                      <SelectTrigger id="currency"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="type">Type</Label>
+                    <Select value={form.type || undefined} onValueChange={(v) => set("type", v)}>
+                      <SelectTrigger id="type"><SelectValue placeholder="Select type" /></SelectTrigger>
+                      <SelectContent>
+                        {TYPE_OPTIONS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="status">Status</Label>
+                    <Select value={form.status || undefined} onValueChange={(v) => set("status", v)}>
+                      <SelectTrigger id="status"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Total Budget (MAD)</Label>
-                <Input type="number" value={cohortForm.total_budget} onChange={(e) => setCohortForm((f) => ({ ...f, total_budget: e.target.value }))} placeholder="0" />
+            </FormSection>
+
+            {/* Beneficiary & timing */}
+            <FormSection title="Beneficiary & timing">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="beneficiary">Beneficiary</Label>
+                  <Input
+                    id="beneficiary" name="beneficiary_name"
+                    value={form.beneficiary_name}
+                    onChange={(e) => set("beneficiary_name", e.target.value)}
+                    placeholder="Person or entity paid"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="due">Due date</Label>
+                  <Input
+                    id="due" name="due_date" type="date"
+                    value={form.due_date}
+                    onChange={(e) => set("due_date", e.target.value)}
+                  />
+                </div>
               </div>
-            </div>
+            </FormSection>
+
+            {/* Classification */}
+            <FormSection title="Classification">
+              <div className="space-y-3">
+                <div>
+                  <Label>Budget line</Label>
+                  <Select value={form.budget_line_id || "__none"} onValueChange={(v) => set("budget_line_id", v === "__none" ? null : v)}>
+                    <SelectTrigger><SelectValue placeholder="Select budget line" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">None</SelectItem>
+                      {budgetLines.map((b) => (
+                        <SelectItem key={b.id} value={b.id}>
+                          {b.code ? `${b.code} — ${b.name}` : b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {budgetLines.length === 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">No budget lines in this cohort yet — add them in Operations · Source.</p>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Category</Label>
+                    <Select value={form.category_id || "__none"} onValueChange={(v) => set("category_id", v === "__none" ? null : v)}>
+                      <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none">None</SelectItem>
+                        {categories.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Vendor</Label>
+                    <Select value={form.vendor_id || "__none"} onValueChange={(v) => set("vendor_id", v === "__none" ? null : v)}>
+                      <SelectTrigger><SelectValue placeholder="Select vendor" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none">None</SelectItem>
+                        {vendors.map((v) => (
+                          <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div>
+                  <Label>Tags</Label>
+                  <TagPicker value={form.tag_ids} onChange={(ids) => set("tag_ids", ids)} />
+                </div>
+              </div>
+            </FormSection>
+
+            {/* Proof */}
+            <FormSection title="Proof">
+              <div>
+                <Label htmlFor="proof">Proof document URL</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="proof" name="proof_document_url" type="url"
+                    value={form.proof_document_url}
+                    onChange={(e) => set("proof_document_url", e.target.value)}
+                    placeholder="https://..."
+                  />
+                  {form.proof_document_url && (
+                    <Button type="button" variant="outline" size="icon" asChild>
+                      <a href={form.proof_document_url} target="_blank" rel="noreferrer">
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </FormSection>
           </div>
+
           <DialogFooter>
-            <Button onClick={() => editingCohort ? updateCohortMutation.mutate() : createCohortMutation.mutate()} disabled={!cohortForm.name || !cohortForm.year}>
-              {editingCohort ? "Save Changes" : "Create Cohort"}
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+              {saveMutation.isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
+              {editing ? "Save changes" : "Add expense"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Budget Line Dialog */}
-      <Dialog open={budgetLineDialogOpen} onOpenChange={(o) => { setBudgetLineDialogOpen(o); if (!o) setEditingBudgetLine(null); }}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader><DialogTitle>{editingBudgetLine ? "Edit Budget Line" : "New Budget Line"}</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label>Name</Label>
-              <Input value={budgetLineForm.name} onChange={(e) => setBudgetLineForm((f) => ({ ...f, name: e.target.value }))} placeholder="e.g. Events" />
-            </div>
-            <div className="space-y-2">
-              <Label>Code</Label>
-              <Input value={budgetLineForm.code} onChange={(e) => setBudgetLineForm((f) => ({ ...f, code: e.target.value }))} placeholder="e.g. EVT-2025-001" />
-            </div>
-            <div className="space-y-2">
-              <Label>Allocated Amount (MAD)</Label>
-              <Input type="number" value={budgetLineForm.allocated_amount} onChange={(e) => setBudgetLineForm((f) => ({ ...f, allocated_amount: e.target.value }))} placeholder="0" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              onClick={() => editingBudgetLine ? updateBudgetLineMutation.mutate() : createBudgetLineMutation.mutate()}
-              disabled={!budgetLineForm.name.trim()}
-            >
-              {editingBudgetLine ? "Save Changes" : "Create Budget Line"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Expense Dialogs */}
-      <Dialog open={expenseDialogOpen} onOpenChange={setExpenseDialogOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>New Expense</DialogTitle></DialogHeader>
-          {expenseFormContent}
-          <DialogFooter>
-            <Button onClick={() => addExpenseMutation.mutate()} disabled={!form.description || !form.amount}>Add Expense</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={!!editingExpense} onOpenChange={(o) => !o && setEditingExpense(null)}>
-        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Edit Expense</DialogTitle></DialogHeader>
-          {expenseFormContent}
-          <DialogFooter>
-            <Button onClick={() => updateExpenseMutation.mutate()} disabled={!form.description || !form.amount}>Save Changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Dialogs */}
-      <ConfirmDeleteDialog open={!!deleteCohortId} onConfirm={() => deleteCohortId && deleteCohortMutation.mutate(deleteCohortId)} onCancel={() => setDeleteCohortId(null)} />
-      <ConfirmDeleteDialog open={!!deleteId} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
-      <ConfirmDeleteDialog open={bulkDeleteOpen} onConfirm={() => bulkDeleteMutation.mutate()} onCancel={() => setBulkDeleteOpen(false)} />
-      <ConfirmDeleteDialog open={!!deleteBudgetLineId} onConfirm={() => deleteBudgetLineId && deleteBudgetLineMutation.mutate(deleteBudgetLineId)} onCancel={() => setDeleteBudgetLineId(null)} />
 
       {/* View Dialog */}
-      <ViewDetailDialog
-        open={!!viewing}
-        onClose={() => setViewing(null)}
-        title="Expense Details"
-        fields={viewing ? [
-          { label: "Description", value: viewing.description },
-          { label: "Details", value: viewing.beneficiary_name || "—" },
-          { label: "Budget Line", value: getBudgetLineName(viewing.budget_line_id) },
-          { label: "Categories", value: viewCategoryIds.length > 0 ? expenseCategories.filter((c) => viewCategoryIds.includes(c.id)).map((c) => c.name).join(", ") : "—" },
-          { label: "Currency", value: viewing.currency || "MAD" },
-          { label: "Amount", value: `${Number(viewing.amount).toLocaleString()} ${viewing.currency || "MAD"}` },
-          { label: "Stakeholders", value: viewStakeholders.length > 0 ? vendors.filter((v) => viewStakeholders.includes(v.id)).map((v) => v.name).join(", ") : "—" },
-          { label: "Links", value: viewLinks.length > 0 ? (
-            <div className="flex flex-col gap-1">
-              {viewLinks.map((l, i) => (
-                <a key={i} href={/^https?:\/\//i.test(l.url) ? l.url : `https://${l.url}`} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:opacity-80 truncate">
-                  {l.title || l.url}
-                </a>
-              ))}
+      <Dialog open={!!viewing} onOpenChange={(o) => { if (!o) setViewing(null); }}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-start gap-2">
+              <Receipt className="h-4 w-4 mt-1 text-muted-foreground" />
+              <span>{viewing?.description}</span>
+            </DialogTitle>
+            <DialogDescription className="sr-only">Expense details</DialogDescription>
+          </DialogHeader>
+
+          {viewing && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="text-2xl font-semibold tabular-nums">
+                  {formatMoney(Number(viewing.amount), viewing.currency)}
+                </span>
+                {viewing.status && (
+                  <Badge variant="outline" className={cn("font-normal", statusTone(viewing.status))}>{viewing.status}</Badge>
+                )}
+                {viewing.type && <Badge variant="secondary" className="font-normal">{viewing.type}</Badge>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <Field label="Beneficiary" value={viewing.beneficiary_name} />
+                <Field label="Due date" value={viewing.due_date} />
+                <Field
+                  label="Budget line"
+                  value={viewing.budget_line_id
+                    ? (() => { const b = budgetMap.get(viewing.budget_line_id!); return b ? (b.code ? `${b.code} — ${b.name}` : b.name) : "—"; })()
+                    : "—"}
+                />
+                <Field label="Vendor" value={viewing.vendor_id ? vendorMap.get(viewing.vendor_id)?.name : "—"} />
+                <Field label="Category" value={viewing.category_id ? categoryMap.get(viewing.category_id)?.name : "—"} />
+                <Field label="Currency" value={viewing.currency} />
+              </div>
+
+              {viewing.tag_ids && viewing.tag_ids.length > 0 && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1.5">Tags</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(viewing.tag_ids as string[]).map((id) => {
+                      const t = tagMap.get(id);
+                      if (!t) return null;
+                      return (
+                        <Badge key={id} className="font-normal text-xs" style={{ backgroundColor: t.color, color: "#fff" }}>
+                          {t.name}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {viewing.proof_document_url && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1.5">Proof</p>
+                  <a
+                    href={viewing.proof_document_url} target="_blank" rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" /> Open document
+                  </a>
+                </div>
+              )}
             </div>
-          ) : "—" },
-          { label: "Date", value: viewing.created_at ? new Date(viewing.created_at).toLocaleDateString() : "—" },
-        ] : []}
+          )}
+
+          <DialogFooter>
+            {viewing && !viewing.is_archived && (
+              <Button variant="outline" onClick={() => { const e = viewing; setViewing(null); openEdit(e); }}>
+                <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit
+              </Button>
+            )}
+            {viewing?.is_archived ? (
+              <Button variant="outline" onClick={() => archiveMutation.mutate({ id: viewing.id, archived: false })}>
+                <ArchiveRestore className="mr-1.5 h-3.5 w-3.5" /> Restore
+              </Button>
+            ) : (
+              viewing && (
+                <Button variant="destructive" onClick={() => setDeleteId(viewing.id)}>
+                  <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Archive
+                </Button>
+              )
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDeleteDialog
+        open={!!deleteId}
+        onOpenChange={(o) => { if (!o) setDeleteId(null); }}
+        onConfirm={() => deleteId && archiveMutation.mutate({ id: deleteId, archived: true })}
+        title="Archive expense?"
+        description="This expense will be hidden from the main list. You can restore it later from the Archived view."
+        confirmLabel="Archive"
       />
+    </div>
+  );
+}
+
+/* ─── Small helpers ─── */
+function StatCard({
+  label, value, sub, icon: Icon, tone,
+}: {
+  label: string; value: string; sub?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  tone: "default" | "emerald" | "blue" | "amber";
+}) {
+  const tones: Record<string, string> = {
+    default: "text-foreground",
+    emerald: "text-emerald-600",
+    blue: "text-blue-600",
+    amber: "text-amber-600",
+  };
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+          <Icon className={cn("h-4 w-4", tones[tone])} />
+        </div>
+        <p className={cn("mt-2 text-xl font-semibold tabular-nums", tones[tone])}>{value}</p>
+        {sub && <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>}
+      </CardContent>
+    </Card>
+  );
+}
+
+function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return (
+    <Badge variant="secondary" className="gap-1 pr-1 font-normal">
+      {label}
+      <button onClick={onRemove} className="ml-0.5 rounded-full hover:bg-muted-foreground/20 p-0.5">
+        <X className="h-3 w-3" />
+      </button>
+    </Badge>
+  );
+}
+
+function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function Field({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <div>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-sm mt-0.5">{value || "—"}</p>
+    </div>
+  );
+}
+
+function EmptyState({ title, hint }: { title: string; hint?: string }) {
+  return (
+    <div className="text-center py-8">
+      <Receipt className="h-8 w-8 mx-auto text-muted-foreground/40" />
+      <p className="mt-3 text-sm font-medium">{title}</p>
+      {hint && <p className="text-xs text-muted-foreground mt-1">{hint}</p>}
     </div>
   );
 }
