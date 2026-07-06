@@ -695,10 +695,28 @@ export default function Tracking() {
 
                 {/* Timeline */}
                 <div className="rounded-2xl border border-black/5 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-                  <div className="border-b border-black/5 p-6">
-                    <h3 className="text-[15px] font-semibold text-[#1D1D1F]">History</h3>
-                    <p className="text-xs text-muted-foreground">All past check-ins, newest first.</p>
+                  <div className="flex items-center justify-between border-b border-black/5 p-6">
+                    <div>
+                      <h3 className="text-[15px] font-semibold text-[#1D1D1F]">
+                        {showArchived ? "Archived check-ins" : "History"}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        {showArchived
+                          ? "Archived check-ins for this founder. Restore to bring back into history."
+                          : "All past check-ins, newest first."}
+                      </p>
+                    </div>
+                    <Button
+                      variant={showArchived ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setShowArchived((v) => !v)}
+                      className={cn("h-8 text-xs", showArchived && "bg-[#1D1D1F] hover:bg-[#1D1D1F]/90 text-white")}
+                    >
+                      <Archive className="h-3.5 w-3.5 mr-1.5" />
+                      {showArchived ? "Viewing archived" : "Show archived"}
+                    </Button>
                   </div>
+
 
                   {timelineLoading ? (
                     <div className="p-6 space-y-3">
