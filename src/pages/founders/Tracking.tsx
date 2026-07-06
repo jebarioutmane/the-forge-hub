@@ -381,6 +381,22 @@ export default function Tracking() {
     onError: (e: any) => toast.error(e.message ?? "Failed to remove"),
   });
 
+  const restoreMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("founder_checkins")
+        .update({ is_archived: false, archived_at: null })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Check-in restored");
+      qc.invalidateQueries({ queryKey: ["tracking-timeline"] });
+      qc.invalidateQueries({ queryKey: ["tracking-checkins-summary"] });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Failed to restore"),
+  });
+
   function beginEdit(c: Checkin) {
     setEditingId(c.id);
     setForm({
