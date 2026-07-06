@@ -59,6 +59,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { title: "Expenses", url: "/operations/expenses", icon: DollarSign, description: "Cohort-based expense tracking" },
       { title: "Stipends", url: "/operations/stipends", icon: Wallet, description: "Founder stipend payouts" },
       { title: "Contracts", url: "/operations/contracts", icon: FileText, description: "Manage agreements" },
+      { title: "Tasks", url: "/operations/tasks", icon: ListTodo, description: "Team task hub — manual and automated" },
     ],
   },
   {
