@@ -1362,14 +1362,18 @@ export type Database = {
         Row: {
           addition_fixed: number | null
           addition_percent: number | null
+          archived_at: string | null
           base_amount: number | null
+          budget_line_id: string | null
           cohort_year: string
           created_at: string | null
           deduction_fixed: number | null
           deduction_percent: number | null
           founder_id: string | null
           id: string
+          is_archived: boolean
           notes: string | null
+          paid_at: string | null
           payment_month: string
           reimbursement: number | null
           status: string | null
@@ -1379,14 +1383,18 @@ export type Database = {
         Insert: {
           addition_fixed?: number | null
           addition_percent?: number | null
+          archived_at?: string | null
           base_amount?: number | null
+          budget_line_id?: string | null
           cohort_year: string
           created_at?: string | null
           deduction_fixed?: number | null
           deduction_percent?: number | null
           founder_id?: string | null
           id?: string
+          is_archived?: boolean
           notes?: string | null
+          paid_at?: string | null
           payment_month: string
           reimbursement?: number | null
           status?: string | null
@@ -1396,14 +1404,18 @@ export type Database = {
         Update: {
           addition_fixed?: number | null
           addition_percent?: number | null
+          archived_at?: string | null
           base_amount?: number | null
+          budget_line_id?: string | null
           cohort_year?: string
           created_at?: string | null
           deduction_fixed?: number | null
           deduction_percent?: number | null
           founder_id?: string | null
           id?: string
+          is_archived?: boolean
           notes?: string | null
+          paid_at?: string | null
           payment_month?: string
           reimbursement?: number | null
           status?: string | null
@@ -1411,6 +1423,13 @@ export type Database = {
           total_net?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "stipend_records_budget_line_id_fkey"
+            columns: ["budget_line_id"]
+            isOneToOne: false
+            referencedRelation: "budget_lines"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "stipend_records_founder_id_fkey"
             columns: ["founder_id"]
