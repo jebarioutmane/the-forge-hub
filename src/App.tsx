@@ -11,6 +11,7 @@ import Source from "./pages/operations/Source";
 import Expenses from "./pages/operations/Expenses";
 import Stipends from "./pages/operations/Stipends";
 import OperationsContracts from "./pages/operations/Contracts";
+import BudgetLines from "./pages/operations/BudgetLines";
 
 
 import FoundersSource from "./pages/founders/Source";
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/operations" element={<MainLayout><OperationsDashboard /></MainLayout>} />
           
           <Route path="/operations/source" element={<MainLayout><Source /></MainLayout>} />
+          <Route path="/operations/budget-lines" element={<MainLayout><BudgetLines /></MainLayout>} />
           <Route path="/operations/expenses" element={<MainLayout><Expenses /></MainLayout>} />
           <Route path="/operations/stipends" element={<MainLayout><Stipends /></MainLayout>} />
           <Route path="/operations/contracts" element={<MainLayout><OperationsContracts /></MainLayout>} />

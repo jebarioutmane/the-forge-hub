@@ -1,4 +1,4 @@
-import { LayoutDashboard, Wallet, FileText, ListTodo, PiggyBank, BookOpen, Settings, BarChart3 } from "lucide-react";
+import { LayoutDashboard, Wallet, FileText, ListTodo, PiggyBank, BookOpen, Settings, BarChart3, Layers } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -14,6 +14,7 @@ import {
 const items = [
   { title: "Dashboard", url: "/operations", icon: LayoutDashboard },
   { title: "Budget Dashboard", url: "/operations/budget", icon: BarChart3 },
+  { title: "Budget Lines", url: "/operations/budget-lines", icon: Layers },
   { title: "Budget Source", url: "/operations/source", icon: PiggyBank },
   { title: "Expenses", url: "/operations/expenses", icon: Wallet },
   { title: "Stipends", url: "/operations/stipends", icon: PiggyBank },
