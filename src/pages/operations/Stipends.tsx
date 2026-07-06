@@ -676,8 +676,10 @@ export default function Stipends() {
         <CardContent className="p-4 flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 flex-wrap">
             <div className="flex items-center gap-2">
-              <Label className="text-sm font-medium whitespace-nowrap">Cohort Year</Label>
-              <CohortSelect value={cohortYear} onChange={setCohortYear} className="w-28 h-9" />
+              <Label className="text-sm font-medium whitespace-nowrap">Cohort</Label>
+              <Badge variant="outline" className="h-9 px-3 flex items-center text-sm font-medium">
+                {isAllCohorts ? "All cohorts" : (selectedCohortLabel || "—")}
+              </Badge>
             </div>
             <div className="flex items-center gap-2">
               <Label className="text-sm font-medium whitespace-nowrap">Payment Month</Label>
