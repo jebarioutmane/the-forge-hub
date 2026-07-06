@@ -30,6 +30,21 @@ export default function OperationsDashboard() {
     },
   });
 
+  // Paid stipends count against their budget line (same as expenses).
+  // Structured so additional spend sources (e.g. contract payments) plug in the same way.
+  const { data: paidStipends = [] } = useQuery({
+    queryKey: ["stipend_records", "paid-for-budget-dashboard"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("stipend_records")
+        .select("id,total_net,budget_line_id,status,is_archived")
+        .eq("status", "paid")
+        .eq("is_archived", false);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const { data: contracts = [] } = useQuery({
     queryKey: ["contracts"],
     queryFn: async () => {
@@ -40,9 +55,11 @@ export default function OperationsDashboard() {
   });
 
   const totalBudget = budgetLines.reduce((sum, b) => sum + Number(b.allocated_amount || 0), 0);
-  const totalSpent = expenses
+  const expensesSpent = expenses
     .filter((e) => e.status === "Confirmed" || e.status === "Paid")
     .reduce((sum, e) => sum + Number(e.amount), 0);
+  const stipendsSpent = (paidStipends as any[]).reduce((sum, s) => sum + Number(s.total_net || 0), 0);
+  const totalSpent = expensesSpent + stipendsSpent;
   const forecastedSpent = expenses
     .filter((e) => e.status === "Pending" || e.status === "Planned")
     .reduce((sum, e) => sum + Number(e.amount), 0);
@@ -50,15 +67,18 @@ export default function OperationsDashboard() {
   const pendingCount = expenses.filter((e) => e.status === "Pending").length;
   const activeContracts = contracts.filter((c) => c.status === "Signed" || c.status === "Active").length;
 
-  // Chart data: group by budget line
+  // Chart data: group by budget line, summing all spend sources.
   const chartData = budgetLines.map((b) => {
-    const lineExpenses = expenses
+    const fromExpenses = expenses
       .filter((e) => (e as any).budget_line_id === b.id)
       .reduce((sum, e) => sum + Number(e.amount), 0);
+    const fromStipends = (paidStipends as any[])
+      .filter((s) => s.budget_line_id === b.id)
+      .reduce((sum, s) => sum + Number(s.total_net || 0), 0);
     return {
       category: b.name,
       budget: convertCurrency(Number(b.allocated_amount || 0), currency),
-      spent: convertCurrency(lineExpenses, currency),
+      spent: convertCurrency(fromExpenses + fromStipends, currency),
     };
   });
 
