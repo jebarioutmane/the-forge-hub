@@ -1,4 +1,4 @@
-import { Users, TrendingUp, BookOpen, Settings, ClipboardCheck } from "lucide-react";
+import { Users, TrendingUp, BookOpen, Settings, ClipboardCheck, BarChart3 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -12,11 +12,10 @@ import {
 } from "@/components/ui/sidebar";
 
 const items = [
-  { title: "Source", url: "/founders", icon: Users },
+  { title: "Directory", url: "/founders", icon: Users },
   { title: "Tracking", url: "/founders/tracking", icon: TrendingUp },
   { title: "Evaluations", url: "/founders/evaluations", icon: ClipboardCheck },
-  { title: "Library", url: "/founders/library", icon: BookOpen },
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Portfolio Dashboard", url: "/founders/portfolio", icon: BarChart3 },
 ];
 
 export function FoundersSidebar() {
