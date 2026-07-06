@@ -42,6 +42,8 @@ export type Database = {
           id: string
           is_archived: boolean
           name: string
+          parent_id: string | null
+          sort_order: number | null
         }
         Insert: {
           allocated_amount?: number | null
@@ -52,6 +54,8 @@ export type Database = {
           id?: string
           is_archived?: boolean
           name: string
+          parent_id?: string | null
+          sort_order?: number | null
         }
         Update: {
           allocated_amount?: number | null
@@ -62,6 +66,8 @@ export type Database = {
           id?: string
           is_archived?: boolean
           name?: string
+          parent_id?: string | null
+          sort_order?: number | null
         }
         Relationships: [
           {
@@ -69,6 +75,13 @@ export type Database = {
             columns: ["cohort_id"]
             isOneToOne: false
             referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_lines_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "budget_lines"
             referencedColumns: ["id"]
           },
         ]
