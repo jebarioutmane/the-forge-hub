@@ -37,7 +37,7 @@ import type { Tables } from "@/integrations/supabase/types";
 type Task = Tables<"tasks">;
 type Profile = { id: string; full_name: string | null; email: string | null; avatar_url: string | null };
 type FounderLite = { id: string; founder_name: string | null; startup_name: string | null; cohort_id: string | null };
-type EventLite = { id: string; title: string | null };
+type EventLite = { id: string; name: string | null };
 
 const STATUSES = ["To Do", "In Progress", "Done"] as const;
 type Status = typeof STATUSES[number];
@@ -149,8 +149,8 @@ export default function OperationsTasks() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
-        .select("id, title")
-        .order("start_date", { ascending: false });
+        .select("id, name")
+        .order("start_date", { ascending: false, nullsFirst: false });
       if (error) throw error;
       return (data ?? []) as EventLite[];
     },
@@ -382,7 +382,7 @@ export default function OperationsTasks() {
         <FilterSelect value={founderFilter} onChange={setFounderFilter} placeholder="Founder"
           options={[{ value: "all", label: "Any founder" }, ...founders.map(f => ({ value: f.id, label: f.founder_name || f.startup_name || "Founder" }))]} />
         <FilterSelect value={eventFilter} onChange={setEventFilter} placeholder="Event"
-          options={[{ value: "all", label: "Any event" }, ...events.map(e => ({ value: e.id, label: e.title || "Event" }))]} />
+          options={[{ value: "all", label: "Any event" }, ...events.map(e => ({ value: e.id, label: e.name || "Event" }))]} />
       </div>
       {hasActiveFilters && (
         <div className="flex items-center gap-2 -mt-2">
@@ -551,7 +551,7 @@ export default function OperationsTasks() {
                   <SelectContent>
                     <SelectItem value={NONE}>None</SelectItem>
                     {events.map(e => (
-                      <SelectItem key={e.id} value={e.id}>{e.title || "Event"}</SelectItem>
+                      <SelectItem key={e.id} value={e.id}>{e.name || "Event"}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -744,7 +744,7 @@ function TaskCardItem({
           {event && (
             <ChipButton
               icon={CalendarDays}
-              label={event.title || "Event"}
+              label={event.name || "Event"}
               onClick={(e) => { e.stopPropagation(); onNavigateEvent(event.id); }}
             />
           )}
@@ -853,7 +853,7 @@ function TaskListView({
                         )}
                         {event && (
                           <ChipButton icon={CalendarDays}
-                            label={event.title || "Event"}
+                            label={event.name || "Event"}
                             onClick={(e) => { e.stopPropagation(); onNavigateEvent(event.id); }} />
                         )}
                         {!founder && !event && <span className="text-xs text-muted-foreground">—</span>}
