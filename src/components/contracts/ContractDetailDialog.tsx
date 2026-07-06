@@ -105,6 +105,8 @@ export default function ContractDetailDialog({ contract, onClose }: ContractDeta
               <DetailRow label="Payment Structure" value={<span className="capitalize">{(contract as any).payment_structure || "one-time"}</span>} />
               <DetailRow label="Start Date" value={contract.start_date || "—"} />
               <DetailRow label="End Date" value={contract.end_date || "—"} />
+              <DetailRow label="Budget Line" value={budgetLine ? `${budgetLine.code || "—"} · ${budgetLine.name}` : "—"} />
+              <DetailRow label="Currency" value={currency} />
               <DetailRow label="Vendor Email" value={vendor?.email || "—"} />
               <DetailRow label="Vendor Type" value={vendor?.type || "—"} />
             </div>
