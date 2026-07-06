@@ -66,7 +66,7 @@ function MegaMenuContent({
                   <span className={cn("text-sm font-medium", isActive ? "text-primary" : "text-foreground")}>
                     {item.title}
                   </span>
-                  <span className="text-[11px] text-muted-foreground leading-tight">{item.desc}</span>
+                  <span className="text-[11px] text-muted-foreground leading-tight">{item.description}</span>
                 </div>
               </button>
             </li>
