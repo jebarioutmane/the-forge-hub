@@ -530,9 +530,62 @@ export type Database = {
           },
         ]
       }
+      event_stakeholders: {
+        Row: {
+          attendance_status: string | null
+          created_at: string
+          event_id: string
+          id: string
+          notes: string | null
+          role: string | null
+          stakeholder_id: string
+        }
+        Insert: {
+          attendance_status?: string | null
+          created_at?: string
+          event_id: string
+          id?: string
+          notes?: string | null
+          role?: string | null
+          stakeholder_id: string
+        }
+        Update: {
+          attendance_status?: string | null
+          created_at?: string
+          event_id?: string
+          id?: string
+          notes?: string | null
+          role?: string | null
+          stakeholder_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_stakeholders_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_stakeholders_stakeholder_id_fkey"
+            columns: ["stakeholder_id"]
+            isOneToOne: false
+            referencedRelation: "stakeholder_involvement"
+            referencedColumns: ["stakeholder_id"]
+          },
+          {
+            foreignKeyName: "event_stakeholders_stakeholder_id_fkey"
+            columns: ["stakeholder_id"]
+            isOneToOne: false
+            referencedRelation: "stakeholders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           all_founders: boolean | null
+          archived_at: string | null
           checklist: Json | null
           cohort_year: string | null
           created_at: string
@@ -542,6 +595,7 @@ export type Database = {
           event_type: string | null
           expert_id: string | null
           id: string
+          is_archived: boolean
           linked_founder_id: string | null
           links: Json | null
           location: string | null
@@ -556,6 +610,7 @@ export type Database = {
         }
         Insert: {
           all_founders?: boolean | null
+          archived_at?: string | null
           checklist?: Json | null
           cohort_year?: string | null
           created_at?: string
@@ -565,6 +620,7 @@ export type Database = {
           event_type?: string | null
           expert_id?: string | null
           id?: string
+          is_archived?: boolean
           linked_founder_id?: string | null
           links?: Json | null
           location?: string | null
@@ -579,6 +635,7 @@ export type Database = {
         }
         Update: {
           all_founders?: boolean | null
+          archived_at?: string | null
           checklist?: Json | null
           cohort_year?: string | null
           created_at?: string
@@ -588,6 +645,7 @@ export type Database = {
           event_type?: string | null
           expert_id?: string | null
           id?: string
+          is_archived?: boolean
           linked_founder_id?: string | null
           links?: Json | null
           location?: string | null
@@ -1318,6 +1376,7 @@ export type Database = {
       }
       stakeholders: {
         Row: {
+          archived_at: string | null
           based_in_country: string | null
           created_at: string | null
           description: string | null
@@ -1325,6 +1384,7 @@ export type Database = {
           full_name: string
           id: string
           institution_name: string | null
+          is_archived: boolean
           links: Json | null
           nationalities: string[] | null
           phone: string | null
@@ -1335,6 +1395,7 @@ export type Database = {
           type: string | null
         }
         Insert: {
+          archived_at?: string | null
           based_in_country?: string | null
           created_at?: string | null
           description?: string | null
@@ -1342,6 +1403,7 @@ export type Database = {
           full_name: string
           id?: string
           institution_name?: string | null
+          is_archived?: boolean
           links?: Json | null
           nationalities?: string[] | null
           phone?: string | null
@@ -1352,6 +1414,7 @@ export type Database = {
           type?: string | null
         }
         Update: {
+          archived_at?: string | null
           based_in_country?: string | null
           created_at?: string | null
           description?: string | null
@@ -1359,6 +1422,7 @@ export type Database = {
           full_name?: string
           id?: string
           institution_name?: string | null
+          is_archived?: boolean
           links?: Json | null
           nationalities?: string[] | null
           phone?: string | null
@@ -1554,6 +1618,17 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      stakeholder_involvement: {
+        Row: {
+          events_attended: number | null
+          full_name: string | null
+          involvement_log: Json | null
+          last_involved: string | null
+          stakeholder_id: string | null
+          total_events: number | null
+        }
+        Relationships: []
       }
     }
     Functions: {
