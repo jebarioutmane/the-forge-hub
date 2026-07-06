@@ -212,8 +212,8 @@ export default function FoundersSource() {
   const [viewing, setViewing] = useState<Founder | null>(null);
   const [form, setForm] = useState<FounderForm>(emptyForm);
 
-  // Cohort context + filters
-  const [selectedCohort, setSelectedCohort] = useState<string>(""); // "" = uninitialized, "all" = all
+  // Global cohort selection lives in shared context (header switcher drives it).
+  const { selectedCohortId, cohorts } = useCohort();
   const [showArchived, setShowArchived] = useState(false);
   const [search, setSearch] = useState("");
   const [filterCountries, setFilterCountries] = useState<string[]>([]);
@@ -221,26 +221,6 @@ export default function FoundersSource() {
   const [filterAssociates, setFilterAssociates] = useState<string[]>([]);
   const [filterTags, setFilterTags] = useState<string[]>([]);
 
-  /* ─────────── Data ─────────── */
-  const { data: cohorts = [] } = useQuery({
-    queryKey: ["cohorts-directory"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("cohorts")
-        .select("*")
-        .order("year", { ascending: false });
-      if (error) throw error;
-      return data as Cohort[];
-    },
-  });
-
-  // Default cohort = active cohort
-  useEffect(() => {
-    if (selectedCohort) return;
-    if (cohorts.length === 0) return;
-    const active = cohorts.find((c) => c.is_active);
-    setSelectedCohort(active ? active.id : "all");
-  }, [cohorts, selectedCohort]);
 
   const { data: founders = [], isLoading } = useQuery({
     queryKey: ["founders", "directory"],
