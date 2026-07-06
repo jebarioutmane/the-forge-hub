@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useVendors } from "@/hooks/useRelationalData";
 import { useBudgetLinesByCohort, type ContractRow } from "@/hooks/useContracts";
+import { useCohort, ALL_COHORTS } from "@/contexts/CohortContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +17,7 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 
 const CONTRACT_TYPES = ["mentor", "expert", "consultant", "service provider"];
-const CONTRACT_STATUSES = ["Draft", "Active", "Completed", "Cancelled"];
+const CONTRACT_STATUSES = ["Draft", "Active", "Completed", "Terminated"];
 const CURRENCIES = ["MAD", "USD", "EUR"];
 const PAYMENT_STRUCTURES = ["one-time", "milestone-based", "recurring"];
 
@@ -30,6 +31,8 @@ export default function ContractFormDialog({ open, onClose, editingContract }: C
   const { user } = useAuth();
   const qc = useQueryClient();
   const { data: vendors = [] } = useVendors();
+  const { selectedCohortId } = useCohort();
+  const defaultCohortId = selectedCohortId && selectedCohortId !== ALL_COHORTS ? selectedCohortId : null;
 
   const [form, setForm] = useState({
     title: "",
@@ -83,7 +86,7 @@ export default function ContractFormDialog({ open, onClose, editingContract }: C
   function resetForm() {
     setForm({
       title: "", description: "", vendor_id: null, type: "service provider", status: "Draft",
-      value: "", currency: "MAD", payment_structure: "one-time", cohort_id: null, budget_line_id: null,
+      value: "", currency: "MAD", payment_structure: "one-time", cohort_id: defaultCohortId, budget_line_id: null,
       start_date: "", end_date: "", tag_ids: [],
     });
   }
