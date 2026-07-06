@@ -65,6 +65,9 @@ import {
   Link2,
   ArchiveRestore,
   Filter,
+  Rocket,
+  TrendingUp,
+  DollarSign,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
