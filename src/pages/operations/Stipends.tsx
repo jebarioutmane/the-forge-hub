@@ -31,8 +31,7 @@ const MONTHS = [
 
 const currentYear = new Date().getFullYear();
 const currentMonthIndex = new Date().getMonth();
-import { getCurrentCohortYear } from "@/lib/cohortYears";
-import { CohortSelect } from "@/components/CohortSelect";
+import { useCohort, ALL_COHORTS } from "@/contexts/CohortContext";
 
 function calcNet(base: number, dedPct: number, dedFixed: number, addPct: number, addFixed: number, reimb: number) {
   return (base * (1 - dedPct / 100) - dedFixed) + (base * (addPct / 100) + addFixed) + reimb;
