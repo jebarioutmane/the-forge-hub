@@ -599,7 +599,6 @@ export type Database = {
           linked_founder_id: string | null
           links: Json | null
           location: string | null
-          logistics_needs: Json | null
           name: string
           needs: Json | null
           one_on_one_slots: Json | null
@@ -624,7 +623,6 @@ export type Database = {
           linked_founder_id?: string | null
           links?: Json | null
           location?: string | null
-          logistics_needs?: Json | null
           name: string
           needs?: Json | null
           one_on_one_slots?: Json | null
@@ -649,7 +647,6 @@ export type Database = {
           linked_founder_id?: string | null
           links?: Json | null
           location?: string | null
-          logistics_needs?: Json | null
           name?: string
           needs?: Json | null
           one_on_one_slots?: Json | null
