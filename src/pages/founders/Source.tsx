@@ -65,6 +65,9 @@ import {
   Link2,
   ArchiveRestore,
   Filter,
+  Rocket,
+  TrendingUp,
+  DollarSign,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
@@ -98,6 +101,10 @@ interface FounderForm {
   passport_number: string;
   birthday: string;
   photo_url: string;
+  sector: string;
+  stage: string;
+  funding_raised: string;
+  funding_currency: string;
 }
 
 const emptyForm: FounderForm = {
@@ -116,6 +123,10 @@ const emptyForm: FounderForm = {
   passport_number: "",
   birthday: "",
   photo_url: "",
+  sector: "",
+  stage: "",
+  funding_raised: "",
+  funding_currency: "MAD",
 };
 
 const NONE = "__none__";
@@ -377,6 +388,10 @@ export default function FoundersSource() {
         passport_number: form.passport_number || null,
         birthday: form.birthday || null,
         photo_url: form.photo_url || null,
+        sector: form.sector || null,
+        stage: form.stage || null,
+        funding_raised: form.funding_raised ? Number(form.funding_raised) : null,
+        funding_currency: form.funding_currency || "MAD",
       };
       if (editing) {
         const { error } = await supabase.from("founders").update(payload).eq("id", editing.id);
@@ -447,6 +462,10 @@ export default function FoundersSource() {
       passport_number: f.passport_number || "",
       birthday: f.birthday || "",
       photo_url: f.photo_url || "",
+      sector: (f as any).sector || "",
+      stage: (f as any).stage || "",
+      funding_raised: (f as any).funding_raised != null ? String((f as any).funding_raised) : "",
+      funding_currency: (f as any).funding_currency || "MAD",
     });
     setEditing(f);
     setDialogOpen(true);
@@ -878,6 +897,32 @@ export default function FoundersSource() {
                 )}
               </section>
 
+              {/* Startup profile */}
+              <section className="space-y-3">
+                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                  Startup profile
+                </h3>
+                <DetailRow
+                  icon={<Rocket className="h-4 w-4" />}
+                  label="Sector"
+                  value={(viewing as any).sector}
+                />
+                <DetailRow
+                  icon={<TrendingUp className="h-4 w-4" />}
+                  label="Stage"
+                  value={(viewing as any).stage}
+                />
+                <DetailRow
+                  icon={<DollarSign className="h-4 w-4" />}
+                  label="Funding raised"
+                  value={
+                    (viewing as any).funding_raised != null
+                      ? `${Number((viewing as any).funding_raised).toLocaleString()} ${(viewing as any).funding_currency || "MAD"}`
+                      : null
+                  }
+                />
+              </section>
+
               {/* Identity docs */}
               <section className="space-y-3">
                 <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
@@ -1056,6 +1101,67 @@ export default function FoundersSource() {
                     onChange={(e) => set("photo_url", e.target.value)}
                     placeholder="https://…"
                   />
+                </Field>
+              </div>
+            </FormSection>
+
+            {/* Section: Startup profile */}
+            <FormSection title="Startup profile" hint="Sector, stage & funding — feeds the Portfolio Dashboard.">
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Sector" htmlFor="founder-sector">
+                  <Input
+                    id="founder-sector"
+                    name="sector"
+                    value={form.sector}
+                    onChange={(e) => set("sector", e.target.value)}
+                    placeholder="Fintech, HealthTech, EdTech…"
+                  />
+                </Field>
+                <Field label="Stage">
+                  <Select
+                    value={form.stage || NONE}
+                    onValueChange={(v) => set("stage", v === NONE ? "" : v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select stage" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NONE}>None</SelectItem>
+                      <SelectItem value="Idea">Idea</SelectItem>
+                      <SelectItem value="MVP">MVP</SelectItem>
+                      <SelectItem value="Early Revenue">Early Revenue</SelectItem>
+                      <SelectItem value="Growth">Growth</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Funding raised" htmlFor="funding-raised">
+                  <Input
+                    id="funding-raised"
+                    name="funding_raised"
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={form.funding_raised}
+                    onChange={(e) => set("funding_raised", e.target.value)}
+                    placeholder="0"
+                  />
+                </Field>
+                <Field label="Currency">
+                  <Select
+                    value={form.funding_currency || "MAD"}
+                    onValueChange={(v) => set("funding_currency", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MAD">MAD</SelectItem>
+                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="EUR">EUR</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </Field>
               </div>
             </FormSection>
