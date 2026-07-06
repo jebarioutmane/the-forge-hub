@@ -19,6 +19,8 @@ export interface ContractRow {
   end_date: string | null;
   tag_ids: string[] | null;
   owner_id: string | null;
+  is_archived?: boolean;
+  archived_at?: string | null;
 }
 
 export interface ContractPayment {
@@ -27,6 +29,8 @@ export interface ContractPayment {
   amount: number;
   payment_date: string | null;
   status: string;
+  paid_at: string | null;
+  budget_line_id: string | null;
   expense_id: string | null;
   created_at: string | null;
 }
@@ -58,14 +62,25 @@ export interface ContractDocument {
   created_at: string | null;
 }
 
-export function useContracts() {
+/** Committed = scheduled or committed. Spent = paid. */
+export const COMMITTED_STATUSES = ["scheduled", "committed"] as const;
+export const PAID_STATUS = "paid";
+
+export function isCommitted(status: string | null | undefined) {
+  return status === "scheduled" || status === "committed";
+}
+export function isPaid(status: string | null | undefined) {
+  return status === "paid";
+}
+
+export function useContracts(opts: { includeArchived?: boolean } = {}) {
+  const { includeArchived = false } = opts;
   return useQuery({
-    queryKey: ["contracts"],
+    queryKey: ["contracts", { includeArchived }],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("contracts")
-        .select("*")
-        .order("start_date", { ascending: false });
+      let q = supabase.from("contracts").select("*").order("start_date", { ascending: false });
+      if (!includeArchived) q = q.eq("is_archived", false);
+      const { data, error } = await q;
       if (error) throw error;
       return data as unknown as ContractRow[];
     },
@@ -78,10 +93,21 @@ export function useContractPayments(contractId: string | null) {
     enabled: !!contractId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("contract_payments" as any)
+        .from("contract_payments")
         .select("*")
         .eq("contract_id", contractId!)
         .order("payment_date", { ascending: true });
+      if (error) throw error;
+      return (data || []) as unknown as ContractPayment[];
+    },
+  });
+}
+
+export function useAllContractPayments() {
+  return useQuery({
+    queryKey: ["all-contract-payments"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("contract_payments").select("*");
       if (error) throw error;
       return (data || []) as unknown as ContractPayment[];
     },
@@ -94,7 +120,7 @@ export function useContractMilestones(contractId: string | null) {
     enabled: !!contractId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("contract_milestones" as any)
+        .from("contract_milestones")
         .select("*")
         .eq("contract_id", contractId!)
         .order("due_date", { ascending: true });
@@ -110,7 +136,7 @@ export function useContractLinks(contractId: string | null) {
     enabled: !!contractId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("contract_links" as any)
+        .from("contract_links")
         .select("*")
         .eq("contract_id", contractId!)
         .order("created_at", { ascending: false });
@@ -126,7 +152,7 @@ export function useContractDocuments(contractId: string | null) {
     enabled: !!contractId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("contract_documents" as any)
+        .from("contract_documents")
         .select("*")
         .eq("contract_id", contractId!)
         .order("created_at", { ascending: false });
@@ -152,39 +178,58 @@ export function useBudgetLinesByCohort(cohortId: string | null) {
   });
 }
 
+export function useAllBudgetLines() {
+  return useQuery({
+    queryKey: ["budget-lines-all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("budget_lines")
+        .select("id, code, name, cohort_id, allocated_amount")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 export function useContractMutations() {
   const qc = useQueryClient();
 
+  const invalidatePayments = () => {
+    qc.invalidateQueries({ queryKey: ["contract-payments"] });
+    qc.invalidateQueries({ queryKey: ["all-contract-payments"] });
+  };
+
   const addPayment = useMutation({
     mutationFn: async (p: Omit<ContractPayment, "id" | "created_at">) => {
-      const { error } = await supabase.from("contract_payments" as any).insert(p as any);
+      const { error } = await supabase.from("contract_payments").insert(p as any);
       if (error) throw error;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["contract-payments"] }); toast.success("Payment added"); },
+    onSuccess: () => { invalidatePayments(); toast.success("Payment added"); },
     onError: (e: any) => toast.error(e.message),
   });
 
   const updatePayment = useMutation({
     mutationFn: async ({ id, ...rest }: Partial<ContractPayment> & { id: string }) => {
-      const { error } = await supabase.from("contract_payments" as any).update(rest as any).eq("id", id);
+      const { error } = await supabase.from("contract_payments").update(rest as any).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["contract-payments"] }); toast.success("Payment updated"); },
+    onSuccess: () => { invalidatePayments(); toast.success("Payment updated"); },
     onError: (e: any) => toast.error(e.message),
   });
 
   const deletePayment = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("contract_payments" as any).delete().eq("id", id);
+      const { error } = await supabase.from("contract_payments").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["contract-payments"] }); toast.success("Payment deleted"); },
+    onSuccess: () => { invalidatePayments(); toast.success("Payment deleted"); },
     onError: (e: any) => toast.error(e.message),
   });
 
   const addMilestone = useMutation({
     mutationFn: async (m: Omit<ContractMilestone, "id" | "created_at">) => {
-      const { error } = await supabase.from("contract_milestones" as any).insert(m as any);
+      const { error } = await supabase.from("contract_milestones").insert(m as any);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["contract-milestones"] }); toast.success("Milestone added"); },
@@ -193,7 +238,7 @@ export function useContractMutations() {
 
   const updateMilestone = useMutation({
     mutationFn: async ({ id, ...rest }: Partial<ContractMilestone> & { id: string }) => {
-      const { error } = await supabase.from("contract_milestones" as any).update(rest as any).eq("id", id);
+      const { error } = await supabase.from("contract_milestones").update(rest as any).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["contract-milestones"] }); toast.success("Milestone updated"); },
@@ -202,7 +247,7 @@ export function useContractMutations() {
 
   const deleteMilestone = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("contract_milestones" as any).delete().eq("id", id);
+      const { error } = await supabase.from("contract_milestones").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["contract-milestones"] }); toast.success("Milestone deleted"); },
@@ -211,7 +256,7 @@ export function useContractMutations() {
 
   const addLink = useMutation({
     mutationFn: async (l: Omit<ContractLink, "id" | "created_at">) => {
-      const { error } = await supabase.from("contract_links" as any).insert(l as any);
+      const { error } = await supabase.from("contract_links").insert(l as any);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["contract-links"] }); toast.success("Link added"); },
@@ -220,7 +265,7 @@ export function useContractMutations() {
 
   const deleteLink = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("contract_links" as any).delete().eq("id", id);
+      const { error } = await supabase.from("contract_links").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["contract-links"] }); toast.success("Link deleted"); },
@@ -229,7 +274,7 @@ export function useContractMutations() {
 
   const addDocument = useMutation({
     mutationFn: async (d: Omit<ContractDocument, "id" | "created_at">) => {
-      const { error } = await supabase.from("contract_documents" as any).insert(d as any);
+      const { error } = await supabase.from("contract_documents").insert(d as any);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["contract-documents"] }); toast.success("Document added"); },
@@ -238,12 +283,41 @@ export function useContractMutations() {
 
   const deleteDocument = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("contract_documents" as any).delete().eq("id", id);
+      const { error } = await supabase.from("contract_documents").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["contract-documents"] }); toast.success("Document deleted"); },
     onError: (e: any) => toast.error(e.message),
   });
 
-  return { addPayment, updatePayment, deletePayment, addMilestone, updateMilestone, deleteMilestone, addLink, deleteLink, addDocument, deleteDocument };
+  const archiveContract = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("contracts")
+        .update({ is_archived: true, archived_at: new Date().toISOString() } as any)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["contracts"] }); toast.success("Contract archived"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const restoreContract = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("contracts")
+        .update({ is_archived: false, archived_at: null } as any)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["contracts"] }); toast.success("Contract restored"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  return {
+    addPayment, updatePayment, deletePayment,
+    addMilestone, updateMilestone, deleteMilestone,
+    addLink, deleteLink, addDocument, deleteDocument,
+    archiveContract, restoreContract,
+  };
 }
