@@ -86,7 +86,7 @@ export default function ContractFormDialog({ open, onClose, editingContract }: C
   function resetForm() {
     setForm({
       title: "", description: "", vendor_id: null, type: "service provider", status: "Draft",
-      value: "", currency: "MAD", payment_structure: "one-time", cohort_id: null, budget_line_id: null,
+      value: "", currency: "MAD", payment_structure: "one-time", cohort_id: defaultCohortId, budget_line_id: null,
       start_date: "", end_date: "", tag_ids: [],
     });
   }
