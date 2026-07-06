@@ -56,7 +56,7 @@ export default function OperationsDashboard() {
     queryFn: async () => {
       let q = supabase
         .from("expenses")
-        .select("id, amount, budget_line_id, status, is_archived, cohort_id, created_at, paid_at:updated_at")
+        .select("id, amount, budget_line_id, status, is_archived, cohort_id, created_at")
         .eq("is_archived", false);
       if (cohortScoped) q = q.eq("cohort_id", selectedCohortId);
       const { data, error } = await q;
