@@ -20,6 +20,7 @@ const statusColors: Record<string, string> = {
   Draft: "bg-muted text-muted-foreground",
   Active: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400",
   Completed: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+  Terminated: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
   Cancelled: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
 };
 
