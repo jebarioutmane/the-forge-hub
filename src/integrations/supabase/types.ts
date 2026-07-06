@@ -822,6 +822,7 @@ export type Database = {
       }
       founder_checkins: {
         Row: {
+          archived_at: string | null
           associate_id: string | null
           checkin_date: string
           checkin_type: string
@@ -831,6 +832,7 @@ export type Database = {
           funding_note: string | null
           funding_rating: number | null
           id: string
+          is_archived: boolean
           links: Json | null
           market_note: string | null
           market_rating: number | null
@@ -844,6 +846,7 @@ export type Database = {
           traction_rating: number | null
         }
         Insert: {
+          archived_at?: string | null
           associate_id?: string | null
           checkin_date?: string
           checkin_type?: string
@@ -853,6 +856,7 @@ export type Database = {
           funding_note?: string | null
           funding_rating?: number | null
           id?: string
+          is_archived?: boolean
           links?: Json | null
           market_note?: string | null
           market_rating?: number | null
@@ -866,6 +870,7 @@ export type Database = {
           traction_rating?: number | null
         }
         Update: {
+          archived_at?: string | null
           associate_id?: string | null
           checkin_date?: string
           checkin_type?: string
@@ -875,6 +880,7 @@ export type Database = {
           funding_note?: string | null
           funding_rating?: number | null
           id?: string
+          is_archived?: boolean
           links?: Json | null
           market_note?: string | null
           market_rating?: number | null
