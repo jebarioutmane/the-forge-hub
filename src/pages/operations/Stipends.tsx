@@ -479,6 +479,43 @@ export default function Stipends() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  // Carry-forward BASE only from each founder's most recent prior month.
+  // Explicit action — never automatic. Deductions / additions / reimbursement reset to 0.
+  const carryForwardMutation = useMutation({
+    mutationFn: async () => {
+      const latest = priorMonthMeta?.latest;
+      if (!latest || latest.size === 0) return 0;
+      const missing = cohortFounders.filter((f) => !recordsByFounder.has(f.id));
+      const rows = missing
+        .filter((f) => latest.has(f.id))
+        .map((f) => {
+          const base = latest.get(f.id)!.base || 0;
+          return {
+            founder_id: f.id,
+            cohort_year: cohortYear,
+            payment_month: monthKey,
+            base_amount: base,
+            deduction_percent: 0,
+            deduction_fixed: 0,
+            addition_percent: 0,
+            addition_fixed: 0,
+            reimbursement: 0,
+            total_net: base,
+            status: "pending",
+          };
+        });
+      if (!rows.length) return 0;
+      const { error } = await supabase.from("stipend_records").insert(rows);
+      if (error) throw error;
+      return rows.length;
+    },
+    onSuccess: (n) => {
+      queryClient.invalidateQueries({ queryKey: ["stipend_records", cohortYear, paymentMonth] });
+      toast.success(n ? `Carried forward base for ${n} founder${n === 1 ? "" : "s"}` : "Nothing to carry forward");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   // Update links for a single record
   const updateLinksMutation = useMutation({
     mutationFn: async ({ id, links }: { id: string; links: StipendLink[] }) => {
