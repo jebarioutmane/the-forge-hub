@@ -2,7 +2,7 @@ import {
   LayoutDashboard, DollarSign, FileText, CalendarDays,
   ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
   Settings, Wallet, PiggyBank, ClipboardList,
-  BarChart3, Users2, Layers, Tag, UserCircle,
+  BarChart3, Users2, Layers, Tag, UserCircle, ListTodo,
   type LucideIcon,
 } from "lucide-react";
 
@@ -59,6 +59,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { title: "Expenses", url: "/operations/expenses", icon: DollarSign, description: "Cohort-based expense tracking" },
       { title: "Stipends", url: "/operations/stipends", icon: Wallet, description: "Founder stipend payouts" },
       { title: "Contracts", url: "/operations/contracts", icon: FileText, description: "Manage agreements" },
+      { title: "Tasks", url: "/operations/tasks", icon: ListTodo, description: "Team task hub — manual and automated" },
     ],
   },
   {

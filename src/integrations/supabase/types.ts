@@ -1519,45 +1519,79 @@ export type Database = {
       }
       tasks: {
         Row: {
+          archived_at: string | null
           assigned_to: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
           due_date: string | null
           id: string
+          is_archived: boolean
           priority: string | null
+          related_event_id: string | null
+          related_founder_id: string | null
           source_id: string | null
           source_module: string | null
           status: string | null
           title: string
         }
         Insert: {
+          archived_at?: string | null
           assigned_to?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
+          is_archived?: boolean
           priority?: string | null
+          related_event_id?: string | null
+          related_founder_id?: string | null
           source_id?: string | null
           source_module?: string | null
           status?: string | null
           title: string
         }
         Update: {
+          archived_at?: string | null
           assigned_to?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
+          is_archived?: boolean
           priority?: string | null
+          related_event_id?: string | null
+          related_founder_id?: string | null
           source_id?: string | null
           source_module?: string | null
           status?: string | null
           title?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tasks_related_event_id_fkey"
+            columns: ["related_event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_related_founder_id_fkey"
+            columns: ["related_founder_id"]
+            isOneToOne: false
+            referencedRelation: "founder_engagement"
+            referencedColumns: ["founder_id"]
+          },
+          {
+            foreignKeyName: "tasks_related_founder_id_fkey"
+            columns: ["related_founder_id"]
+            isOneToOne: false
+            referencedRelation: "founders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vendors: {
         Row: {
