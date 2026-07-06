@@ -77,6 +77,7 @@ const sections = [
     headline: "System & Settings",
     description: "Application configuration and shared resources.",
     items: [
+      { title: "Budget Lines", url: "/operations/budget-lines", icon: Layers, desc: "Manage sponsor budget lines and allocations" },
       { title: "Team Profiles", url: "/system/profiles", icon: Users2, desc: "Team member directory" },
       { title: "History Log", url: "/system/history", icon: ClipboardList, desc: "Audit trail & restore" },
       { title: "Library", url: "/library", icon: BookOpen, desc: "Shared resource links" },
