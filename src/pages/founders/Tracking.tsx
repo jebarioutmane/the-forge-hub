@@ -727,8 +727,12 @@ export default function Tracking() {
                   ) : timeline.length === 0 ? (
                     <div className="p-12 text-center">
                       <FileText className="mx-auto h-6 w-6 text-muted-foreground/50" />
-                      <p className="mt-3 text-sm font-medium text-[#1D1D1F]">No check-ins yet for this founder</p>
-                      <p className="mt-1 text-xs text-muted-foreground">Log the first one above.</p>
+                      <p className="mt-3 text-sm font-medium text-[#1D1D1F]">
+                        {showArchived ? "No archived check-ins" : "No check-ins yet for this founder"}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {showArchived ? "Deleted check-ins will appear here." : "Log the first one above."}
+                      </p>
                     </div>
                   ) : (
                     <ul className="divide-y divide-black/5">
