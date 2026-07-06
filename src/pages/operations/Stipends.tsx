@@ -31,8 +31,7 @@ const MONTHS = [
 
 const currentYear = new Date().getFullYear();
 const currentMonthIndex = new Date().getMonth();
-import { getCurrentCohortYear } from "@/lib/cohortYears";
-import { CohortSelect } from "@/components/CohortSelect";
+import { useCohort, ALL_COHORTS } from "@/contexts/CohortContext";
 
 function calcNet(base: number, dedPct: number, dedFixed: number, addPct: number, addFixed: number, reimb: number) {
   return (base * (1 - dedPct / 100) - dedFixed) + (base * (addPct / 100) + addFixed) + reimb;
@@ -65,7 +64,9 @@ export default function Stipends() {
     },
   });
 
-  const [cohortYear, setCohortYear] = useState(getCurrentCohortYear());
+  const { selectedCohortId, selectedCohortLabel } = useCohort();
+  const isAllCohorts = selectedCohortId === ALL_COHORTS;
+  const cohortYear = isAllCohorts ? "" : selectedCohortLabel;
   const [paymentMonth, setPaymentMonth] = useState(MONTHS[currentMonthIndex]);
 
   const [editOpen, setEditOpen] = useState(false);
@@ -670,13 +671,26 @@ export default function Stipends() {
         </div>
       </div>
 
+      {isAllCohorts && (
+        <Card className="border-amber-200 bg-amber-50/50">
+          <CardContent className="p-4 flex items-center gap-3">
+            <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+            <p className="text-sm text-amber-900">
+              Stipends are managed per cohort. Pick a specific cohort in the header to view or edit records.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Filters */}
       <Card>
         <CardContent className="p-4 flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 flex-wrap">
             <div className="flex items-center gap-2">
-              <Label className="text-sm font-medium whitespace-nowrap">Cohort Year</Label>
-              <CohortSelect value={cohortYear} onChange={setCohortYear} className="w-28 h-9" />
+              <Label className="text-sm font-medium whitespace-nowrap">Cohort</Label>
+              <Badge variant="outline" className="h-9 px-3 flex items-center text-sm font-medium">
+                {isAllCohorts ? "All cohorts" : (selectedCohortLabel || "—")}
+              </Badge>
             </div>
             <div className="flex items-center gap-2">
               <Label className="text-sm font-medium whitespace-nowrap">Payment Month</Label>
