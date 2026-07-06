@@ -7,8 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, X } from "lucide-react";
-import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
+import { Plus, X, Archive, ArchiveRestore, AlertTriangle, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { formatCohortLabel, formatCohortWindow, computeActiveCohort, parseCohort } from "@/lib/cohortYears";
