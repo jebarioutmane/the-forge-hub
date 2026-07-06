@@ -50,6 +50,8 @@ import {
   Activity,
   Users as UsersIcon,
   FileText,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { formatUrl } from "@/lib/formatUrl";
@@ -196,6 +198,7 @@ export default function Tracking() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [viewingCheckin, setViewingCheckin] = useState<Checkin | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
 
   // Founders in selected cohort
   const { data: founders = [], isLoading: foundersLoading } = useQuery({
@@ -282,14 +285,14 @@ export default function Tracking() {
 
   // Full check-in timeline for the selected founder
   const { data: timeline = [], isLoading: timelineLoading } = useQuery({
-    queryKey: ["tracking-timeline", selectedFounderId],
+    queryKey: ["tracking-timeline", selectedFounderId, showArchived],
     enabled: !!selectedFounderId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("founder_checkins")
         .select("*")
         .eq("founder_id", selectedFounderId!)
-        .eq("is_archived", false)
+        .eq("is_archived", showArchived)
         .order("checkin_date", { ascending: false })
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -376,6 +379,22 @@ export default function Tracking() {
       qc.invalidateQueries({ queryKey: ["tracking-checkins-summary"] });
     },
     onError: (e: any) => toast.error(e.message ?? "Failed to remove"),
+  });
+
+  const restoreMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("founder_checkins")
+        .update({ is_archived: false, archived_at: null })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Check-in restored");
+      qc.invalidateQueries({ queryKey: ["tracking-timeline"] });
+      qc.invalidateQueries({ queryKey: ["tracking-checkins-summary"] });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Failed to restore"),
   });
 
   function beginEdit(c: Checkin) {
@@ -676,10 +695,28 @@ export default function Tracking() {
 
                 {/* Timeline */}
                 <div className="rounded-2xl border border-black/5 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-                  <div className="border-b border-black/5 p-6">
-                    <h3 className="text-[15px] font-semibold text-[#1D1D1F]">History</h3>
-                    <p className="text-xs text-muted-foreground">All past check-ins, newest first.</p>
+                  <div className="flex items-center justify-between border-b border-black/5 p-6">
+                    <div>
+                      <h3 className="text-[15px] font-semibold text-[#1D1D1F]">
+                        {showArchived ? "Archived check-ins" : "History"}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        {showArchived
+                          ? "Archived check-ins for this founder. Restore to bring back into history."
+                          : "All past check-ins, newest first."}
+                      </p>
+                    </div>
+                    <Button
+                      variant={showArchived ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setShowArchived((v) => !v)}
+                      className={cn("h-8 text-xs", showArchived && "bg-[#1D1D1F] hover:bg-[#1D1D1F]/90 text-white")}
+                    >
+                      <Archive className="h-3.5 w-3.5 mr-1.5" />
+                      {showArchived ? "Viewing archived" : "Show archived"}
+                    </Button>
                   </div>
+
 
                   {timelineLoading ? (
                     <div className="p-6 space-y-3">
@@ -690,8 +727,12 @@ export default function Tracking() {
                   ) : timeline.length === 0 ? (
                     <div className="p-12 text-center">
                       <FileText className="mx-auto h-6 w-6 text-muted-foreground/50" />
-                      <p className="mt-3 text-sm font-medium text-[#1D1D1F]">No check-ins yet for this founder</p>
-                      <p className="mt-1 text-xs text-muted-foreground">Log the first one above.</p>
+                      <p className="mt-3 text-sm font-medium text-[#1D1D1F]">
+                        {showArchived ? "No archived check-ins" : "No check-ins yet for this founder"}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {showArchived ? "Deleted check-ins will appear here." : "Log the first one above."}
+                      </p>
                     </div>
                   ) : (
                     <ul className="divide-y divide-black/5">
@@ -733,15 +774,23 @@ export default function Tracking() {
                                   <DropdownMenuItem onClick={() => setViewingCheckin(c)}>
                                     <Eye className="h-3.5 w-3.5 mr-2" /> View
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => beginEdit(c)}>
-                                    <Pencil className="h-3.5 w-3.5 mr-2" /> Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => setDeleteId(c.id)}
-                                    className="text-destructive focus:text-destructive"
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
-                                  </DropdownMenuItem>
+                                  {showArchived ? (
+                                    <DropdownMenuItem onClick={() => restoreMutation.mutate(c.id)}>
+                                      <RotateCcw className="h-3.5 w-3.5 mr-2" /> Restore
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <>
+                                      <DropdownMenuItem onClick={() => beginEdit(c)}>
+                                        <Pencil className="h-3.5 w-3.5 mr-2" /> Edit
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() => setDeleteId(c.id)}
+                                        className="text-destructive focus:text-destructive"
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </div>
