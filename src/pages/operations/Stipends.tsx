@@ -341,6 +341,38 @@ export default function Stipends() {
     setStatusMutation.mutate({ id: rec.id, next });
   };
 
+  // Bulk status action: apply the SAME per-row logic (paid_at + budget_line_id stamping
+  // on Paid; cleared when moved out of Paid) to every currently visible record.
+  const bulkStatusMutation = useMutation({
+    mutationFn: async (next: "pending" | "approved" | "paid") => {
+      const visibleIds = records.filter((r) => !r.is_archived).map((r) => r.id);
+      if (!visibleIds.length) return 0;
+      const patch: any = { status: next };
+      if (next === "paid") {
+        patch.paid_at = new Date().toISOString();
+        if (selectedBudgetLineId) patch.budget_line_id = selectedBudgetLineId;
+      } else {
+        patch.paid_at = null;
+        patch.budget_line_id = null;
+      }
+      const { error } = await supabase.from("stipend_records").update(patch).in("id", visibleIds);
+      if (error) throw error;
+      return visibleIds.length;
+    },
+    onSuccess: (n, next) => {
+      queryClient.invalidateQueries({ queryKey: ["stipend_records", cohortYear, paymentMonth] });
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      setBulkStatusConfirmOpen(false);
+      setBulkStatusTarget("");
+      if (next === "paid" && !selectedBudgetLineId) {
+        toast.warning(`Marked ${n} record${n === 1 ? "" : "s"} Paid, but no budget line selected — won't count against budget.`);
+      } else {
+        toast.success(`Marked ${n} record${n === 1 ? "" : "s"} ${next}`);
+      }
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const saveEditMutation = useMutation({
     mutationFn: async () => {
       if (!editRecord) return;
