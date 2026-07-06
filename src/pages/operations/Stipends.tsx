@@ -621,30 +621,66 @@ export default function Stipends() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Label className="text-sm font-medium whitespace-nowrap">Cohort Year</Label>
-            <CohortSelect value={cohortYear} onChange={setCohortYear} className="w-28 h-9" />
+        <CardContent className="p-4 flex flex-col gap-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium whitespace-nowrap">Cohort Year</Label>
+              <CohortSelect value={cohortYear} onChange={setCohortYear} className="w-28 h-9" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium whitespace-nowrap">Payment Month</Label>
+              <Select value={paymentMonth} onValueChange={setPaymentMonth}>
+                <SelectTrigger className="w-36 h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {MONTHS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium whitespace-nowrap flex items-center gap-1"><Wallet className="h-3.5 w-3.5" /> Budget Line</Label>
+              <Select value={selectedBudgetLineId || "none"} onValueChange={(v) => setSelectedBudgetLineId(v === "none" ? "" : v)}>
+                <SelectTrigger className="w-52 h-9"><SelectValue placeholder={cohortId ? "Select budget line" : "No cohort match"} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— None (won't draw)</SelectItem>
+                  {budgetLines.map((b: any) => (
+                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {uninitializedCount > 0 && (
+              <Button size="sm" onClick={() => initAllMutation.mutate()} disabled={initAllMutation.isPending}>
+                <Zap className="mr-1 h-3.5 w-3.5" /> Initialize All ({uninitializedCount})
+              </Button>
+            )}
+            {records.length === 0 && priorMonthMeta?.latest && priorMonthMeta.latest.size > 0 && (
+              <Button size="sm" variant="outline" onClick={() => carryForwardMutation.mutate()} disabled={carryForwardMutation.isPending}>
+                <History className="mr-1 h-3.5 w-3.5" />
+                Carry forward base{priorMonthMeta.sourceMonth ? ` from ${priorMonthMeta.sourceMonth.replace(` ${cohortYear}`, "")}` : ""}
+              </Button>
+            )}
+            <span className="text-xs text-muted-foreground ml-auto">
+              {cohortFounders.length} founder{cohortFounders.length !== 1 ? "s" : ""} in cohort
+            </span>
           </div>
-          <div className="flex items-center gap-2">
-            <Label className="text-sm font-medium whitespace-nowrap">Payment Month</Label>
-            <Select value={paymentMonth} onValueChange={setPaymentMonth}>
-              <SelectTrigger className="w-36 h-9"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {MONTHS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-6 pt-1 border-t">
+            <label className="flex items-center gap-2 text-xs text-muted-foreground pt-2">
+              <Switch checked={showRisk} onCheckedChange={setShowRisk} />
+              <AlertTriangle className="h-3.5 w-3.5" /> Show founder risk
+            </label>
+            <label className="flex items-center gap-2 text-xs text-muted-foreground pt-2">
+              <Switch checked={showArchived} onCheckedChange={setShowArchived} />
+              <ArchiveRestore className="h-3.5 w-3.5" /> Show archived
+            </label>
+            {selectedBudgetLineId && (
+              <span className="text-xs text-muted-foreground pt-2 ml-auto">
+                Paid stipends will draw against <span className="font-medium text-foreground">{budgetLines.find((b: any) => b.id === selectedBudgetLineId)?.name}</span>
+              </span>
+            )}
           </div>
-          {uninitializedCount > 0 && (
-            <Button size="sm" onClick={() => initAllMutation.mutate()} disabled={initAllMutation.isPending}>
-              <Zap className="mr-1 h-3.5 w-3.5" /> Initialize All ({uninitializedCount})
-            </Button>
-          )}
-          <span className="text-xs text-muted-foreground ml-auto">
-            {cohortFounders.length} founder{cohortFounders.length !== 1 ? "s" : ""} in cohort
-          </span>
         </CardContent>
       </Card>
+
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
