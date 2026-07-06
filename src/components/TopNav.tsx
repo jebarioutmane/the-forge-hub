@@ -16,6 +16,7 @@ const appIcon = "/pwa-512x512.png";
 import { usePresence } from "@/hooks/usePresence";
 import { cn } from "@/lib/utils";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { CohortSwitcher } from "@/components/CohortSwitcher";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -193,6 +194,8 @@ export function TopNav() {
 
         {/* Right side */}
         <div className="flex items-center gap-2">
+          {/* Global cohort selector — shared context across every page */}
+          <CohortSwitcher compact={isMobile} />
           {/* Mobile: always show search icon */}
           {isMobile && (
             <button

@@ -1,7 +1,8 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCohort, ALL_COHORTS } from "@/contexts/CohortContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -211,8 +212,8 @@ export default function FoundersSource() {
   const [viewing, setViewing] = useState<Founder | null>(null);
   const [form, setForm] = useState<FounderForm>(emptyForm);
 
-  // Cohort context + filters
-  const [selectedCohort, setSelectedCohort] = useState<string>(""); // "" = uninitialized, "all" = all
+  // Global cohort selection lives in shared context (header switcher drives it).
+  const { selectedCohortId, cohorts } = useCohort();
   const [showArchived, setShowArchived] = useState(false);
   const [search, setSearch] = useState("");
   const [filterCountries, setFilterCountries] = useState<string[]>([]);
@@ -220,26 +221,6 @@ export default function FoundersSource() {
   const [filterAssociates, setFilterAssociates] = useState<string[]>([]);
   const [filterTags, setFilterTags] = useState<string[]>([]);
 
-  /* ─────────── Data ─────────── */
-  const { data: cohorts = [] } = useQuery({
-    queryKey: ["cohorts-directory"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("cohorts")
-        .select("*")
-        .order("year", { ascending: false });
-      if (error) throw error;
-      return data as Cohort[];
-    },
-  });
-
-  // Default cohort = active cohort
-  useEffect(() => {
-    if (selectedCohort) return;
-    if (cohorts.length === 0) return;
-    const active = cohorts.find((c) => c.is_active);
-    setSelectedCohort(active ? active.id : "all");
-  }, [cohorts, selectedCohort]);
 
   const { data: founders = [], isLoading } = useQuery({
     queryKey: ["founders", "directory"],
@@ -329,7 +310,7 @@ export default function FoundersSource() {
     const q = search.trim().toLowerCase();
     return founders.filter((f) => {
       if (showArchived ? !f.is_archived : f.is_archived) return false;
-      if (selectedCohort && selectedCohort !== "all" && f.cohort_id !== selectedCohort) return false;
+      if (selectedCohortId !== ALL_COHORTS && f.cohort_id !== selectedCohortId) return false;
       if (q) {
         const hay = [f.founder_name, f.startup_name, f.email].filter(Boolean).join(" ").toLowerCase();
         if (!hay.includes(q)) return false;
@@ -350,7 +331,7 @@ export default function FoundersSource() {
     founders,
     search,
     showArchived,
-    selectedCohort,
+    selectedCohortId,
     filterCountries,
     filterStatuses,
     filterAssociates,
@@ -501,26 +482,12 @@ export default function FoundersSource() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Select value={selectedCohort} onValueChange={setSelectedCohort}>
-            <SelectTrigger className="h-9 w-[220px]">
-              <SelectValue placeholder="Cohort" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All cohorts</SelectItem>
-              {cohorts.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.label}
-                  {c.is_active ? "  · active" : ""}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
           <Button
             onClick={() => {
               setForm({
                 ...emptyForm,
                 cohort_id:
-                  selectedCohort && selectedCohort !== "all" ? selectedCohort : "",
+                  selectedCohortId !== ALL_COHORTS ? selectedCohortId : "",
               });
               setEditing(null);
               setDialogOpen(true);
