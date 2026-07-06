@@ -1079,6 +1079,67 @@ export default function FoundersSource() {
               </div>
             </FormSection>
 
+            {/* Section: Startup profile */}
+            <FormSection title="Startup profile" hint="Sector, stage & funding — feeds the Portfolio Dashboard.">
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Sector" htmlFor="founder-sector">
+                  <Input
+                    id="founder-sector"
+                    name="sector"
+                    value={form.sector}
+                    onChange={(e) => set("sector", e.target.value)}
+                    placeholder="Fintech, HealthTech, EdTech…"
+                  />
+                </Field>
+                <Field label="Stage">
+                  <Select
+                    value={form.stage || NONE}
+                    onValueChange={(v) => set("stage", v === NONE ? "" : v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select stage" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NONE}>None</SelectItem>
+                      <SelectItem value="Idea">Idea</SelectItem>
+                      <SelectItem value="MVP">MVP</SelectItem>
+                      <SelectItem value="Early Revenue">Early Revenue</SelectItem>
+                      <SelectItem value="Growth">Growth</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Funding raised" htmlFor="funding-raised">
+                  <Input
+                    id="funding-raised"
+                    name="funding_raised"
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={form.funding_raised}
+                    onChange={(e) => set("funding_raised", e.target.value)}
+                    placeholder="0"
+                  />
+                </Field>
+                <Field label="Currency">
+                  <Select
+                    value={form.funding_currency || "MAD"}
+                    onValueChange={(v) => set("funding_currency", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MAD">MAD</SelectItem>
+                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="EUR">EUR</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+            </FormSection>
+
             {/* Section: Contact & nationality */}
             <FormSection title="Contact & nationality">
               <div className="grid grid-cols-2 gap-4">
