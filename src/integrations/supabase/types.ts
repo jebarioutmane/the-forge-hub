@@ -220,32 +220,45 @@ export type Database = {
       contract_payments: {
         Row: {
           amount: number
+          budget_line_id: string | null
           contract_id: string
           created_at: string | null
           expense_id: string | null
           id: string
+          paid_at: string | null
           payment_date: string | null
           status: string
         }
         Insert: {
           amount?: number
+          budget_line_id?: string | null
           contract_id: string
           created_at?: string | null
           expense_id?: string | null
           id?: string
+          paid_at?: string | null
           payment_date?: string | null
           status?: string
         }
         Update: {
           amount?: number
+          budget_line_id?: string | null
           contract_id?: string
           created_at?: string | null
           expense_id?: string | null
           id?: string
+          paid_at?: string | null
           payment_date?: string | null
           status?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "contract_payments_budget_line_id_fkey"
+            columns: ["budget_line_id"]
+            isOneToOne: false
+            referencedRelation: "budget_lines"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "contract_payments_contract_id_fkey"
             columns: ["contract_id"]
