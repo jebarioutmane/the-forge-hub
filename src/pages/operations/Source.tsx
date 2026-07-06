@@ -43,7 +43,7 @@ type BudgetLine = {
 
 export default function Source() {
   const qc = useQueryClient();
-  const { selectedCohortId, selectedCohortLabel } = useCohort();
+  const { selectedCohortId, selectedCohortLabel, selectedCohort } = useCohort();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<BudgetLine | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
