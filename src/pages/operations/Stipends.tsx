@@ -771,7 +771,10 @@ export default function Stipends() {
                         <TableRow key={founder.id} className="bg-muted/30">
                           <TableCell>
                             <div>
-                              <p className="font-medium text-sm">{founder.founder_name}</p>
+                              <p className="font-medium text-sm flex items-center gap-1.5">
+                                {founder.founder_name}
+                                {showRisk && <RiskBadge info={engagementByFounder.get(founder.id)} />}
+                              </p>
                               <p className="text-xs text-muted-foreground">{founder.startup_name}</p>
                             </div>
                           </TableCell>
@@ -802,13 +805,18 @@ export default function Stipends() {
                     const links = parseLinks(rec.stipend_links);
 
                     return (
-                      <TableRow key={rec.id}>
+                      <TableRow key={rec.id} className={rec.is_archived ? "opacity-60" : ""}>
                         <TableCell>
                           <div>
-                            <p className="font-medium text-sm">{founder.founder_name}</p>
+                            <p className="font-medium text-sm flex items-center gap-1.5">
+                              {founder.founder_name}
+                              {rec.is_archived && <Badge variant="outline" className="text-[10px] px-1 py-0">Archived</Badge>}
+                              {showRisk && <RiskBadge info={engagementByFounder.get(founder.id)} />}
+                            </p>
                             <p className="text-xs text-muted-foreground">{founder.startup_name}</p>
                           </div>
                         </TableCell>
+
                         <TableCell>
                           <RibDisplay rib={rib} />
                         </TableCell>
