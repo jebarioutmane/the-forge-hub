@@ -1099,7 +1099,7 @@ export default function Evaluations() {
       {/* Delete confirm */}
       <ConfirmDeleteDialog
         open={!!deleteId}
-        onOpenChange={(o) => !o && setDeleteId(null)}
+        onCancel={() => setDeleteId(null)}
         onConfirm={() => deleteId && archiveMutation.mutate(deleteId)}
         title="Archive evaluation?"
         description="This evaluation will be moved to the archived list. You can restore it later."
