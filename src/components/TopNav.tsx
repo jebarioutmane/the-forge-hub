@@ -38,7 +38,7 @@ function MegaMenuContent({
   navigate,
   location,
 }: {
-  section: (typeof sections)[0];
+  section: NavSection;
   navigate: ReturnType<typeof useNavigate>;
   location: ReturnType<typeof useLocation>;
 }) {
@@ -109,7 +109,7 @@ export function TopNav() {
               onValueChange={(val) => setIsMenuOpen(!!val)}
             >
               <NavigationMenuList className="gap-0">
-                {sections.map((section) => (
+                {NAV_SECTIONS.map((section) => (
                   <NavigationMenuItem key={section.label}>
                     <NavigationMenuTrigger className="h-auto px-2.5 py-1.5 text-[13px] font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent data-[active]:bg-transparent">
                       {section.label}
@@ -198,7 +198,7 @@ export function TopNav() {
                   </button>
 
                   <Accordion type="single" collapsible className="w-full">
-                    {sections.map((section) => (
+                    {NAV_SECTIONS.map((section) => (
                       <AccordionItem key={section.label} value={section.label} className="border-border">
                         <AccordionTrigger className="py-3 text-xl font-semibold tracking-tight text-muted-foreground hover:text-foreground hover:no-underline">
                           {section.label}
