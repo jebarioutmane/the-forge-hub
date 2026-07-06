@@ -12,10 +12,10 @@ import { Badge } from "@/components/ui/badge";
 export default function OperationsDashboard() {
   const [currency, setCurrency] = useState<Currency>("MAD");
 
-  const { data: budgets = [] } = useQuery({
-    queryKey: ["budgets"],
+  const { data: budgetLines = [] } = useQuery({
+    queryKey: ["budget_lines"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("budgets").select("*");
+      const { data, error } = await supabase.from("budget_lines").select("*").eq("is_archived", false);
       if (error) throw error;
       return data;
     },
@@ -39,7 +39,7 @@ export default function OperationsDashboard() {
     },
   });
 
-  const totalBudget = budgets.reduce((sum, b) => sum + Number(b.total_amount), 0);
+  const totalBudget = budgetLines.reduce((sum, b) => sum + Number(b.allocated_amount || 0), 0);
   const totalSpent = expenses
     .filter((e) => e.status === "Confirmed" || e.status === "Paid")
     .reduce((sum, e) => sum + Number(e.amount), 0);
@@ -50,17 +50,18 @@ export default function OperationsDashboard() {
   const pendingCount = expenses.filter((e) => e.status === "Pending").length;
   const activeContracts = contracts.filter((c) => c.status === "Signed" || c.status === "Active").length;
 
-  // Chart data: group by budget category
-  const chartData = budgets.map((b) => {
-    const catExpenses = expenses
+  // Chart data: group by budget line
+  const chartData = budgetLines.map((b) => {
+    const lineExpenses = expenses
       .filter((e) => (e as any).budget_line_id === b.id)
       .reduce((sum, e) => sum + Number(e.amount), 0);
     return {
-      category: b.category,
-      budget: convertCurrency(Number(b.total_amount), currency),
-      spent: convertCurrency(catExpenses, currency),
+      category: b.name,
+      budget: convertCurrency(Number(b.allocated_amount || 0), currency),
+      spent: convertCurrency(lineExpenses, currency),
     };
   });
+
 
   const chartConfig = {
     budget: { label: "Budget", color: "hsl(35 90% 55%)" },
