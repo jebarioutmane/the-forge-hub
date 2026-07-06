@@ -1024,6 +1024,40 @@ export default function Stipends() {
       <ConfirmDeleteDialog open={!!deleteId} onConfirm={() => deleteId && deleteMutation.mutate(deleteId)} onCancel={() => setDeleteId(null)} />
       <ConfirmDeleteDialog open={bulkDeleteOpen} onConfirm={() => bulkDeleteMutation.mutate()} onCancel={() => setBulkDeleteOpen(false)} />
 
+      {/* Bulk status confirm */}
+      <Dialog open={bulkStatusConfirmOpen} onOpenChange={(o) => { if (!o) { setBulkStatusConfirmOpen(false); setBulkStatusTarget(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Set all visible records to {bulkStatusTarget || "…"}?</DialogTitle>
+          </DialogHeader>
+          <div className="text-sm text-muted-foreground space-y-2">
+            <p>
+              This will change status on <span className="font-semibold text-foreground">{records.filter((r) => !r.is_archived).length}</span> stipend record{records.filter((r) => !r.is_archived).length === 1 ? "" : "s"} in {paymentMonth} {cohortYear}.
+            </p>
+            {bulkStatusTarget === "paid" && (
+              selectedBudgetLineId ? (
+                <p>They will be stamped as Paid now and drawn against budget line <span className="font-medium text-foreground">{budgetLines.find((b: any) => b.id === selectedBudgetLineId)?.name}</span>.</p>
+              ) : (
+                <p className="text-orange-600">No budget line selected — records will be marked Paid but won't count against any budget line.</p>
+              )
+            )}
+            {bulkStatusTarget && bulkStatusTarget !== "paid" && (
+              <p>Any previously stamped payment date and budget line will be cleared on these records.</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setBulkStatusConfirmOpen(false); setBulkStatusTarget(""); }}>Cancel</Button>
+            <Button
+              onClick={() => bulkStatusTarget && bulkStatusMutation.mutate(bulkStatusTarget)}
+              disabled={!bulkStatusTarget || bulkStatusMutation.isPending}
+            >
+              {bulkStatusMutation.isPending ? "Applying…" : `Set all to ${bulkStatusTarget || ""}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
       {/* View Detail */}
       <ViewDetailDialog
         open={!!viewing}
