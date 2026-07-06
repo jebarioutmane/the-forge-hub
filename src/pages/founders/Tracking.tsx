@@ -1,30 +1,64 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { StarRating } from "@/components/StarRating";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { toast } from "sonner";
-import { Plus, MoreHorizontal, Pencil, Trash2, ExternalLink, Link as LinkIcon, X } from "lucide-react";
+import {
+  Plus,
+  Search,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  ArrowUpRight,
+  MoreHorizontal,
+  Eye,
+  Pencil,
+  Trash2,
+  Link as LinkIcon,
+  X,
+  ExternalLink,
+  ChevronDown,
+  ChevronRight,
+  Calendar as CalendarIcon,
+  Activity,
+  Users as UsersIcon,
+  FileText,
+} from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { formatUrl } from "@/lib/formatUrl";
-import { getCurrentCohortYear } from "@/lib/cohortYears";
-import { CohortSelect } from "@/components/CohortSelect";
+import { useCohort, ALL_COHORTS } from "@/contexts/CohortContext";
 import type { Tables } from "@/integrations/supabase/types";
+import { cn } from "@/lib/utils";
 
 type Founder = Tables<"founders">;
 type Checkin = Tables<"founder_checkins">;
-type Evaluation = Tables<"founder_evaluations">;
 
 const AREAS = [
   { key: "product", label: "Product" },
@@ -35,16 +69,10 @@ const AREAS = [
 ] as const;
 
 const EFFORT_OPTIONS = [
-  { value: "strong", label: "Strong", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-  { value: "steady", label: "Steady", color: "bg-sky-100 text-sky-700 border-sky-200" },
-  { value: "coasting", label: "Coasting", color: "bg-amber-100 text-amber-700 border-amber-200" },
-  { value: "at_risk", label: "At Risk", color: "bg-rose-100 text-rose-700 border-rose-200" },
-] as const;
-
-const DECISION_OPTIONS = [
-  { value: "stay", label: "Stay", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-  { value: "at_risk", label: "At Risk", color: "bg-amber-100 text-amber-700 border-amber-200" },
-  { value: "exit", label: "Exit", color: "bg-rose-100 text-rose-700 border-rose-200" },
+  { value: "strong", label: "Strong", dot: "bg-emerald-500", badge: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  { value: "steady", label: "Steady", dot: "bg-sky-500", badge: "bg-sky-50 text-sky-700 border-sky-200" },
+  { value: "coasting", label: "Coasting", dot: "bg-amber-500", badge: "bg-amber-50 text-amber-700 border-amber-200" },
+  { value: "at_risk", label: "At Risk", dot: "bg-rose-500", badge: "bg-rose-50 text-rose-700 border-rose-200" },
 ] as const;
 
 type LinkItem = { title: string; url: string };
@@ -76,37 +104,45 @@ const emptyCheckin = (): CheckinForm => ({
   links: [],
 });
 
-type EvalForm = {
-  id?: string;
-  block_name: string;
-  evaluation_date: string;
-  execution_score: number;
-  traction_score: number;
-  momentum_score: number;
-  overall_confidence: number;
-  decision: string;
-};
-
-const emptyEval = (): EvalForm => ({
-  block_name: "",
-  evaluation_date: new Date().toISOString().split("T")[0],
-  execution_score: 0,
-  traction_score: 0,
-  momentum_score: 0,
-  overall_confidence: 0,
-  decision: "stay",
-});
-
 function effortBadge(value: string | null | undefined) {
   const opt = EFFORT_OPTIONS.find((o) => o.value === value);
-  if (!opt) return null;
-  return <Badge className={`text-[10px] font-medium border ${opt.color}`}>{opt.label}</Badge>;
+  if (!opt) return <span className="text-[11px] text-muted-foreground">—</span>;
+  return (
+    <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10.5px] font-medium", opt.badge)}>
+      <span className={cn("h-1.5 w-1.5 rounded-full", opt.dot)} />
+      {opt.label}
+    </span>
+  );
 }
 
-function decisionBadge(value: string | null | undefined) {
-  const opt = DECISION_OPTIONS.find((o) => o.value === value);
-  if (!opt) return null;
-  return <Badge className={`text-[10px] font-medium border ${opt.color}`}>{opt.label}</Badge>;
+function initials(name?: string | null) {
+  if (!name) return "—";
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join("");
+}
+
+function overallOf(c: Pick<Checkin, "product_rating" | "team_rating" | "traction_rating" | "market_rating" | "funding_rating"> | null | undefined) {
+  if (!c) return null;
+  const vals = [c.product_rating, c.team_rating, c.traction_rating, c.market_rating, c.funding_rating]
+    .map((v) => (typeof v === "number" ? v : null))
+    .filter((v): v is number => v !== null && v > 0);
+  if (!vals.length) return null;
+  return vals.reduce((a, b) => a + b, 0) / vals.length;
+}
+
+function TrendArrow({ latest, previous }: { latest: number | null; previous: number | null }) {
+  if (latest == null || previous == null) {
+    return <Minus className="h-3.5 w-3.5 text-muted-foreground/60" />;
+  }
+  const diff = latest - previous;
+  if (Math.abs(diff) < 0.15) return <Minus className="h-3.5 w-3.5 text-muted-foreground" />;
+  return diff > 0
+    ? <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />
+    : <TrendingDown className="h-3.5 w-3.5 text-rose-600" />;
 }
 
 function LinksEditor({ links, onChange }: { links: LinkItem[]; onChange: (v: LinkItem[]) => void }) {
@@ -114,132 +150,201 @@ function LinksEditor({ links, onChange }: { links: LinkItem[]; onChange: (v: Lin
     <div className="space-y-2">
       {links.map((l, i) => (
         <div key={i} className="flex items-center gap-2">
-          <Input placeholder="Title" value={l.title} onChange={(e) => onChange(links.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} className="h-8 text-xs flex-1" />
-          <Input placeholder="https://..." value={l.url} onChange={(e) => onChange(links.map((x, j) => j === i ? { ...x, url: e.target.value } : x))} className="h-8 text-xs flex-1" />
-          <button type="button" onClick={() => onChange(links.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-destructive">
+          <Input
+            placeholder="Title"
+            value={l.title}
+            onChange={(e) => onChange(links.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))}
+            className="h-9 text-xs flex-1"
+          />
+          <Input
+            placeholder="https://..."
+            value={l.url}
+            onChange={(e) => onChange(links.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)))}
+            className="h-9 text-xs flex-1"
+          />
+          <button
+            type="button"
+            onClick={() => onChange(links.filter((_, j) => j !== i))}
+            className="text-muted-foreground hover:text-destructive"
+            aria-label="Remove link"
+          >
             <X className="h-3.5 w-3.5" />
           </button>
         </div>
       ))}
-      <button type="button" onClick={() => onChange([...links, { title: "", url: "" }])} className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
-        <LinkIcon className="h-3 w-3" /> Add link
-      </button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => onChange([...(links ?? []), { title: "", url: "" }])}
+        className="h-8 text-xs text-muted-foreground"
+      >
+        <LinkIcon className="h-3.5 w-3.5 mr-1.5" /> Add link
+      </Button>
     </div>
   );
 }
 
-function LinksDisplay({ links }: { links: LinkItem[] }) {
-  if (!links || links.length === 0) return null;
-  return (
-    <div className="flex flex-wrap gap-1.5 mt-2">
-      {links.map((l, i) => (
-        <a key={i} href={formatUrl(l.url)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-md hover:bg-primary/20">
-          <ExternalLink className="h-3 w-3" />
-          {l.title || l.url}
-        </a>
-      ))}
-    </div>
-  );
-}
+export default function Tracking() {
+  const { selectedCohortId, selectedCohortLabel } = useCohort();
+  const qc = useQueryClient();
 
-export default function FounderTracking() {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [cohortYear, setCohortYear] = useState(getCurrentCohortYear());
-  const [selectedFounder, setSelectedFounder] = useState("");
+  const [query, setQuery] = useState("");
+  const [selectedFounderId, setSelectedFounderId] = useState<string | null>(null);
+  const [form, setForm] = useState<CheckinForm>(emptyCheckin());
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [viewingCheckin, setViewingCheckin] = useState<Checkin | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // Check-in state
-  const [checkinDialog, setCheckinDialog] = useState(false);
-  const [checkinForm, setCheckinForm] = useState<CheckinForm>(emptyCheckin());
-  const [deleteCheckinId, setDeleteCheckinId] = useState<string | null>(null);
-
-  // Evaluation state
-  const [evalDialog, setEvalDialog] = useState(false);
-  const [evalForm, setEvalForm] = useState<EvalForm>(emptyEval());
-  const [deleteEvalId, setDeleteEvalId] = useState<string | null>(null);
-
-  const { data: allFounders = [] } = useQuery({
-    queryKey: ["founders"],
+  // Founders in selected cohort
+  const { data: founders = [], isLoading: foundersLoading } = useQuery({
+    queryKey: ["tracking-founders", selectedCohortId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("founders").select("*").order("founder_name");
+      let q = supabase
+        .from("founders")
+        .select("id, founder_name, startup_name, avatar_url, cohort_id, associate_id, is_archived")
+        .eq("is_archived", false);
+      if (selectedCohortId !== ALL_COHORTS) q = q.eq("cohort_id", selectedCohortId);
+      const { data, error } = await q.order("startup_name", { ascending: true });
       if (error) throw error;
-      return data;
+      return (data ?? []) as Pick<Founder, "id" | "founder_name" | "startup_name" | "avatar_url" | "cohort_id" | "associate_id" | "is_archived">[];
     },
   });
 
-  const founders = useMemo(
-    () => allFounders.filter((f) => f.cohort_year === cohortYear),
-    [allFounders, cohortYear],
-  );
+  const founderIds = useMemo(() => founders.map((f) => f.id), [founders]);
 
-  const { data: checkins = [] } = useQuery({
-    queryKey: ["founder_checkins", selectedFounder],
-    enabled: !!selectedFounder,
+  // Latest & previous check-in per founder (for list summaries)
+  const { data: allCheckins = [] } = useQuery({
+    queryKey: ["tracking-checkins-summary", founderIds.join(",")],
+    enabled: founderIds.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("founder_checkins")
         .select("*")
-        .eq("founder_id", selectedFounder)
-        .order("checkin_date", { ascending: false });
+        .in("founder_id", founderIds)
+        .eq("is_archived", false)
+        .order("checkin_date", { ascending: false })
+        .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      return (data ?? []) as Checkin[];
     },
   });
 
-  const { data: evaluations = [] } = useQuery({
-    queryKey: ["founder_evaluations", selectedFounder],
-    enabled: !!selectedFounder,
+  const summaries = useMemo(() => {
+    const byFounder = new Map<string, Checkin[]>();
+    for (const c of allCheckins) {
+      const arr = byFounder.get(c.founder_id) ?? [];
+      arr.push(c);
+      byFounder.set(c.founder_id, arr);
+    }
+    const result = new Map<string, { latest?: Checkin; previous?: Checkin; latestOverall: number | null; prevOverall: number | null }>();
+    for (const [fid, arr] of byFounder) {
+      const latest = arr[0];
+      const previous = arr[1];
+      result.set(fid, {
+        latest,
+        previous,
+        latestOverall: overallOf(latest ?? null),
+        prevOverall: overallOf(previous ?? null),
+      });
+    }
+    return result;
+  }, [allCheckins]);
+
+  const filteredFounders = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const list = q
+      ? founders.filter(
+          (f) =>
+            (f.founder_name ?? "").toLowerCase().includes(q) ||
+            (f.startup_name ?? "").toLowerCase().includes(q),
+        )
+      : founders;
+    return list;
+  }, [founders, query]);
+
+  // Auto-select the first founder when cohort changes
+  useEffect(() => {
+    if (!filteredFounders.length) {
+      setSelectedFounderId(null);
+      return;
+    }
+    if (!selectedFounderId || !filteredFounders.some((f) => f.id === selectedFounderId)) {
+      setSelectedFounderId(filteredFounders[0].id);
+    }
+  }, [filteredFounders, selectedFounderId]);
+
+  const selectedFounder = useMemo(
+    () => founders.find((f) => f.id === selectedFounderId) ?? null,
+    [founders, selectedFounderId],
+  );
+
+  // Full check-in timeline for the selected founder
+  const { data: timeline = [], isLoading: timelineLoading } = useQuery({
+    queryKey: ["tracking-timeline", selectedFounderId],
+    enabled: !!selectedFounderId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("founder_evaluations")
+        .from("founder_checkins")
         .select("*")
-        .eq("founder_id", selectedFounder)
-        .order("evaluation_date", { ascending: false });
+        .eq("founder_id", selectedFounderId!)
+        .eq("is_archived", false)
+        .order("checkin_date", { ascending: false })
+        .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      return (data ?? []) as Checkin[];
     },
   });
 
-  const { data: engagement } = useQuery({
-    queryKey: ["founder_engagement", selectedFounder],
-    enabled: !!selectedFounder,
-    queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("founder_engagement")
-        .select("*")
-        .eq("founder_id", selectedFounder)
-        .maybeSingle();
-      if (error) throw error;
-      return data as { risk_status: string | null; attendance_rate: number | null; last_checkin_date: string | null } | null;
-    },
-  });
+  const previousCheckin = useMemo<Checkin | null>(() => {
+    if (editingId) {
+      // when editing, "previous" is the check-in immediately before this one by date
+      const idx = timeline.findIndex((c) => c.id === editingId);
+      return idx >= 0 ? (timeline[idx + 1] ?? null) : null;
+    }
+    return timeline[0] ?? null;
+  }, [timeline, editingId]);
 
-  const selectedFounderObj = founders.find((f) => f.id === selectedFounder);
+  // Reset the form whenever the selected founder or editing target changes
+  useEffect(() => {
+    setEditingId(null);
+    setForm(emptyCheckin());
+    setExpanded(new Set());
+  }, [selectedFounderId]);
 
-  /* ─── Check-in mutations ─── */
-  const saveCheckin = useMutation({
+  const saveMutation = useMutation({
     mutationFn: async () => {
-      const payload: any = {
-        founder_id: selectedFounder,
-        associate_id: user?.id ?? null,
-        checkin_type: checkinForm.checkin_type,
-        checkin_date: checkinForm.checkin_date,
-        effort_signal: checkinForm.effort_signal,
-        product_rating: checkinForm.product_rating || null,
-        product_note: checkinForm.product_note || null,
-        team_rating: checkinForm.team_rating || null,
-        team_note: checkinForm.team_note || null,
-        traction_rating: checkinForm.traction_rating || null,
-        traction_note: checkinForm.traction_note || null,
-        market_rating: checkinForm.market_rating || null,
-        market_note: checkinForm.market_note || null,
-        funding_rating: checkinForm.funding_rating || null,
-        funding_note: checkinForm.funding_note || null,
-        notes: checkinForm.notes || null,
-        links: checkinForm.links.filter((l) => l.url),
+      if (!selectedFounder) throw new Error("No founder selected");
+      const overall = overallOf({
+        product_rating: form.product_rating || null,
+        team_rating: form.team_rating || null,
+        traction_rating: form.traction_rating || null,
+        market_rating: form.market_rating || null,
+        funding_rating: form.funding_rating || null,
+      });
+      const payload = {
+        founder_id: selectedFounder.id,
+        associate_id: selectedFounder.associate_id ?? null,
+        checkin_type: form.checkin_type,
+        checkin_date: form.checkin_date,
+        effort_signal: form.effort_signal || null,
+        product_rating: form.product_rating || null,
+        product_note: form.product_note || null,
+        team_rating: form.team_rating || null,
+        team_note: form.team_note || null,
+        traction_rating: form.traction_rating || null,
+        traction_note: form.traction_note || null,
+        market_rating: form.market_rating || null,
+        market_note: form.market_note || null,
+        funding_rating: form.funding_rating || null,
+        funding_note: form.funding_note || null,
+        notes: form.notes || null,
+        links: form.links as any,
+        overall_score: overall != null ? Math.round(overall) : null,
       };
-      if (checkinForm.id) {
-        const { error } = await supabase.from("founder_checkins").update(payload).eq("id", checkinForm.id);
+      if (editingId) {
+        const { error } = await supabase.from("founder_checkins").update(payload).eq("id", editingId);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("founder_checkins").insert(payload);
@@ -247,419 +352,523 @@ export default function FounderTracking() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["founder_checkins"] });
-      queryClient.invalidateQueries({ queryKey: ["founder_engagement"] });
-      setCheckinDialog(false);
-      toast.success(checkinForm.id ? "Check-in updated" : "Check-in saved");
+      toast.success(editingId ? "Check-in updated" : "Check-in logged");
+      setForm(emptyCheckin());
+      setEditingId(null);
+      qc.invalidateQueries({ queryKey: ["tracking-timeline"] });
+      qc.invalidateQueries({ queryKey: ["tracking-checkins-summary"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: any) => toast.error(e.message ?? "Failed to save check-in"),
   });
 
-  const deleteCheckin = useMutation({
+  const archiveMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("founder_checkins").delete().eq("id", id);
+      const { error } = await supabase
+        .from("founder_checkins")
+        .update({ is_archived: true, archived_at: new Date().toISOString() })
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["founder_checkins"] });
-      queryClient.invalidateQueries({ queryKey: ["founder_engagement"] });
-      setDeleteCheckinId(null);
-      toast.success("Check-in deleted");
+      toast.success("Check-in removed");
+      setDeleteId(null);
+      qc.invalidateQueries({ queryKey: ["tracking-timeline"] });
+      qc.invalidateQueries({ queryKey: ["tracking-checkins-summary"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: any) => toast.error(e.message ?? "Failed to remove"),
   });
 
-  function openNewCheckin() {
-    setCheckinForm(emptyCheckin());
-    setCheckinDialog(true);
-  }
-
-  function openEditCheckin(c: Checkin) {
-    const links = Array.isArray(c.links) ? (c.links as unknown as LinkItem[]) : [];
-    setCheckinForm({
+  function beginEdit(c: Checkin) {
+    setEditingId(c.id);
+    setForm({
       id: c.id,
-      checkin_type: (c.checkin_type as "weekly" | "one_on_one") || "weekly",
-      checkin_date: c.checkin_date || new Date().toISOString().split("T")[0],
-      effort_signal: c.effort_signal || "steady",
-      product_rating: c.product_rating || 0, product_note: c.product_note || "",
-      team_rating: c.team_rating || 0, team_note: c.team_note || "",
-      traction_rating: c.traction_rating || 0, traction_note: c.traction_note || "",
-      market_rating: c.market_rating || 0, market_note: c.market_note || "",
-      funding_rating: c.funding_rating || 0, funding_note: c.funding_note || "",
-      notes: c.notes || "",
-      links,
+      checkin_type: (c.checkin_type as "weekly" | "one_on_one") ?? "weekly",
+      checkin_date: c.checkin_date,
+      effort_signal: c.effort_signal ?? "steady",
+      product_rating: c.product_rating ?? 0, product_note: c.product_note ?? "",
+      team_rating: c.team_rating ?? 0, team_note: c.team_note ?? "",
+      traction_rating: c.traction_rating ?? 0, traction_note: c.traction_note ?? "",
+      market_rating: c.market_rating ?? 0, market_note: c.market_note ?? "",
+      funding_rating: c.funding_rating ?? 0, funding_note: c.funding_note ?? "",
+      notes: c.notes ?? "",
+      links: Array.isArray(c.links) ? (c.links as any as LinkItem[]) : [],
     });
-    setCheckinDialog(true);
   }
 
-  /* ─── Evaluation mutations ─── */
-  const saveEval = useMutation({
-    mutationFn: async () => {
-      const payload: any = {
-        founder_id: selectedFounder,
-        block_name: evalForm.block_name,
-        evaluation_date: evalForm.evaluation_date,
-        execution_score: evalForm.execution_score,
-        traction_score: evalForm.traction_score,
-        momentum_score: evalForm.momentum_score,
-        overall_confidence: evalForm.overall_confidence,
-        decision: evalForm.decision,
-        total_score: Math.round(((evalForm.execution_score || 0) + (evalForm.traction_score || 0) + (evalForm.momentum_score || 0)) / 3),
-      };
-      if (evalForm.id) {
-        const { error } = await supabase.from("founder_evaluations").update(payload).eq("id", evalForm.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("founder_evaluations").insert(payload);
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["founder_evaluations"] });
-      setEvalDialog(false);
-      toast.success(evalForm.id ? "Evaluation updated" : "Evaluation saved");
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const deleteEval = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("founder_evaluations").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["founder_evaluations"] });
-      setDeleteEvalId(null);
-      toast.success("Evaluation deleted");
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  function openNewEval() {
-    setEvalForm(emptyEval());
-    setEvalDialog(true);
-  }
-
-  function openEditEval(ev: Evaluation) {
-    setEvalForm({
-      id: ev.id,
-      block_name: ev.block_name || "",
-      evaluation_date: ev.evaluation_date || new Date().toISOString().split("T")[0],
-      execution_score: Number(ev.execution_score) || 0,
-      traction_score: Number(ev.traction_score) || 0,
-      momentum_score: Number(ev.momentum_score) || 0,
-      overall_confidence: ev.overall_confidence || 0,
-      decision: (ev as any).decision || "stay",
+  function toggleExpanded(id: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
     });
-    setEvalDialog(true);
   }
 
-  const riskStyles: Record<string, string> = {
-    on_track: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    watch: "bg-amber-100 text-amber-700 border-amber-200",
-    at_risk: "bg-rose-100 text-rose-700 border-rose-200",
-  };
-  const riskLabels: Record<string, string> = {
-    on_track: "On Track",
-    watch: "Watch",
-    at_risk: "At Risk",
-  };
+  // === Render ===
 
   return (
-    <div className="p-6 lg:p-10 space-y-6 max-w-5xl mx-auto">
-      <div>
-        <h1 className="text-3xl font-bold">Founder Tracking</h1>
-        <p className="text-sm text-muted-foreground">Check-ins and block-end evaluations</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>Cohort Year</Label>
-          <CohortSelect value={cohortYear} onChange={(v) => { setCohortYear(v); setSelectedFounder(""); }} placeholder="Select year" />
+    <div className="min-h-screen bg-[#F9FAFB]">
+      <div className="mx-auto max-w-[1400px] px-6 py-8">
+        {/* Header */}
+        <div className="mb-6 flex items-end justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+              <Activity className="h-3.5 w-3.5" />
+              Founders · Progress Tracker
+            </div>
+            <h1 className="mt-1 text-[26px] font-semibold text-[#1D1D1F] tracking-tight">
+              Progress Tracker
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Weekly and 1:1 check-ins for {selectedCohortLabel}. Track movement, not absolutes.
+            </p>
+          </div>
         </div>
-        <div className="space-y-2">
-          <Label>Founder</Label>
-          <Select value={selectedFounder} onValueChange={setSelectedFounder}>
-            <SelectTrigger><SelectValue placeholder="Choose a founder..." /></SelectTrigger>
-            <SelectContent>
-              {founders.map((f) => (
-                <SelectItem key={f.id} value={f.id}>{f.founder_name} — {f.startup_name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
 
-      {selectedFounder && (
-        <>
-          {/* Engagement summary */}
-          <Card>
-            <CardContent className="p-4 flex items-center gap-4 flex-wrap">
-              <div>
-                <p className="text-xs text-muted-foreground">Founder</p>
-                <p className="font-medium">{selectedFounderObj?.founder_name} · {selectedFounderObj?.startup_name}</p>
+        {/* Workspace */}
+        <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
+          {/* Left: founder list */}
+          <div className="rounded-2xl border border-black/5 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+            <div className="border-b border-black/5 p-4">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search founders…"
+                  className="h-9 pl-8 text-sm"
+                />
               </div>
-              {engagement?.risk_status && (
-                <Badge className={`border ${riskStyles[engagement.risk_status] || ""}`}>
-                  {riskLabels[engagement.risk_status] || engagement.risk_status}
-                </Badge>
-              )}
-              {engagement?.attendance_rate != null && (
-                <Badge variant="outline">Attendance {Math.round(Number(engagement.attendance_rate) * 100)}%</Badge>
-              )}
-              {engagement?.last_checkin_date && (
-                <span className="text-xs text-muted-foreground">Last check-in {format(parseISO(engagement.last_checkin_date), "MMM d, yyyy")}</span>
-              )}
-            </CardContent>
-          </Card>
-
-          <Tabs defaultValue="checkins">
-            <TabsList>
-              <TabsTrigger value="checkins">Check-Ins ({checkins.length})</TabsTrigger>
-              <TabsTrigger value="evaluations">Block Evaluations ({evaluations.length})</TabsTrigger>
-            </TabsList>
-
-            {/* ─── Check-ins tab ─── */}
-            <TabsContent value="checkins" className="space-y-4">
-              <div className="flex justify-end">
-                <Button onClick={openNewCheckin}><Plus className="mr-2 h-4 w-4" /> New Check-In</Button>
-              </div>
-
-              {checkins.length === 0 ? (
-                <Card><CardContent className="py-12 text-center text-muted-foreground">No check-ins yet.</CardContent></Card>
-              ) : (
-                <div className="relative border-l border-border ml-3 space-y-4 pl-6">
-                  {checkins.map((c) => (
-                    <div key={c.id} className="relative">
-                      <span className="absolute -left-[30px] top-3 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-background" />
-                      <Card>
-                        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <CardTitle className="text-sm font-medium">
-                              {c.checkin_date ? format(parseISO(c.checkin_date), "EEE, MMM d, yyyy") : "—"}
-                            </CardTitle>
-                            <Badge variant="outline" className="text-[10px]">{c.checkin_type === "one_on_one" ? "1:1" : "Weekly"}</Badge>
-                            {effortBadge(c.effort_signal)}
-                          </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-7 w-7"><MoreHorizontal className="h-4 w-4" /></Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => openEditCheckin(c)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive" onClick={() => setDeleteCheckinId(c.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                          {AREAS.map((a) => {
-                            const rating = (c as any)[`${a.key}_rating`];
-                            const note = (c as any)[`${a.key}_note`];
-                            if (!rating && !note) return null;
-                            return (
-                              <div key={a.key} className="flex items-start gap-3">
-                                <div className="w-24 shrink-0">
-                                  <p className="text-xs font-medium text-muted-foreground">{a.label}</p>
-                                  <StarRating value={rating || 0} readOnly size={12} />
-                                </div>
-                                <p className="text-sm text-foreground/80 flex-1">{note || "—"}</p>
-                              </div>
-                            );
-                          })}
-                          {c.notes && (
-                            <div className="pt-2 border-t">
-                              <p className="text-xs font-medium text-muted-foreground mb-1">Overall notes</p>
-                              <p className="text-sm text-foreground/80 whitespace-pre-wrap">{c.notes}</p>
-                            </div>
-                          )}
-                          <LinksDisplay links={(Array.isArray(c.links) ? c.links : []) as unknown as LinkItem[]} />
-                        </CardContent>
-                      </Card>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-
-            {/* ─── Evaluations tab ─── */}
-            <TabsContent value="evaluations" className="space-y-4">
-              <div className="flex justify-end">
-                <Button onClick={openNewEval}><Plus className="mr-2 h-4 w-4" /> New Block Evaluation</Button>
-              </div>
-
-              {evaluations.length === 0 ? (
-                <Card><CardContent className="py-12 text-center text-muted-foreground">No block evaluations yet.</CardContent></Card>
-              ) : (
-                <div className="space-y-3">
-                  {evaluations.map((ev) => (
-                    <Card key={ev.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold">{ev.block_name || "Block"}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {ev.evaluation_date ? format(parseISO(ev.evaluation_date), "MMM d, yyyy") : ""}
-                            </span>
-                            {decisionBadge((ev as any).decision)}
-                          </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-7 w-7"><MoreHorizontal className="h-4 w-4" /></Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => openEditEval(ev)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive" onClick={() => setDeleteEvalId(ev.id)}><Trash2 className="mr-2 h-3 w-3" /> Delete</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                          <div><span className="text-muted-foreground">Execution:</span> <span className="font-semibold">{ev.execution_score ?? "—"}</span></div>
-                          <div><span className="text-muted-foreground">Traction:</span> <span className="font-semibold">{ev.traction_score ?? "—"}</span></div>
-                          <div><span className="text-muted-foreground">Momentum:</span> <span className="font-semibold">{ev.momentum_score ?? "—"}</span></div>
-                          <div><span className="text-muted-foreground">Confidence:</span> <span className="font-semibold">{ev.overall_confidence ?? "—"}/5</span></div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </>
-      )}
-
-      {/* ─── Check-in Dialog ─── */}
-      <Dialog open={checkinDialog} onOpenChange={setCheckinDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{checkinForm.id ? "Edit Check-In" : "New Check-In"}</DialogTitle>
-            <DialogDescription className="sr-only">Record a weekly snapshot or 1:1 for this founder.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="grid grid-cols-3 gap-3">
-              <div className="space-y-2">
-                <Label>Type</Label>
-                <Select value={checkinForm.checkin_type} onValueChange={(v: any) => setCheckinForm({ ...checkinForm, checkin_type: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="weekly">Weekly Snapshot</SelectItem>
-                    <SelectItem value="one_on_one">One-on-One</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Date</Label>
-                <Input type="date" value={checkinForm.checkin_date} onChange={(e) => setCheckinForm({ ...checkinForm, checkin_date: e.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label>Effort Signal</Label>
-                <Select value={checkinForm.effort_signal} onValueChange={(v) => setCheckinForm({ ...checkinForm, effort_signal: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {EFFORT_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+                <span>{filteredFounders.length} founders</span>
+                <span className="inline-flex items-center gap-1">
+                  <UsersIcon className="h-3 w-3" /> {selectedCohortLabel}
+                </span>
               </div>
             </div>
 
-            <div className="space-y-3">
-              {AREAS.map((a) => (
-                <Card key={a.key}>
-                  <CardContent className="p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label className="font-semibold">{a.label}</Label>
-                      <StarRating
-                        value={(checkinForm as any)[`${a.key}_rating`]}
-                        onChange={(v) => setCheckinForm({ ...checkinForm, [`${a.key}_rating`]: v } as any)}
+            <div className="max-h-[calc(100vh-260px)] overflow-y-auto">
+              {foundersLoading ? (
+                <div className="p-6 space-y-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="h-14 rounded-lg bg-black/[0.03] animate-pulse" />
+                  ))}
+                </div>
+              ) : filteredFounders.length === 0 ? (
+                <div className="p-10 text-center">
+                  <UsersIcon className="mx-auto h-6 w-6 text-muted-foreground/50" />
+                  <p className="mt-3 text-sm font-medium text-[#1D1D1F]">No founders in this cohort</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Switch cohorts from the header selector.</p>
+                </div>
+              ) : (
+                <ul className="divide-y divide-black/5">
+                  {filteredFounders.map((f) => {
+                    const s = summaries.get(f.id);
+                    const latest = s?.latest;
+                    const isActive = selectedFounderId === f.id;
+                    return (
+                      <li key={f.id}>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedFounderId(f.id)}
+                          className={cn(
+                            "w-full text-left px-4 py-3 transition-colors",
+                            isActive ? "bg-[#0071E3]/[0.06]" : "hover:bg-black/[0.02]",
+                          )}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1D1D1F] text-[11px] font-medium text-white">
+                              {initials(f.founder_name || f.startup_name)}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="truncate text-[13.5px] font-medium text-[#1D1D1F]">
+                                  {f.startup_name || "Untitled startup"}
+                                </p>
+                                <TrendArrow latest={s?.latestOverall ?? null} previous={s?.prevOverall ?? null} />
+                              </div>
+                              <p className="truncate text-[12px] text-muted-foreground">
+                                {f.founder_name || "—"}
+                              </p>
+                              <div className="mt-2 flex items-center justify-between gap-2">
+                                {effortBadge(latest?.effort_signal)}
+                                <span className="text-[11px] text-muted-foreground">
+                                  {latest ? format(parseISO(latest.checkin_date), "MMM d") : "No check-ins"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </div>
+
+          {/* Right: workspace */}
+          <div className="space-y-6">
+            {!selectedFounder ? (
+              <div className="rounded-2xl border border-dashed border-black/10 bg-white p-16 text-center">
+                <Activity className="mx-auto h-6 w-6 text-muted-foreground/50" />
+                <p className="mt-3 text-sm font-medium text-[#1D1D1F]">Pick a founder to log a check-in</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Select someone from the list to start.
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Founder header */}
+                <div className="rounded-2xl border border-black/5 bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1D1D1F] text-sm font-medium text-white">
+                        {initials(selectedFounder.founder_name || selectedFounder.startup_name)}
+                      </div>
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Founder</p>
+                        <h2 className="text-[20px] font-semibold text-[#1D1D1F] leading-tight">
+                          {selectedFounder.startup_name || "Untitled startup"}
+                        </h2>
+                        <p className="text-sm text-muted-foreground">{selectedFounder.founder_name || "—"}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                        Previous overall
+                      </p>
+                      <p className="mt-1 text-[22px] font-semibold tabular-nums text-[#1D1D1F]">
+                        {previousCheckin && overallOf(previousCheckin) != null
+                          ? overallOf(previousCheckin)!.toFixed(1)
+                          : "—"}
+                        <span className="ml-1 text-xs font-normal text-muted-foreground">/ 5</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Check-in form */}
+                <div className="rounded-2xl border border-black/5 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                  <div className="flex items-center justify-between border-b border-black/5 p-6">
+                    <div>
+                      <h3 className="text-[15px] font-semibold text-[#1D1D1F]">
+                        {editingId ? "Edit check-in" : "New check-in"}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        Rate each dimension 1–5. Previous scores shown for comparison.
+                      </p>
+                    </div>
+                    {editingId && (
+                      <Button variant="ghost" size="sm" onClick={() => { setEditingId(null); setForm(emptyCheckin()); }}>
+                        Cancel edit
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6">
+                    <div>
+                      <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Type</Label>
+                      <Select value={form.checkin_type} onValueChange={(v) => setForm({ ...form, checkin_type: v as any })}>
+                        <SelectTrigger className="mt-1.5 h-9"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="one_on_one">1:1</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Date</Label>
+                      <Input
+                        type="date"
+                        value={form.checkin_date}
+                        onChange={(e) => setForm({ ...form, checkin_date: e.target.value })}
+                        className="mt-1.5 h-9"
                       />
                     </div>
-                    <Textarea
-                      rows={2}
-                      placeholder={`Notes on ${a.label.toLowerCase()}...`}
-                      value={(checkinForm as any)[`${a.key}_note`]}
-                      onChange={(e) => setCheckinForm({ ...checkinForm, [`${a.key}_note`]: e.target.value } as any)}
-                    />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    <div>
+                      <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Effort signal</Label>
+                      <Select value={form.effort_signal} onValueChange={(v) => setForm({ ...form, effort_signal: v })}>
+                        <SelectTrigger className="mt-1.5 h-9"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {EFFORT_OPTIONS.map((o) => (
+                            <SelectItem key={o.value} value={o.value}>
+                              <span className="inline-flex items-center gap-2">
+                                <span className={cn("h-2 w-2 rounded-full", o.dot)} />
+                                {o.label}
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-            <div className="space-y-2">
-              <Label>Overall Notes</Label>
-              <Textarea rows={3} value={checkinForm.notes} onChange={(e) => setCheckinForm({ ...checkinForm, notes: e.target.value })} />
-            </div>
+                  <div className="border-t border-black/5 p-6 space-y-5">
+                    {AREAS.map((a) => {
+                      const key = `${a.key}_rating` as keyof CheckinForm;
+                      const noteKey = `${a.key}_note` as keyof CheckinForm;
+                      const prev = previousCheckin?.[`${a.key}_rating` as keyof Checkin] as number | null | undefined;
+                      const value = form[key] as number;
+                      return (
+                        <div key={a.key} className="grid grid-cols-1 md:grid-cols-[160px_1fr] gap-4 items-start">
+                          <div>
+                            <div className="text-sm font-medium text-[#1D1D1F]">{a.label}</div>
+                            <div className="mt-0.5 text-[11px] text-muted-foreground">
+                              last: {prev ? `${prev}/5` : "—"}
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-3">
+                              <StarRating value={value} onChange={(v) => setForm({ ...form, [key]: v } as any)} size={18} />
+                              <span className="text-[12px] tabular-nums text-muted-foreground">
+                                {value ? `${value}/5` : "unrated"}
+                              </span>
+                            </div>
+                            <Textarea
+                              placeholder={`Notes on ${a.label.toLowerCase()}…`}
+                              value={form[noteKey] as string}
+                              onChange={(e) => setForm({ ...form, [noteKey]: e.target.value } as any)}
+                              className="min-h-[60px] text-sm"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
 
-            <div className="space-y-2">
-              <Label>Links</Label>
-              <LinksEditor links={checkinForm.links} onChange={(v) => setCheckinForm({ ...checkinForm, links: v })} />
-            </div>
+                  <div className="border-t border-black/5 p-6 space-y-4">
+                    <div>
+                      <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Overall notes</Label>
+                      <Textarea
+                        value={form.notes}
+                        onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                        placeholder="What's the headline this week? What changed?"
+                        className="mt-1.5 min-h-[80px] text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Links</Label>
+                      <div className="mt-1.5">
+                        <LinksEditor links={form.links} onChange={(v) => setForm({ ...form, links: v })} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 border-t border-black/5 p-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => { setForm(emptyCheckin()); setEditingId(null); }}
+                    >
+                      Reset
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => saveMutation.mutate()}
+                      disabled={saveMutation.isPending}
+                      className="bg-[#0071E3] hover:bg-[#0071E3]/90 text-white"
+                    >
+                      <Plus className="h-3.5 w-3.5 mr-1.5" />
+                      {editingId ? "Save changes" : "Log check-in"}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Timeline */}
+                <div className="rounded-2xl border border-black/5 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                  <div className="border-b border-black/5 p-6">
+                    <h3 className="text-[15px] font-semibold text-[#1D1D1F]">History</h3>
+                    <p className="text-xs text-muted-foreground">All past check-ins, newest first.</p>
+                  </div>
+
+                  {timelineLoading ? (
+                    <div className="p-6 space-y-3">
+                      {Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} className="h-14 rounded-lg bg-black/[0.03] animate-pulse" />
+                      ))}
+                    </div>
+                  ) : timeline.length === 0 ? (
+                    <div className="p-12 text-center">
+                      <FileText className="mx-auto h-6 w-6 text-muted-foreground/50" />
+                      <p className="mt-3 text-sm font-medium text-[#1D1D1F]">No check-ins yet for this founder</p>
+                      <p className="mt-1 text-xs text-muted-foreground">Log the first one above.</p>
+                    </div>
+                  ) : (
+                    <ul className="divide-y divide-black/5">
+                      {timeline.map((c) => {
+                        const isOpen = expanded.has(c.id);
+                        const overall = overallOf(c);
+                        return (
+                          <li key={c.id}>
+                            <div className="flex items-center gap-3 px-6 py-3">
+                              <button
+                                type="button"
+                                onClick={() => toggleExpanded(c.id)}
+                                className="flex flex-1 items-center gap-3 text-left"
+                              >
+                                {isOpen ? (
+                                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                )}
+                                <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span className="text-sm font-medium text-[#1D1D1F] tabular-nums">
+                                  {format(parseISO(c.checkin_date), "MMM d, yyyy")}
+                                </span>
+                                <Badge variant="outline" className="text-[10px] font-normal">
+                                  {c.checkin_type === "one_on_one" ? "1:1" : "Weekly"}
+                                </Badge>
+                                {effortBadge(c.effort_signal)}
+                                <span className="ml-auto text-[12px] tabular-nums text-muted-foreground">
+                                  {overall != null ? `${overall.toFixed(1)}/5` : "—"}
+                                </span>
+                              </button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => setViewingCheckin(c)}>
+                                    <Eye className="h-3.5 w-3.5 mr-2" /> View
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => beginEdit(c)}>
+                                    <Pencil className="h-3.5 w-3.5 mr-2" /> Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => setDeleteId(c.id)}
+                                    className="text-destructive focus:text-destructive"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                            {isOpen && (
+                              <div className="bg-black/[0.015] px-6 py-4 border-t border-black/5">
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                                  {AREAS.map((a) => {
+                                    const r = c[`${a.key}_rating` as keyof Checkin] as number | null;
+                                    const n = c[`${a.key}_note` as keyof Checkin] as string | null;
+                                    return (
+                                      <div key={a.key} className="rounded-lg bg-white p-3 border border-black/5">
+                                        <div className="text-[10.5px] uppercase tracking-wider text-muted-foreground">{a.label}</div>
+                                        <div className="mt-0.5 text-sm font-medium tabular-nums text-[#1D1D1F]">
+                                          {r ? `${r}/5` : "—"}
+                                        </div>
+                                        {n && <div className="mt-1 text-[11.5px] text-muted-foreground leading-relaxed line-clamp-3">{n}</div>}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                {c.notes && (
+                                  <div className="mt-3 rounded-lg border border-black/5 bg-white p-3 text-[13px] text-[#1D1D1F] whitespace-pre-wrap">
+                                    {c.notes}
+                                  </div>
+                                )}
+                                {Array.isArray(c.links) && (c.links as any[]).length > 0 && (
+                                  <div className="mt-3 flex flex-wrap gap-2">
+                                    {(c.links as any as LinkItem[]).map((l, i) => (
+                                      <a
+                                        key={i}
+                                        href={formatUrl(l.url)}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-1.5 rounded-md border border-black/10 bg-white px-2 py-1 text-[11.5px] text-[#0071E3] hover:bg-[#0071E3]/[0.06]"
+                                      >
+                                        <ExternalLink className="h-3 w-3" />
+                                        {l.title || l.url}
+                                      </a>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              </>
+            )}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCheckinDialog(false)}>Cancel</Button>
-            <Button onClick={() => saveCheckin.mutate()}>{checkinForm.id ? "Save" : "Create"}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
 
-      {/* ─── Evaluation Dialog ─── */}
-      <Dialog open={evalDialog} onOpenChange={setEvalDialog}>
-        <DialogContent className="max-w-xl">
+      {/* View dialog */}
+      <Dialog open={!!viewingCheckin} onOpenChange={(o) => !o && setViewingCheckin(null)}>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{evalForm.id ? "Edit Block Evaluation" : "New Block Evaluation"}</DialogTitle>
-            <DialogDescription className="sr-only">Formal block-end evaluation with scores and decision.</DialogDescription>
+            <DialogTitle>Check-in details</DialogTitle>
+            <DialogDescription>
+              {viewingCheckin ? format(parseISO(viewingCheckin.checkin_date), "MMMM d, yyyy") : ""}
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Block Name</Label>
-                <Input placeholder="e.g. Block 1 – Validation" value={evalForm.block_name} onChange={(e) => setEvalForm({ ...evalForm, block_name: e.target.value })} />
+          {viewingCheckin && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">{viewingCheckin.checkin_type === "one_on_one" ? "1:1" : "Weekly"}</Badge>
+                {effortBadge(viewingCheckin.effort_signal)}
               </div>
-              <div className="space-y-2">
-                <Label>Date</Label>
-                <Input type="date" value={evalForm.evaluation_date} onChange={(e) => setEvalForm({ ...evalForm, evaluation_date: e.target.value })} />
+              <div className="grid grid-cols-5 gap-2">
+                {AREAS.map((a) => {
+                  const r = viewingCheckin[`${a.key}_rating` as keyof Checkin] as number | null;
+                  return (
+                    <div key={a.key} className="rounded-lg border border-black/5 p-3">
+                      <div className="text-[10.5px] uppercase tracking-wider text-muted-foreground">{a.label}</div>
+                      <div className="mt-0.5 text-sm font-medium tabular-nums">{r ? `${r}/5` : "—"}</div>
+                    </div>
+                  );
+                })}
               </div>
+              {AREAS.map((a) => {
+                const n = viewingCheckin[`${a.key}_note` as keyof Checkin] as string | null;
+                if (!n) return null;
+                return (
+                  <div key={a.key}>
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{a.label} notes</div>
+                    <p className="mt-1 whitespace-pre-wrap text-sm text-[#1D1D1F]">{n}</p>
+                  </div>
+                );
+              })}
+              {viewingCheckin.notes && (
+                <div>
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Overall</div>
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-[#1D1D1F]">{viewingCheckin.notes}</p>
+                </div>
+              )}
+              {Array.isArray(viewingCheckin.links) && (viewingCheckin.links as any[]).length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {(viewingCheckin.links as any as LinkItem[]).map((l, i) => (
+                    <a
+                      key={i}
+                      href={formatUrl(l.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-md border border-black/10 px-2 py-1 text-[11.5px] text-[#0071E3] hover:bg-[#0071E3]/[0.06]"
+                    >
+                      <ArrowUpRight className="h-3 w-3" /> {l.title || l.url}
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div className="space-y-2">
-                <Label>Execution (0-100)</Label>
-                <Input type="number" min={0} max={100} value={evalForm.execution_score} onChange={(e) => setEvalForm({ ...evalForm, execution_score: Number(e.target.value) })} />
-              </div>
-              <div className="space-y-2">
-                <Label>Traction (0-100)</Label>
-                <Input type="number" min={0} max={100} value={evalForm.traction_score} onChange={(e) => setEvalForm({ ...evalForm, traction_score: Number(e.target.value) })} />
-              </div>
-              <div className="space-y-2">
-                <Label>Momentum (0-100)</Label>
-                <Input type="number" min={0} max={100} value={evalForm.momentum_score} onChange={(e) => setEvalForm({ ...evalForm, momentum_score: Number(e.target.value) })} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>Confidence (1-5)</Label>
-                <StarRating value={evalForm.overall_confidence} onChange={(v) => setEvalForm({ ...evalForm, overall_confidence: v })} />
-              </div>
-              <div className="space-y-2">
-                <Label>Decision</Label>
-                <Select value={evalForm.decision} onValueChange={(v) => setEvalForm({ ...evalForm, decision: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {DECISION_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
+          )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEvalDialog(false)}>Cancel</Button>
-            <Button onClick={() => saveEval.mutate()} disabled={!evalForm.block_name}>{evalForm.id ? "Save" : "Create"}</Button>
+            <Button variant="outline" onClick={() => setViewingCheckin(null)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <ConfirmDeleteDialog open={!!deleteCheckinId} onConfirm={() => deleteCheckinId && deleteCheckin.mutate(deleteCheckinId)} onCancel={() => setDeleteCheckinId(null)} />
-      <ConfirmDeleteDialog open={!!deleteEvalId} onConfirm={() => deleteEvalId && deleteEval.mutate(deleteEvalId)} onCancel={() => setDeleteEvalId(null)} />
+      <ConfirmDeleteDialog
+        open={!!deleteId}
+        onOpenChange={(o) => !o && setDeleteId(null)}
+        onConfirm={() => deleteId && archiveMutation.mutate(deleteId)}
+        title="Remove this check-in?"
+        description="It will be archived and hidden from history."
+      />
     </div>
   );
 }
