@@ -16,6 +16,7 @@ import OperationsContracts from "./pages/operations/Contracts";
 import FoundersSource from "./pages/founders/Source";
 import FoundersTracking from "./pages/founders/Tracking";
 import PortfolioDashboard from "./pages/founders/Portfolio";
+import FoundersEvaluations from "./pages/founders/Evaluations";
 import EventsCalendar from "./pages/events/Calendar";
 import EventsPlanning from "./pages/events/Planning";
 import EventsLogistics from "./pages/events/Logistics";
