@@ -215,19 +215,6 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     },
   });
 
-  const { data: budgetCategories } = useQuery({
-    queryKey: ["global-search-budget-categories", trimmed],
-    enabled,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("budget_categories")
-        .select("id, name, total_amount")
-        .ilike("name", `%${trimmed}%`)
-        .limit(6);
-      return data ?? [];
-    },
-  });
-
   const { data: budgetLines } = useQuery({
     queryKey: ["global-search-budget-lines", trimmed],
     enabled,
@@ -241,18 +228,6 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     },
   });
 
-  const { data: budgetTx } = useQuery({
-    queryKey: ["global-search-budget-tx", trimmed],
-    enabled,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("budget_transactions")
-        .select("id, description, category, amount, transaction_type, cohort_year, date")
-        .or(`description.ilike.%${trimmed}%,category.ilike.%${trimmed}%,transaction_type.ilike.%${trimmed}%,cohort_year.ilike.%${trimmed}%`)
-        .limit(6);
-      return data ?? [];
-    },
-  });
 
   const { data: vendors } = useQuery({
     queryKey: ["global-search-vendors", trimmed],
@@ -629,20 +604,6 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
               </CommandGroup>
             )}
 
-            {budgetCategories && budgetCategories.length > 0 && (
-              <CommandGroup heading="Budget Categories">
-                {budgetCategories.map((b: any) => (
-                  <CommandItem key={b.id} value={`bcat-${b.id}-${b.name}`} onSelect={() => go(`/operations/source?highlight=${b.id}`)} className="flex items-center gap-3 cursor-pointer">
-                    <DollarSign className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-medium truncate">{highlightMatch(b.name, trimmed)}</span>
-                      <span className="text-xs text-muted-foreground truncate">Total: {b.total_amount ?? 0} MAD</span>
-                    </div>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
-
             {budgetLines && budgetLines.length > 0 && (
               <CommandGroup heading="Budget Lines">
                 {budgetLines.map((b: any) => (
@@ -657,19 +618,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
               </CommandGroup>
             )}
 
-            {budgetTx && budgetTx.length > 0 && (
-              <CommandGroup heading="Budget Transactions">
-                {budgetTx.map((t: any) => (
-                  <CommandItem key={t.id} value={`btx-${t.id}-${t.description}`} onSelect={() => go(`/operations?highlight=${t.id}`)} className="flex items-center gap-3 cursor-pointer">
-                    <DollarSign className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-medium truncate">{highlightMatch(t.description ?? t.category, trimmed)}</span>
-                      <span className="text-xs text-muted-foreground truncate">{t.transaction_type ?? ""} · {t.amount ?? 0} · {t.cohort_year ?? ""} · {t.date ?? ""}</span>
-                    </div>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
+
 
             {vendors && vendors.length > 0 && (
               <CommandGroup heading="Vendors">

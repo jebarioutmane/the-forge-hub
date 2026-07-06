@@ -32,50 +32,35 @@ export type Database = {
         }
         Relationships: []
       }
-      budget_categories: {
-        Row: {
-          created_at: string | null
-          id: string
-          name: string
-          total_amount: number | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          name: string
-          total_amount?: number | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          name?: string
-          total_amount?: number | null
-        }
-        Relationships: []
-      }
       budget_lines: {
         Row: {
           allocated_amount: number | null
+          archived_at: string | null
           code: string | null
           cohort_id: string | null
           created_at: string | null
           id: string
+          is_archived: boolean
           name: string
         }
         Insert: {
           allocated_amount?: number | null
+          archived_at?: string | null
           code?: string | null
           cohort_id?: string | null
           created_at?: string | null
           id?: string
+          is_archived?: boolean
           name: string
         }
         Update: {
           allocated_amount?: number | null
+          archived_at?: string | null
           code?: string | null
           cohort_id?: string | null
           created_at?: string | null
           id?: string
+          is_archived?: boolean
           name?: string
         }
         Relationships: [
@@ -87,69 +72,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      budget_transactions: {
-        Row: {
-          amount: number
-          category: string
-          cohort_year: string
-          created_at: string
-          date: string
-          description: string | null
-          evidence_url: string | null
-          id: string
-          transaction_type: string
-        }
-        Insert: {
-          amount?: number
-          category: string
-          cohort_year: string
-          created_at?: string
-          date?: string
-          description?: string | null
-          evidence_url?: string | null
-          id?: string
-          transaction_type: string
-        }
-        Update: {
-          amount?: number
-          category?: string
-          cohort_year?: string
-          created_at?: string
-          date?: string
-          description?: string | null
-          evidence_url?: string | null
-          id?: string
-          transaction_type?: string
-        }
-        Relationships: []
-      }
-      budgets: {
-        Row: {
-          category: string
-          created_at: string | null
-          currency: string | null
-          fiscal_year: number | null
-          id: string
-          total_amount: number
-        }
-        Insert: {
-          category: string
-          created_at?: string | null
-          currency?: string | null
-          fiscal_year?: number | null
-          id?: string
-          total_amount: number
-        }
-        Update: {
-          category?: string
-          created_at?: string | null
-          currency?: string | null
-          fiscal_year?: number | null
-          id?: string
-          total_amount?: number
-        }
-        Relationships: []
       }
       cohorts: {
         Row: {
@@ -342,12 +264,14 @@ export type Database = {
       }
       contracts: {
         Row: {
+          archived_at: string | null
           budget_line_id: string | null
           cohort_id: string | null
           currency: string | null
           description: string | null
           end_date: string | null
           id: string
+          is_archived: boolean
           owner_id: string | null
           payment_structure: string | null
           stakeholder_name: string
@@ -360,12 +284,14 @@ export type Database = {
           vendor_id: string | null
         }
         Insert: {
+          archived_at?: string | null
           budget_line_id?: string | null
           cohort_id?: string | null
           currency?: string | null
           description?: string | null
           end_date?: string | null
           id?: string
+          is_archived?: boolean
           owner_id?: string | null
           payment_structure?: string | null
           stakeholder_name: string
@@ -378,12 +304,14 @@ export type Database = {
           vendor_id?: string | null
         }
         Update: {
+          archived_at?: string | null
           budget_line_id?: string | null
           cohort_id?: string | null
           currency?: string | null
           description?: string | null
           end_date?: string | null
           id?: string
+          is_archived?: boolean
           owner_id?: string | null
           payment_structure?: string | null
           stakeholder_name?: string
@@ -795,6 +723,7 @@ export type Database = {
       expenses: {
         Row: {
           amount: number
+          archived_at: string | null
           beneficiary_name: string | null
           budget_line_id: string | null
           category_id: string | null
@@ -804,6 +733,7 @@ export type Database = {
           description: string
           due_date: string | null
           id: string
+          is_archived: boolean
           proof_document_url: string | null
           status: string | null
           tag_ids: string[] | null
@@ -812,6 +742,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          archived_at?: string | null
           beneficiary_name?: string | null
           budget_line_id?: string | null
           category_id?: string | null
@@ -821,6 +752,7 @@ export type Database = {
           description: string
           due_date?: string | null
           id?: string
+          is_archived?: boolean
           proof_document_url?: string | null
           status?: string | null
           tag_ids?: string[] | null
@@ -829,6 +761,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          archived_at?: string | null
           beneficiary_name?: string | null
           budget_line_id?: string | null
           category_id?: string | null
@@ -838,6 +771,7 @@ export type Database = {
           description?: string
           due_date?: string | null
           id?: string
+          is_archived?: boolean
           proof_document_url?: string | null
           status?: string | null
           tag_ids?: string[] | null
@@ -850,13 +784,6 @@ export type Database = {
             columns: ["budget_line_id"]
             isOneToOne: false
             referencedRelation: "budget_lines"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "expenses_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "budget_categories"
             referencedColumns: ["id"]
           },
           {
