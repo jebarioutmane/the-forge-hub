@@ -16,6 +16,7 @@ import OperationsContracts from "./pages/operations/Contracts";
 import FoundersSource from "./pages/founders/Source";
 import FoundersTracking from "./pages/founders/Tracking";
 import PortfolioDashboard from "./pages/founders/Portfolio";
+import FoundersEvaluations from "./pages/founders/Evaluations";
 import EventsCalendar from "./pages/events/Calendar";
 import EventsPlanning from "./pages/events/Planning";
 import EventsLogistics from "./pages/events/Logistics";
@@ -54,6 +55,7 @@ const App = () => (
           <Route path="/founders" element={<MainLayout><FoundersSource /></MainLayout>} />
           <Route path="/founders/tracking" element={<MainLayout><FoundersTracking /></MainLayout>} />
           <Route path="/founders/portfolio" element={<MainLayout><PortfolioDashboard /></MainLayout>} />
+          <Route path="/founders/evaluations" element={<MainLayout><FoundersEvaluations /></MainLayout>} />
           <Route path="/settings" element={<MainLayout><Settings /></MainLayout>} />
           <Route path="/library" element={<MainLayout><Library moduleName="All" /></MainLayout>} />
           <Route path="/system/profiles" element={<MainLayout><SystemProfiles /></MainLayout>} />

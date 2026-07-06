@@ -919,49 +919,67 @@ export type Database = {
       }
       founder_evaluations: {
         Row: {
+          absolute_targets: Json | null
+          archived_at: string | null
           block_name: string
+          block_number: number | null
           categories_data: Json | null
           created_at: string
           decision: string | null
+          dimension_scores: Json | null
           evaluation_date: string | null
           execution_score: number | null
           founder_id: string
           id: string
+          is_archived: boolean
           momentum_score: number | null
           overall_confidence: number | null
           quantitative_metrics: Json | null
+          summary_note: string | null
           support_required: string[] | null
           total_score: number | null
           traction_score: number | null
         }
         Insert: {
+          absolute_targets?: Json | null
+          archived_at?: string | null
           block_name: string
+          block_number?: number | null
           categories_data?: Json | null
           created_at?: string
           decision?: string | null
+          dimension_scores?: Json | null
           evaluation_date?: string | null
           execution_score?: number | null
           founder_id: string
           id?: string
+          is_archived?: boolean
           momentum_score?: number | null
           overall_confidence?: number | null
           quantitative_metrics?: Json | null
+          summary_note?: string | null
           support_required?: string[] | null
           total_score?: number | null
           traction_score?: number | null
         }
         Update: {
+          absolute_targets?: Json | null
+          archived_at?: string | null
           block_name?: string
+          block_number?: number | null
           categories_data?: Json | null
           created_at?: string
           decision?: string | null
+          dimension_scores?: Json | null
           evaluation_date?: string | null
           execution_score?: number | null
           founder_id?: string
           id?: string
+          is_archived?: boolean
           momentum_score?: number | null
           overall_confidence?: number | null
           quantitative_metrics?: Json | null
+          summary_note?: string | null
           support_required?: string[] | null
           total_score?: number | null
           traction_score?: number | null
