@@ -18,8 +18,6 @@ import FoundersTracking from "./pages/founders/Tracking";
 import PortfolioDashboard from "./pages/founders/Portfolio";
 import FoundersEvaluations from "./pages/founders/Evaluations";
 import EventsCalendar from "./pages/events/Calendar";
-import EventsPlanning from "./pages/events/Planning";
-import EventsLogistics from "./pages/events/Logistics";
 import EventsStakeholders from "./pages/events/Stakeholders";
 import Settings from "./pages/Settings";
 import Library from "./pages/Library";
