@@ -642,6 +642,23 @@ export default function Stipends() {
           <Button variant="outline" size="sm" onClick={() => setBulkBaseOpen(true)} disabled={records.length === 0}>
             <DollarSign className="mr-1 h-3.5 w-3.5" /> Apply Base to All
           </Button>
+          <div className="flex items-center gap-1">
+            <Select
+              value={bulkStatusTarget || undefined}
+              onValueChange={(v) => {
+                setBulkStatusTarget(v as any);
+                setBulkStatusConfirmOpen(true);
+              }}
+              disabled={records.filter((r) => !r.is_archived).length === 0}
+            >
+              <SelectTrigger className="h-9 w-[150px]"><SelectValue placeholder="Set all to…" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="paid">Paid</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <Button variant="outline" size="sm" onClick={exportCSV} disabled={records.length === 0}>
             <Download className="mr-1 h-3.5 w-3.5" /> Export CSV
           </Button>
