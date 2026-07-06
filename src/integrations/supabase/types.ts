@@ -39,6 +39,7 @@ export type Database = {
           code: string | null
           cohort_id: string | null
           created_at: string | null
+          currency: string
           id: string
           is_archived: boolean
           name: string
@@ -51,6 +52,7 @@ export type Database = {
           code?: string | null
           cohort_id?: string | null
           created_at?: string | null
+          currency?: string
           id?: string
           is_archived?: boolean
           name: string
@@ -63,6 +65,7 @@ export type Database = {
           code?: string | null
           cohort_id?: string | null
           created_at?: string | null
+          currency?: string
           id?: string
           is_archived?: boolean
           name?: string
