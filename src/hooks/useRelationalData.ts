@@ -29,16 +29,3 @@ export function useVendors() {
   });
 }
 
-export function useBudgetCategories() {
-  return useQuery({
-    queryKey: ["budget-categories-list"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("budget_categories")
-        .select("id, name, total_amount")
-        .order("name");
-      if (error) throw error;
-      return data;
-    },
-  });
-}
