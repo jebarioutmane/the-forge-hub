@@ -28,7 +28,7 @@ interface CohortContextValue {
 const CohortContext = createContext<CohortContextValue | undefined>(undefined);
 
 export function CohortProvider({ children }: { children: React.ReactNode }) {
-  const { data: cohorts = [], isLoading } = useQuery({
+  const { data: allCohorts = [], isLoading } = useQuery({
     queryKey: ["cohorts", "global"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -41,13 +41,18 @@ export function CohortProvider({ children }: { children: React.ReactNode }) {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Non-archived cohorts only for the header switcher and normal consumers.
+  const cohorts = useMemo(
+    () => allCohorts.filter((c) => !c.is_archived),
+    [allCohorts]
+  );
+
   const activeCohort = useMemo(
     () => cohorts.find((c) => c.is_active) ?? null,
     [cohorts]
   );
 
   // In-memory only — no localStorage / sessionStorage.
-  // Empty string until initialized, then either a cohort id or "all".
   const [selectedCohortId, setSelectedCohortId] = useState<CohortSelection>("");
 
   // Initialize once cohorts load: default to the active cohort, else "all".
@@ -55,6 +60,15 @@ export function CohortProvider({ children }: { children: React.ReactNode }) {
     if (selectedCohortId) return;
     if (cohorts.length === 0) return;
     setSelectedCohortId(activeCohort ? activeCohort.id : ALL_COHORTS);
+  }, [cohorts, activeCohort, selectedCohortId]);
+
+  // If the selected cohort is archived/removed, snap back to active or "all".
+  useEffect(() => {
+    if (!selectedCohortId || selectedCohortId === ALL_COHORTS) return;
+    const stillVisible = cohorts.some((c) => c.id === selectedCohortId);
+    if (!stillVisible) {
+      setSelectedCohortId(activeCohort ? activeCohort.id : ALL_COHORTS);
+    }
   }, [cohorts, activeCohort, selectedCohortId]);
 
   const selectedCohort = useMemo(() => {
