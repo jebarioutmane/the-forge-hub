@@ -1014,6 +1014,8 @@ export type Database = {
           description: string | null
           email: string | null
           founder_name: string
+          funding_currency: string | null
+          funding_raised: number | null
           id: string
           is_archived: boolean
           link_title: string | null
@@ -1025,6 +1027,8 @@ export type Database = {
           phone: string | null
           photo_url: string | null
           rib_number: string | null
+          sector: string | null
+          stage: string | null
           startup_name: string
           status: string | null
           tag_ids: string[] | null
@@ -1042,6 +1046,8 @@ export type Database = {
           description?: string | null
           email?: string | null
           founder_name: string
+          funding_currency?: string | null
+          funding_raised?: number | null
           id?: string
           is_archived?: boolean
           link_title?: string | null
@@ -1053,6 +1059,8 @@ export type Database = {
           phone?: string | null
           photo_url?: string | null
           rib_number?: string | null
+          sector?: string | null
+          stage?: string | null
           startup_name: string
           status?: string | null
           tag_ids?: string[] | null
@@ -1070,6 +1078,8 @@ export type Database = {
           description?: string | null
           email?: string | null
           founder_name?: string
+          funding_currency?: string | null
+          funding_raised?: number | null
           id?: string
           is_archived?: boolean
           link_title?: string | null
@@ -1081,6 +1091,8 @@ export type Database = {
           phone?: string | null
           photo_url?: string | null
           rib_number?: string | null
+          sector?: string | null
+          stage?: string | null
           startup_name?: string
           status?: string | null
           tag_ids?: string[] | null
