@@ -50,6 +50,8 @@ import {
   Activity,
   Users as UsersIcon,
   FileText,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { formatUrl } from "@/lib/formatUrl";
