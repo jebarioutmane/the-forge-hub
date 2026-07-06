@@ -310,7 +310,7 @@ export default function FoundersSource() {
     const q = search.trim().toLowerCase();
     return founders.filter((f) => {
       if (showArchived ? !f.is_archived : f.is_archived) return false;
-      if (selectedCohort && selectedCohort !== "all" && f.cohort_id !== selectedCohort) return false;
+      if (selectedCohortId !== ALL_COHORTS && f.cohort_id !== selectedCohortId) return false;
       if (q) {
         const hay = [f.founder_name, f.startup_name, f.email].filter(Boolean).join(" ").toLowerCase();
         if (!hay.includes(q)) return false;
