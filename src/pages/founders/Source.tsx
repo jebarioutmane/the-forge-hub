@@ -331,7 +331,7 @@ export default function FoundersSource() {
     founders,
     search,
     showArchived,
-    selectedCohort,
+    selectedCohortId,
     filterCountries,
     filterStatuses,
     filterAssociates,
