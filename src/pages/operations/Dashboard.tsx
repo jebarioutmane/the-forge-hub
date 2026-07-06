@@ -268,6 +268,29 @@ export default function OperationsDashboard() {
              hint="What you can still safely spend" emphasized />
       </div>
 
+      {unassignedContracts.length > 0 && (
+        <Card className="border-amber-500/40 bg-amber-500/5">
+          <CardContent className="p-4 flex items-start gap-3">
+            <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+            <div className="text-sm">
+              <p className="font-medium text-foreground">
+                {unassignedContracts.length} active contract{unassignedContracts.length === 1 ? "" : "s"} without a budget line
+              </p>
+              <p className="text-muted-foreground mt-0.5">
+                These aren't counted in Committed. Assign a budget line on each contract to include them:
+                {" "}
+                {unassignedContracts.slice(0, 5).map((c: any, i: number) => (
+                  <span key={c.id} className="text-foreground">
+                    {i > 0 && ", "}{c.title}
+                  </span>
+                ))}
+                {unassignedContracts.length > 5 && <span> …and {unassignedContracts.length - 5} more</span>}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Burn + Runway */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card>
