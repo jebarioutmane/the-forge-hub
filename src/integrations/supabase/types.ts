@@ -156,6 +156,7 @@ export type Database = {
           created_at: string | null
           end_date: string | null
           id: string
+          is_active: boolean
           is_archived: boolean
           label: string
           name: string
@@ -167,6 +168,7 @@ export type Database = {
           created_at?: string | null
           end_date?: string | null
           id?: string
+          is_active?: boolean
           is_archived?: boolean
           label: string
           name: string
@@ -178,6 +180,7 @@ export type Database = {
           created_at?: string | null
           end_date?: string | null
           id?: string
+          is_active?: boolean
           is_archived?: boolean
           label?: string
           name?: string
@@ -976,6 +979,7 @@ export type Database = {
       }
       founders: {
         Row: {
+          archived_at: string | null
           associate_id: string | null
           birthday: string | null
           cin_number: string | null
@@ -987,6 +991,7 @@ export type Database = {
           email: string | null
           founder_name: string
           id: string
+          is_archived: boolean
           link_title: string | null
           link_url: string | null
           links: Json | null
@@ -1002,6 +1007,7 @@ export type Database = {
           venture_associate: string | null
         }
         Insert: {
+          archived_at?: string | null
           associate_id?: string | null
           birthday?: string | null
           cin_number?: string | null
@@ -1013,6 +1019,7 @@ export type Database = {
           email?: string | null
           founder_name: string
           id?: string
+          is_archived?: boolean
           link_title?: string | null
           link_url?: string | null
           links?: Json | null
@@ -1028,6 +1035,7 @@ export type Database = {
           venture_associate?: string | null
         }
         Update: {
+          archived_at?: string | null
           associate_id?: string | null
           birthday?: string | null
           cin_number?: string | null
@@ -1039,6 +1047,7 @@ export type Database = {
           email?: string | null
           founder_name?: string
           id?: string
+          is_archived?: boolean
           link_title?: string | null
           link_url?: string | null
           links?: Json | null
@@ -1512,6 +1521,7 @@ export type Database = {
       }
     }
     Functions: {
+      active_cohort_id: { Args: never; Returns: string }
       bytea_to_text: { Args: { data: string }; Returns: string }
       http: {
         Args: { request: Database["public"]["CompositeTypes"]["http_request"] }
