@@ -85,12 +85,46 @@ export default function OperationsDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("contract_payments")
-        .select("id, amount, budget_line_id, status, paid_at, due_date, created_at")
+        .select("id, amount, budget_line_id, status, paid_at, due_date, created_at, contract_id")
         .in("budget_line_id", lineIds);
       if (error) throw error;
       return data || [];
     },
   });
+
+  // Active contracts (for committed calculation). Also fetch archived-flag false.
+  const { data: contracts = [] } = useQuery({
+    queryKey: ["ops-dashboard", "contracts", selectedCohortId],
+    queryFn: async () => {
+      let q = supabase
+        .from("contracts")
+        .select("id, title, value, status, budget_line_id, is_archived, cohort_id")
+        .eq("is_archived", false);
+      if (cohortScoped) q = q.eq("cohort_id", selectedCohortId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Paid-payments-per-contract map (used to offset active-contract commitment).
+  const paidByContract = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const p of payments as any[]) {
+      if (String(p.status).toLowerCase() === "paid" && p.contract_id) {
+        m[p.contract_id] = (m[p.contract_id] || 0) + Number(p.amount || 0);
+      }
+    }
+    return m;
+  }, [payments]);
+
+  // Active contracts without a budget line — surface to the user.
+  const unassignedContracts = useMemo(
+    () => (contracts as any[]).filter(
+      (c) => String(c.status).toLowerCase() === "active" && !c.budget_line_id
+    ),
+    [contracts]
+  );
 
   // Per-line rollup
   const rollup = useMemo(() => {
@@ -100,11 +134,10 @@ export default function OperationsDashboard() {
       if (!id || !m[id]) return;
       m[id][key] += amt;
     };
+    // Spent: paid expenses + paid stipends + paid contract payments
     for (const e of expenses as any[]) {
-      const s = String(e.status || "").toLowerCase();
-      if (s === "paid") add(e.budget_line_id, "spent", Number(e.amount || 0));
-      // Approved / pending / planned expenses aren't "committed" in the strict definition,
-      // per spec Committed = approved stipends + scheduled/committed contract payments.
+      if (String(e.status || "").toLowerCase() === "paid")
+        add(e.budget_line_id, "spent", Number(e.amount || 0));
     }
     for (const s of stipends as any[]) {
       const st = String(s.status || "").toLowerCase();
@@ -113,13 +146,20 @@ export default function OperationsDashboard() {
       else if (st === "approved") add(s.budget_line_id, "committed", amt);
     }
     for (const p of payments as any[]) {
-      const st = String(p.status || "").toLowerCase();
-      const amt = Number(p.amount || 0);
-      if (st === "paid") add(p.budget_line_id, "spent", amt);
-      else if (st === "scheduled" || st === "committed") add(p.budget_line_id, "committed", amt);
+      if (String(p.status || "").toLowerCase() === "paid")
+        add(p.budget_line_id, "spent", Number(p.amount || 0));
+    }
+    // Committed from contracts: active contracts commit their remaining (value − paid) to the budget line.
+    for (const c of contracts as any[]) {
+      if (String(c.status || "").toLowerCase() !== "active") continue;
+      if (!c.budget_line_id) continue;
+      const total = Number(c.value || 0);
+      const paid = paidByContract[c.id] || 0;
+      const remaining = Math.max(0, total - paid);
+      add(c.budget_line_id, "committed", remaining);
     }
     return m;
-  }, [lines, expenses, stipends, payments]);
+  }, [lines, expenses, stipends, payments, contracts, paidByContract]);
 
   const totals = useMemo(() => {
     let allocated = 0, spent = 0, committed = 0;
