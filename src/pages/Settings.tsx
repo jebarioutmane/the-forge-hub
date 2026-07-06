@@ -194,7 +194,7 @@ function CohortSettingsCard() {
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("cohorts")
-        .update({ is_archived: false } as any)
+        .update({ is_archived: false, archived_at: null } as any)
         .eq("id", id);
       if (error) throw error;
     },
