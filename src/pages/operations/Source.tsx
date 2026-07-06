@@ -1,19 +1,12 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCohort, ALL_COHORTS } from "@/contexts/CohortContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -31,144 +24,137 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  XAxis,
-  YAxis,
-} from "recharts";
-import {
-  Wallet,
-  TrendingDown,
-  PiggyBank,
-  Flame,
-  Plus,
-  ExternalLink,
-} from "lucide-react";
-import { getCurrentCohortYear } from "@/lib/cohortYears";
-import { CohortSelect } from "@/components/CohortSelect";
+import { Wallet, TrendingDown, PiggyBank, Flame, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-
-const CATEGORIES = [
-  "Founder Stipends",
-  "Events",
-  "Marketing",
-  "Travel",
-  "Operations",
-] as const;
+import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 
 function fmtMAD(n: number) {
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n) + " MAD";
 }
 
+type BudgetLine = {
+  id: string;
+  cohort_id: string | null;
+  name: string;
+  code: string | null;
+  allocated_amount: number | null;
+  is_archived: boolean | null;
+};
+
 export default function Source() {
   const qc = useQueryClient();
-  const [cohort, setCohort] = useState<string>(getCurrentCohortYear());
+  const { selectedCohortId, selectedCohortLabel } = useCohort();
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<BudgetLine | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const { data: txns = [] } = useQuery({
-    queryKey: ["budget_transactions", cohort],
+  const cohortScoped = selectedCohortId && selectedCohortId !== ALL_COHORTS;
+
+  const { data: lines = [], isLoading } = useQuery({
+    queryKey: ["budget_lines", selectedCohortId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("budget_transactions")
-        .select("*")
-        .eq("cohort_year", cohort)
-        .order("date", { ascending: true });
+      let q = supabase.from("budget_lines").select("*").eq("is_archived", false).order("name");
+      if (cohortScoped) q = q.eq("cohort_id", selectedCohortId);
+      const { data, error } = await q;
       if (error) throw error;
-      return data;
+      return (data || []) as BudgetLine[];
     },
   });
 
-  const { data: stipendRecords = [] } = useQuery({
-    queryKey: ["stipend_records", cohort],
+  const { data: expenses = [] } = useQuery({
+    queryKey: ["expenses", "for-budget", selectedCohortId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("stipend_records")
-        .select("total_net")
-        .eq("cohort_year", cohort);
+      let q = supabase
+        .from("expenses")
+        .select("id, amount, budget_line_id, cohort_id, status")
+        .eq("is_archived", false);
+      if (cohortScoped) q = q.eq("cohort_id", selectedCohortId);
+      const { data, error } = await q;
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
-  const stipendsTotal = useMemo(
-    () => stipendRecords.reduce((s, r: any) => s + Number(r.total_net || 0), 0),
-    [stipendRecords]
+  const spentByLine = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const e of expenses as any[]) {
+      if (!e.budget_line_id) continue;
+      m[e.budget_line_id] = (m[e.budget_line_id] || 0) + Number(e.amount || 0);
+    }
+    return m;
+  }, [expenses]);
+
+  const totalAllocated = useMemo(
+    () => lines.reduce((s, l) => s + Number(l.allocated_amount || 0), 0),
+    [lines]
   );
+  const totalSpent = useMemo(
+    () => Object.values(spentByLine).reduce((s, n) => s + n, 0),
+    [spentByLine]
+  );
+  const remaining = totalAllocated - totalSpent;
+  const burnRate = totalAllocated > 0 ? (totalSpent / totalAllocated) * 100 : 0;
 
-  const { totalIncome, totalExpense, byCategory } = useMemo(() => {
-    let inc = 0;
-    let exp = 0;
-    const cat: Record<string, { allocated: number; spent: number }> = {};
-    CATEGORIES.forEach((c) => (cat[c] = { allocated: 0, spent: 0 }));
-    txns.forEach((t: any) => {
-      const amt = Number(t.amount || 0);
-      if (t.transaction_type === "income") {
-        inc += amt;
-        if (cat[t.category]) cat[t.category].allocated += amt;
-      } else {
-        exp += amt;
-        if (cat[t.category]) cat[t.category].spent += amt;
-      }
-    });
-    // Override Founder Stipends spend from stipend_records
-    cat["Founder Stipends"].spent = stipendsTotal;
-    return { totalIncome: inc, totalExpense: exp + stipendsTotal, byCategory: cat };
-  }, [txns, stipendsTotal]);
-
-  const remaining = totalIncome - totalExpense;
-  const burnRate = totalIncome > 0 ? (totalExpense / totalIncome) * 100 : 0;
-
-  // Cumulative spending line chart
-  const cumulative = useMemo(() => {
-    const sorted = [...txns]
-      .filter((t: any) => t.transaction_type === "expense")
-      .sort((a: any, b: any) => a.date.localeCompare(b.date));
-    let running = 0;
-    return sorted.map((t: any) => {
-      running += Number(t.amount || 0);
-      return { date: t.date, cumulative: running };
-    });
-  }, [txns]);
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("budget_lines")
+        .update({ is_archived: true, archived_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["budget_lines"] });
+      setDeleteId(null);
+      toast({ title: "Budget line archived" });
+    },
+    onError: (e: any) =>
+      toast({ title: "Failed", description: e.message, variant: "destructive" }),
+  });
 
   return (
     <div className="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Budget Dashboard</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Budget Source</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Cohort-based financial oversight
+            Budget lines and actual spend for {selectedCohortLabel || "the selected cohort"}.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <CohortSelect value={cohort} onChange={setCohort} className="w-[160px]" />
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" /> Add Transaction
-              </Button>
-            </DialogTrigger>
-            <AddTransactionDialog
-              cohort={cohort}
-              onClose={() => setOpen(false)}
-              onSaved={() => {
-                qc.invalidateQueries({ queryKey: ["budget_transactions", cohort] });
-                setOpen(false);
-              }}
-            />
-          </Dialog>
-        </div>
+        <Dialog
+          open={open}
+          onOpenChange={(o) => {
+            setOpen(o);
+            if (!o) setEditing(null);
+          }}
+        >
+          <DialogTrigger asChild>
+            <Button className="gap-2" onClick={() => setEditing(null)}>
+              <Plus className="h-4 w-4" /> Add budget line
+            </Button>
+          </DialogTrigger>
+          <BudgetLineDialog
+            editing={editing}
+            cohortId={cohortScoped ? (selectedCohortId as string) : null}
+            onClose={() => {
+              setOpen(false);
+              setEditing(null);
+            }}
+            onSaved={() => {
+              qc.invalidateQueries({ queryKey: ["budget_lines"] });
+              setOpen(false);
+              setEditing(null);
+            }}
+          />
+        </Dialog>
       </header>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard label="Total Allocated" value={fmtMAD(totalIncome)} icon={PiggyBank} />
-        <KpiCard label="Actual Spend" value={fmtMAD(totalExpense)} icon={TrendingDown} />
+        <KpiCard label="Total Allocated" value={fmtMAD(totalAllocated)} icon={PiggyBank} />
+        <KpiCard label="Actual Spend" value={fmtMAD(totalSpent)} icon={TrendingDown} />
         <KpiCard
-          label="Remaining Balance"
+          label="Remaining"
           value={fmtMAD(remaining)}
           icon={Wallet}
           warning={remaining < 0}
@@ -181,67 +167,39 @@ export default function Source() {
         />
       </div>
 
-      {/* Budget vs Actual */}
+      {/* Budget vs Actual per line */}
       <Card>
         <CardHeader>
           <CardTitle>Budget vs. Actual</CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          {CATEGORIES.map((c) => {
-            const { allocated, spent } = byCategory[c];
-            const pct = allocated > 0 ? Math.min((spent / allocated) * 100, 100) : 0;
-            const over = allocated > 0 && spent > allocated;
-            return (
-              <div key={c} className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">
-                    {c}
-                    {c === "Founder Stipends" && (
-                      <span className="ml-2 text-xs text-muted-foreground">
-                        (auto from Stipends)
-                      </span>
-                    )}
-                  </span>
-                  <span className={over ? "text-destructive" : "text-muted-foreground"}>
-                    {fmtMAD(spent)} / {fmtMAD(allocated)}
-                  </span>
-                </div>
-                <Progress value={pct} className={over ? "[&>div]:bg-destructive" : ""} />
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
-
-      {/* Cumulative Spending */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Cumulative Spending</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {cumulative.length > 0 ? (
-            <ChartContainer
-              config={{ cumulative: { label: "Spent", color: "hsl(var(--primary))" } }}
-              className="h-[280px] w-full"
-            >
-              <LineChart data={cumulative}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                <XAxis dataKey="date" className="text-xs" />
-                <YAxis className="text-xs" />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Line
-                  type="monotone"
-                  dataKey="cumulative"
-                  stroke="var(--color-cumulative)"
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </LineChart>
-            </ChartContainer>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-10">
-              No expenses recorded yet for this cohort.
+          {lines.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">
+              No budget lines yet for this cohort.
             </p>
+          ) : (
+            lines.map((l) => {
+              const allocated = Number(l.allocated_amount || 0);
+              const spent = spentByLine[l.id] || 0;
+              const pct = allocated > 0 ? Math.min((spent / allocated) * 100, 100) : 0;
+              const over = allocated > 0 && spent > allocated;
+              return (
+                <div key={l.id} className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium">
+                      {l.name}
+                      {l.code && (
+                        <span className="ml-2 text-xs text-muted-foreground">{l.code}</span>
+                      )}
+                    </span>
+                    <span className={over ? "text-destructive" : "text-muted-foreground"}>
+                      {fmtMAD(spent)} / {fmtMAD(allocated)}
+                    </span>
+                  </div>
+                  <Progress value={pct} className={over ? "[&>div]:bg-destructive" : ""} />
+                </div>
+              );
+            })
           )}
         </CardContent>
       </Card>
@@ -249,68 +207,88 @@ export default function Source() {
       {/* Ledger */}
       <Card>
         <CardHeader>
-          <CardTitle>Transaction Ledger</CardTitle>
+          <CardTitle>Budget Lines</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Amount (MAD)</TableHead>
-                <TableHead className="text-center">Evidence</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Code</TableHead>
+                <TableHead className="text-right">Allocated</TableHead>
+                <TableHead className="text-right">Spent</TableHead>
+                <TableHead className="text-right">Remaining</TableHead>
+                <TableHead className="w-20 text-right"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {txns.length === 0 ? (
+              {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    No transactions yet.
+                    Loading…
+                  </TableCell>
+                </TableRow>
+              ) : lines.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    No budget lines yet.
                   </TableCell>
                 </TableRow>
               ) : (
-                txns.map((t: any) => (
-                  <TableRow key={t.id}>
-                    <TableCell className="font-mono text-xs">{t.date}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full ${
-                          t.transaction_type === "income"
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "bg-rose-100 text-rose-700"
-                        }`}
+                lines.map((l) => {
+                  const allocated = Number(l.allocated_amount || 0);
+                  const spent = spentByLine[l.id] || 0;
+                  const rem = allocated - spent;
+                  return (
+                    <TableRow key={l.id}>
+                      <TableCell className="font-medium">{l.name}</TableCell>
+                      <TableCell className="text-muted-foreground text-xs">
+                        {l.code || "—"}
+                      </TableCell>
+                      <TableCell className="text-right">{fmtMAD(allocated)}</TableCell>
+                      <TableCell className="text-right">{fmtMAD(spent)}</TableCell>
+                      <TableCell
+                        className={`text-right ${rem < 0 ? "text-destructive" : ""}`}
                       >
-                        {t.transaction_type}
-                      </span>
-                    </TableCell>
-                    <TableCell>{t.category}</TableCell>
-                    <TableCell className="max-w-[280px] truncate">{t.description}</TableCell>
-                    <TableCell className="text-right font-medium">
-                      {fmtMAD(Number(t.amount))}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {t.evidence_url ? (
-                        <a
-                          href={t.evidence_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex text-primary hover:underline"
+                        {fmtMAD(rem)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          onClick={() => {
+                            setEditing(l);
+                            setOpen(true);
+                          }}
                         >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-destructive hover:text-destructive"
+                          onClick={() => setDeleteId(l.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+
+      <ConfirmDeleteDialog
+        open={!!deleteId}
+        onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
+        onCancel={() => setDeleteId(null)}
+        title="Archive budget line?"
+        description="Linked expenses will keep their reference. You can restore it later from the database."
+      />
     </div>
   );
 }
@@ -354,138 +332,98 @@ function KpiCard({
   );
 }
 
-function AddTransactionDialog({
-  cohort,
+function BudgetLineDialog({
+  editing,
+  cohortId,
   onClose,
   onSaved,
 }: {
-  cohort: string;
+  editing: BudgetLine | null;
+  cohortId: string | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
   const [form, setForm] = useState({
-    transaction_type: "expense" as "income" | "expense",
-    category: "Operations",
-    amount: "",
-    description: "",
-    date: new Date().toISOString().slice(0, 10),
-    evidence_url: "",
+    name: editing?.name || "",
+    code: editing?.code || "",
+    allocated_amount: editing?.allocated_amount != null ? String(editing.allocated_amount) : "",
   });
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("budget_transactions").insert({
-        cohort_year: cohort,
-        transaction_type: form.transaction_type,
-        category: form.category,
-        amount: Number(form.amount) || 0,
-        description: form.description || null,
-        date: form.date,
-        evidence_url: form.evidence_url || null,
-      });
-      if (error) throw error;
+      const payload = {
+        name: form.name,
+        code: form.code || null,
+        allocated_amount: Number(form.allocated_amount) || 0,
+        cohort_id: editing?.cohort_id ?? cohortId,
+      };
+      if (editing) {
+        const { error } = await supabase.from("budget_lines").update(payload).eq("id", editing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("budget_lines").insert(payload);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
-      toast({ title: "Transaction added" });
+      toast({ title: editing ? "Budget line updated" : "Budget line added" });
       onSaved();
     },
     onError: (e: any) =>
-      toast({ title: "Failed to add", description: e.message, variant: "destructive" }),
+      toast({ title: "Failed to save", description: e.message, variant: "destructive" }),
   });
 
   return (
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>Add Transaction</DialogTitle>
-        <DialogDescription>Log income or an expense for {cohort}.</DialogDescription>
+        <DialogTitle>{editing ? "Edit budget line" : "New budget line"}</DialogTitle>
+        <DialogDescription>
+          Allocate a portion of the cohort budget to a named line.
+        </DialogDescription>
       </DialogHeader>
       <div className="grid gap-4 py-2">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="type">Type</Label>
-            <Select
-              value={form.transaction_type}
-              onValueChange={(v: "income" | "expense") =>
-                setForm({ ...form, transaction_type: v })
-              }
-            >
-              <SelectTrigger id="type" name="type">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="income">Income</SelectItem>
-                <SelectItem value="expense">Expense</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="category">Category</Label>
-            <Select
-              value={form.category}
-              onValueChange={(v) => setForm({ ...form, category: v })}
-            >
-              <SelectTrigger id="category" name="category">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CATEGORIES.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="amount">Amount (MAD)</Label>
-            <Input
-              id="amount"
-              name="amount"
-              type="number"
-              value={form.amount}
-              onChange={(e) => setForm({ ...form, amount: e.target.value })}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="date">Date</Label>
-            <Input
-              id="date"
-              name="date"
-              type="date"
-              value={form.date}
-              onChange={(e) => setForm({ ...form, date: e.target.value })}
-            />
-          </div>
-        </div>
         <div className="space-y-1.5">
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            name="description"
-            rows={2}
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="evidence_url">Evidence URL</Label>
+          <Label htmlFor="bl-name">Name</Label>
           <Input
-            id="evidence_url"
-            name="evidence_url"
-            placeholder="https://..."
-            value={form.evidence_url}
-            onChange={(e) => setForm({ ...form, evidence_url: e.target.value })}
+            id="bl-name"
+            name="name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            placeholder="Events, Travel, Marketing…"
           />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="bl-code">Code</Label>
+            <Input
+              id="bl-code"
+              name="code"
+              value={form.code}
+              onChange={(e) => setForm({ ...form, code: e.target.value })}
+              placeholder="EV-01"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="bl-amount">Allocated (MAD)</Label>
+            <Input
+              id="bl-amount"
+              name="allocated_amount"
+              type="number"
+              value={form.allocated_amount}
+              onChange={(e) => setForm({ ...form, allocated_amount: e.target.value })}
+            />
+          </div>
         </div>
       </div>
       <DialogFooter>
         <Button variant="outline" onClick={onClose}>
           Cancel
         </Button>
-        <Button onClick={() => mutation.mutate()} disabled={mutation.isPending || !form.amount}>
-          {mutation.isPending ? "Saving..." : "Save"}
+        <Button
+          onClick={() => mutation.mutate()}
+          disabled={mutation.isPending || !form.name}
+        >
+          {mutation.isPending ? "Saving…" : editing ? "Save changes" : "Add line"}
         </Button>
       </DialogFooter>
     </DialogContent>
