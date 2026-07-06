@@ -285,14 +285,14 @@ export default function Tracking() {
 
   // Full check-in timeline for the selected founder
   const { data: timeline = [], isLoading: timelineLoading } = useQuery({
-    queryKey: ["tracking-timeline", selectedFounderId],
+    queryKey: ["tracking-timeline", selectedFounderId, showArchived],
     enabled: !!selectedFounderId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("founder_checkins")
         .select("*")
         .eq("founder_id", selectedFounderId!)
-        .eq("is_archived", false)
+        .eq("is_archived", showArchived)
         .order("checkin_date", { ascending: false })
         .order("created_at", { ascending: false });
       if (error) throw error;
