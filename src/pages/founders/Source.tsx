@@ -482,26 +482,12 @@ export default function FoundersSource() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Select value={selectedCohort} onValueChange={setSelectedCohort}>
-            <SelectTrigger className="h-9 w-[220px]">
-              <SelectValue placeholder="Cohort" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All cohorts</SelectItem>
-              {cohorts.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.label}
-                  {c.is_active ? "  · active" : ""}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
           <Button
             onClick={() => {
               setForm({
                 ...emptyForm,
                 cohort_id:
-                  selectedCohort && selectedCohort !== "all" ? selectedCohort : "",
+                  selectedCohortId !== ALL_COHORTS ? selectedCohortId : "",
               });
               setEditing(null);
               setDialogOpen(true);
