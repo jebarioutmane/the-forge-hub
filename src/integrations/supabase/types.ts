@@ -91,6 +91,7 @@ export type Database = {
       }
       cohorts: {
         Row: {
+          archived_at: string | null
           created_at: string | null
           end_date: string | null
           id: string
@@ -103,6 +104,7 @@ export type Database = {
           year: number
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string | null
           end_date?: string | null
           id?: string
@@ -115,6 +117,7 @@ export type Database = {
           year: number
         }
         Update: {
+          archived_at?: string | null
           created_at?: string | null
           end_date?: string | null
           id?: string

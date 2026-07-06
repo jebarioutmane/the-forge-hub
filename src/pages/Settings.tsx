@@ -178,7 +178,7 @@ function CohortSettingsCard() {
       if (target?.is_active) throw new Error("The active cohort can't be archived. Switch active status first.");
       const { error } = await supabase
         .from("cohorts")
-        .update({ is_archived: true } as any)
+        .update({ is_archived: true, archived_at: new Date().toISOString() } as any)
         .eq("id", id);
       if (error) throw error;
     },
