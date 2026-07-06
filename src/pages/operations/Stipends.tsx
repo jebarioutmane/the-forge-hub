@@ -1150,3 +1150,25 @@ function InlineInput({ value, onCommit }: { value: number | null; onCommit: (v: 
     />
   );
 }
+
+/* ── Founder Risk badge (informational only — never auto-applies a deduction) ── */
+function RiskBadge({ info }: { info?: { risk_status: string | null; attendance_rate: number | null } }) {
+  if (!info || !info.risk_status) {
+    return <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">no signal</Badge>;
+  }
+  const risk = (info.risk_status || "").toLowerCase();
+  const style =
+    risk === "high" || risk === "at_risk" || risk === "at risk"
+      ? "bg-red-100 text-red-700 border-0"
+      : risk === "medium" || risk === "watch"
+      ? "bg-orange-100 text-orange-700 border-0"
+      : "bg-emerald-100 text-emerald-700 border-0";
+  const rate = info.attendance_rate != null ? ` · ${Math.round(Number(info.attendance_rate) * (Number(info.attendance_rate) <= 1 ? 100 : 1))}%` : "";
+  return (
+    <Badge className={`text-[10px] px-1.5 py-0 font-normal gap-0.5 ${style}`}>
+      <AlertTriangle className="h-2.5 w-2.5" />
+      {info.risk_status}{rate}
+    </Badge>
+  );
+}
+
