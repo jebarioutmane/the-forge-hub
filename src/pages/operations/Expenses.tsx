@@ -781,11 +781,10 @@ export default function Expenses() {
 
       <ConfirmDeleteDialog
         open={!!deleteId}
-        onOpenChange={(o) => { if (!o) setDeleteId(null); }}
+        onCancel={() => setDeleteId(null)}
         onConfirm={() => deleteId && archiveMutation.mutate({ id: deleteId, archived: true })}
         title="Archive expense?"
         description="This expense will be hidden from the main list. You can restore it later from the Archived view."
-        confirmLabel="Archive"
       />
     </div>
   );
