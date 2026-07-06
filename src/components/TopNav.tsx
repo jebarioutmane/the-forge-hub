@@ -55,10 +55,8 @@ const sections = [
     headline: "Program Events",
     description: "Plan, coordinate, and execute program events seamlessly.",
     items: [
-      { title: "Events Calendar", url: "/events", icon: CalendarDays, desc: "View upcoming events" },
-      { title: "Planning", url: "/events/planning", icon: ClipboardCheck, desc: "Event checklists and prep" },
-      { title: "Logistics", url: "/events/logistics", icon: Truck, desc: "Transport, catering, venues" },
-      { title: "Stakeholders", url: "/events/stakeholders", icon: Users2, desc: "Manage external contacts" },
+      { title: "Events Calendar", url: "/events", icon: CalendarDays, desc: "Unified event workspace" },
+      { title: "Stakeholders", url: "/events/stakeholders", icon: Users2, desc: "Mentors, speakers, and guests" },
     ],
   },
   {
