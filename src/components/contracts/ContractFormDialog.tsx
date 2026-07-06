@@ -31,6 +31,8 @@ export default function ContractFormDialog({ open, onClose, editingContract }: C
   const { user } = useAuth();
   const qc = useQueryClient();
   const { data: vendors = [] } = useVendors();
+  const { selectedCohortId } = useCohort();
+  const defaultCohortId = selectedCohortId && selectedCohortId !== ALL_COHORTS ? selectedCohortId : null;
 
   const [form, setForm] = useState({
     title: "",
