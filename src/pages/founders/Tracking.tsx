@@ -198,6 +198,7 @@ export default function Tracking() {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [viewingCheckin, setViewingCheckin] = useState<Checkin | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
 
   // Founders in selected cohort
   const { data: founders = [], isLoading: foundersLoading } = useQuery({
