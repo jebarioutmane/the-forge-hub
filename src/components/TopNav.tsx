@@ -16,6 +16,7 @@ const appIcon = "/pwa-512x512.png";
 import { usePresence } from "@/hooks/usePresence";
 import { cn } from "@/lib/utils";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { CohortSwitcher } from "@/components/CohortSwitcher";
 import {
   NavigationMenu,
   NavigationMenuContent,
