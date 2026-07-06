@@ -13,7 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
-import { Download, Trash2, Pencil, DollarSign, Users, CheckCircle, Clock, Zap, MoreHorizontal, Eye, Copy, Plus, Link as LinkIcon, ExternalLink } from "lucide-react";
+import { Download, Trash2, Pencil, DollarSign, Users, CheckCircle, Clock, Zap, MoreHorizontal, Eye, Copy, Plus, Link as LinkIcon, ExternalLink, AlertTriangle, ArchiveRestore, History, Wallet } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import ViewDetailDialog from "@/components/ViewDetailDialog";
@@ -84,6 +85,9 @@ export default function Stipends() {
   const [viewing, setViewing] = useState<StipendRecord | null>(null);
   const [bulkBaseOpen, setBulkBaseOpen] = useState(false);
   const [bulkBaseAmount, setBulkBaseAmount] = useState("12000");
+  const [showRisk, setShowRisk] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
+  const [selectedBudgetLineId, setSelectedBudgetLineId] = useState<string>("");
 
   const cohortFounders = useMemo(
     () => founders.filter((f) => f.cohort_year === cohortYear),
@@ -92,16 +96,102 @@ export default function Stipends() {
 
   const monthKey = `${paymentMonth} ${cohortYear}`;
 
-  const { data: records = [], isLoading } = useQuery({
-    queryKey: ["stipend_records", cohortYear, paymentMonth],
+  // Resolve current cohort_id (uuid) from the label for budget_lines / engagement.
+  const { data: cohortRow } = useQuery({
+    queryKey: ["cohort-by-label", cohortYear],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("cohorts").select("id,label").eq("label", cohortYear).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const cohortId = cohortRow?.id ?? null;
+
+  const { data: budgetLines = [] } = useQuery({
+    queryKey: ["budget_lines-for-stipends", cohortId],
+    enabled: !!cohortId,
     queryFn: async () => {
       const { data, error } = await supabase
+        .from("budget_lines")
+        .select("id,name,cohort_id,allocated_amount,is_archived")
+        .eq("cohort_id", cohortId as string)
+        .eq("is_archived", false)
+        .order("name");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Auto-select default 'Stipends' line (or first) when the list arrives / cohort changes.
+  useMemo(() => {
+    if (!budgetLines.length) { if (selectedBudgetLineId) setSelectedBudgetLineId(""); return; }
+    const stillValid = budgetLines.some((b: any) => b.id === selectedBudgetLineId);
+    if (stillValid) return;
+    const stipendsLine = budgetLines.find((b: any) => (b.name || "").trim().toLowerCase() === "stipends");
+    setSelectedBudgetLineId((stipendsLine || budgetLines[0]).id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [budgetLines, cohortId]);
+
+  const { data: engagement = [] } = useQuery({
+    queryKey: ["founder_engagement-for-stipends", cohortId],
+    enabled: !!cohortId && showRisk,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("founder_engagement" as any)
+        .select("founder_id,risk_status,attendance_rate")
+        .eq("cohort_id", cohortId as string);
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+  });
+  const engagementByFounder = useMemo(() => {
+    const m = new Map<string, { risk_status: string | null; attendance_rate: number | null }>();
+    engagement.forEach((e: any) => m.set(e.founder_id, { risk_status: e.risk_status, attendance_rate: e.attendance_rate }));
+    return m;
+  }, [engagement]);
+
+  const { data: records = [], isLoading } = useQuery({
+    queryKey: ["stipend_records", cohortYear, paymentMonth, showArchived],
+    queryFn: async () => {
+      let q = supabase
         .from("stipend_records")
         .select("*")
         .eq("cohort_year", cohortYear)
         .eq("payment_month", monthKey);
+      if (!showArchived) q = q.eq("is_archived", false);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
+    },
+  });
+
+  // Previous-month lookup for carry-forward base only. We look at every prior month
+  // for this cohort and take each founder's most recent base.
+  const { data: priorMonthMeta } = useQuery({
+    queryKey: ["stipend_records-prev-for-carry", cohortYear, paymentMonth],
+    enabled: records.length === 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("stipend_records")
+        .select("founder_id,payment_month,base_amount,created_at")
+        .eq("cohort_year", cohortYear)
+        .eq("is_archived", false)
+        .neq("payment_month", monthKey)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      // Reduce to latest per founder.
+      const latest = new Map<string, { base: number; month: string }>();
+      (data || []).forEach((r: any) => {
+        if (!r.founder_id) return;
+        if (!latest.has(r.founder_id)) latest.set(r.founder_id, { base: Number(r.base_amount) || 0, month: r.payment_month });
+      });
+      // pick the most common source month (best label)
+      const monthCounts = new Map<string, number>();
+      latest.forEach((v) => monthCounts.set(v.month, (monthCounts.get(v.month) || 0) + 1));
+      let sourceMonth: string | null = null;
+      let best = 0;
+      monthCounts.forEach((n, m) => { if (n > best) { best = n; sourceMonth = m; } });
+      return { latest, sourceMonth };
     },
   });
 
