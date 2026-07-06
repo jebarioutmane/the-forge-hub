@@ -23,6 +23,7 @@ import Settings from "./pages/Settings";
 import Library from "./pages/Library";
 import SystemProfiles from "./pages/system/Profiles";
 import HistoryLog from "./pages/system/HistoryLog";
+import SystemTags from "./pages/system/Tags";
 import NotFound from "./pages/NotFound";
 import { InstallPrompt } from "./components/InstallPrompt";
 import { CohortProvider } from "./contexts/CohortContext";
