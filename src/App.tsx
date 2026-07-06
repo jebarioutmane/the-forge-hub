@@ -57,6 +57,7 @@ const App = () => (
           <Route path="/library" element={<MainLayout><Library moduleName="All" /></MainLayout>} />
           <Route path="/system/profiles" element={<MainLayout><SystemProfiles /></MainLayout>} />
           <Route path="/system/history" element={<MainLayout><HistoryLog /></MainLayout>} />
+          <Route path="/system/tags" element={<MainLayout><SystemTags /></MainLayout>} />
         <Route path="*" element={<NotFound />} />
         </Routes>
         <InstallPrompt />
