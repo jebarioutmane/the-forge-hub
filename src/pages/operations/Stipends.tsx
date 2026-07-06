@@ -636,21 +636,6 @@ export default function Stipends() {
           <h1 className="text-3xl font-bold text-foreground">Stipends Tracker</h1>
           <p className="text-sm text-muted-foreground">Monthly financial distributions for founders</p>
         </div>
-      </div>
-
-      {isAllCohorts && (
-        <Card className="border-amber-200 bg-amber-50/50">
-          <CardContent className="p-4 flex items-center gap-3">
-            <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
-            <p className="text-sm text-amber-900">
-              Stipends are managed per cohort. Pick a specific cohort in the header to view or edit records.
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="hidden">
-        {/* header actions moved above */}
         <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={() => applyLinksToAllMutation.mutate()} disabled={records.length < 2 || applyLinksToAllMutation.isPending}>
             <LinkIcon className="mr-1 h-3.5 w-3.5" /> Apply Links to All
@@ -685,6 +670,17 @@ export default function Stipends() {
           )}
         </div>
       </div>
+
+      {isAllCohorts && (
+        <Card className="border-amber-200 bg-amber-50/50">
+          <CardContent className="p-4 flex items-center gap-3">
+            <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+            <p className="text-sm text-amber-900">
+              Stipends are managed per cohort. Pick a specific cohort in the header to view or edit records.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filters */}
       <Card>
