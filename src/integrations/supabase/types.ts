@@ -1305,27 +1305,45 @@ export type Database = {
       }
       resource_library: {
         Row: {
+          archived_at: string | null
+          category: string
           created_at: string
           description: string | null
           id: string
+          is_archived: boolean
           module_name: string
           resource_name: string
+          resource_type: string
+          tag_ids: string[]
+          updated_at: string
           url: string
         }
         Insert: {
+          archived_at?: string | null
+          category?: string
           created_at?: string
           description?: string | null
           id?: string
+          is_archived?: boolean
           module_name: string
           resource_name: string
+          resource_type?: string
+          tag_ids?: string[]
+          updated_at?: string
           url: string
         }
         Update: {
+          archived_at?: string | null
+          category?: string
           created_at?: string
           description?: string | null
           id?: string
+          is_archived?: boolean
           module_name?: string
           resource_name?: string
+          resource_type?: string
+          tag_ids?: string[]
+          updated_at?: string
           url?: string
         }
         Relationships: []
