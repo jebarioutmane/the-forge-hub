@@ -607,7 +607,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
             {budgetLines && budgetLines.length > 0 && (
               <CommandGroup heading="Budget Lines">
                 {budgetLines.map((b: any) => (
-                  <CommandItem key={b.id} value={`bline-${b.id}-${b.name}`} onSelect={() => go(`/operations/expenses?highlight=${b.id}`)} className="flex items-center gap-3 cursor-pointer">
+                  <CommandItem key={b.id} value={`bline-${b.id}-${b.name}`} onSelect={() => go(`/operations/budget-lines?highlight=${b.id}`)} className="flex items-center gap-3 cursor-pointer">
                     <DollarSign className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <div className="flex flex-col min-w-0">
                       <span className="text-sm font-medium truncate">{highlightMatch(b.name, trimmed)}</span>
