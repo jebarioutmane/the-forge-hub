@@ -2,7 +2,7 @@ import {
   LayoutDashboard, DollarSign, FileText, CalendarDays,
   ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
   Settings, ChevronDown, Wallet, PiggyBank,
-  ClipboardList, BarChart3, Users2, Truck, UserCircle, History, Layers,
+  ClipboardList, BarChart3, Users2, Truck, UserCircle, History, Layers, Tag,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
