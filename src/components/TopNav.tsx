@@ -4,7 +4,7 @@ import {
   ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
   Settings, Wallet, PiggyBank, ListTodo,
   ClipboardList, BarChart3, Users2, Truck,
-  Menu, ChevronRight, Search, Layers,
+  Menu, ChevronRight, Search, Layers, Tag,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
