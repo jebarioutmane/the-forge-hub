@@ -55,6 +55,7 @@ const App = () => (
           <Route path="/founders" element={<MainLayout><FoundersSource /></MainLayout>} />
           <Route path="/founders/tracking" element={<MainLayout><FoundersTracking /></MainLayout>} />
           <Route path="/founders/portfolio" element={<MainLayout><PortfolioDashboard /></MainLayout>} />
+          <Route path="/founders/evaluations" element={<MainLayout><FoundersEvaluations /></MainLayout>} />
           <Route path="/settings" element={<MainLayout><Settings /></MainLayout>} />
           <Route path="/library" element={<MainLayout><Library moduleName="All" /></MainLayout>} />
           <Route path="/system/profiles" element={<MainLayout><SystemProfiles /></MainLayout>} />
