@@ -1,15 +1,8 @@
 import { useState } from "react";
-import {
-  LayoutDashboard, DollarSign, FileText, CalendarDays,
-  ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
-  Settings, Wallet, PiggyBank, ListTodo,
-  ClipboardList, BarChart3, Users2, Truck,
-  Menu, ChevronRight, Search, Layers, Tag,
-} from "lucide-react";
+import { LayoutDashboard, Menu, ChevronRight, Search } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { MyProfileDialog } from "@/components/MyProfileDialog";
-import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import TeamPresence from "@/components/TeamPresence";
 const appIcon = "/pwa-512x512.png";
@@ -17,6 +10,7 @@ import { usePresence } from "@/hooks/usePresence";
 import { cn } from "@/lib/utils";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { CohortSwitcher } from "@/components/CohortSwitcher";
+import { NAV_SECTIONS, type NavSection } from "@/config/navigation";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -38,61 +32,13 @@ import {
 } from "@/components/ui/accordion";
 import { AnimatePresence, motion } from "framer-motion";
 
-const sections = [
-  {
-    label: "Founders",
-    headline: "Explore Founders",
-    description: "Manage your portfolio founders, track progress, and run evaluations.",
-    items: [
-      { title: "Directory", url: "/founders", icon: GraduationCap, desc: "Browse and manage all founders" },
-      { title: "Tracking", url: "/founders/tracking", icon: TrendingUp, desc: "Weekly check-ins and 1:1 progress" },
-      { title: "Evaluations", url: "/founders/evaluations", icon: ClipboardCheck, desc: "Formal block-end founder evaluations" },
-      { title: "Portfolio Dashboard", url: "/founders/portfolio", icon: BarChart3, desc: "High-level portfolio view" },
-    ],
-  },
-  {
-    label: "Events",
-    headline: "Program Events",
-    description: "Plan, coordinate, and execute program events seamlessly.",
-    items: [
-      { title: "Events Calendar", url: "/events", icon: CalendarDays, desc: "Unified event workspace" },
-      { title: "Stakeholders", url: "/events/stakeholders", icon: Users2, desc: "Mentors, speakers, and guests" },
-    ],
-  },
-  {
-    label: "Operations",
-    headline: "Operations Hub",
-    description: "Budget tracking, expenses, contracts, and team tasks.",
-    items: [
-      { title: "Budget Dashboard", url: "/operations", icon: PiggyBank, desc: "Financial overview" },
-      { title: "Expenses", url: "/operations/expenses", icon: DollarSign, desc: "Cohort-based expense tracking" },
-      
-      { title: "Stipends", url: "/operations/stipends", icon: Wallet, desc: "Founder stipend payouts" },
-      { title: "Contracts", url: "/operations/contracts", icon: FileText, desc: "Manage agreements" },
-      
-    ],
-  },
-  {
-    label: "System",
-    headline: "System & Settings",
-    description: "Application configuration and shared resources.",
-    items: [
-      { title: "Budget Lines", url: "/operations/budget-lines", icon: Layers, desc: "Manage sponsor budget lines and allocations" },
-      { title: "Team Profiles", url: "/system/profiles", icon: Users2, desc: "Team member directory" },
-      { title: "Tags & Labels", url: "/system/tags", icon: Tag, desc: "Shared tags used across the platform" },
-      { title: "History Log", url: "/system/history", icon: ClipboardList, desc: "Audit trail & restore" },
-      { title: "Library", url: "/library", icon: BookOpen, desc: "Shared resource links" },
-      { title: "Settings", url: "/settings", icon: Settings, desc: "App preferences" },
-    ],
-  },
-];
 
 function MegaMenuContent({
   section,
   navigate,
   location,
 }: {
-  section: (typeof sections)[0];
+  section: NavSection;
   navigate: ReturnType<typeof useNavigate>;
   location: ReturnType<typeof useLocation>;
 }) {
@@ -120,7 +66,7 @@ function MegaMenuContent({
                   <span className={cn("text-sm font-medium", isActive ? "text-primary" : "text-foreground")}>
                     {item.title}
                   </span>
-                  <span className="text-[11px] text-muted-foreground leading-tight">{item.desc}</span>
+                  <span className="text-[11px] text-muted-foreground leading-tight">{item.description}</span>
                 </div>
               </button>
             </li>
@@ -163,7 +109,7 @@ export function TopNav() {
               onValueChange={(val) => setIsMenuOpen(!!val)}
             >
               <NavigationMenuList className="gap-0">
-                {sections.map((section) => (
+                {NAV_SECTIONS.map((section) => (
                   <NavigationMenuItem key={section.label}>
                     <NavigationMenuTrigger className="h-auto px-2.5 py-1.5 text-[13px] font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent data-[active]:bg-transparent">
                       {section.label}
@@ -252,7 +198,7 @@ export function TopNav() {
                   </button>
 
                   <Accordion type="single" collapsible className="w-full">
-                    {sections.map((section) => (
+                    {NAV_SECTIONS.map((section) => (
                       <AccordionItem key={section.label} value={section.label} className="border-border">
                         <AccordionTrigger className="py-3 text-xl font-semibold tracking-tight text-muted-foreground hover:text-foreground hover:no-underline">
                           {section.label}

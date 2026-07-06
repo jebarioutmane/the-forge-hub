@@ -1,9 +1,4 @@
-import {
-  LayoutDashboard, DollarSign, FileText, CalendarDays,
-  ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
-  Settings, ChevronDown, Wallet, PiggyBank,
-  ClipboardList, BarChart3, Users2, Truck, UserCircle, History, Layers, Tag,
-} from "lucide-react";
+import { ChevronDown, LayoutDashboard } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -17,58 +12,16 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { NAV_SECTIONS, HOME_ITEM } from "@/config/navigation";
 const appIcon = "/pwa-512x512.png";
 
-const sections = [
-  {
-    label: "Dashboard",
-    color: "text-primary",
-    items: [
-      { title: "Home", url: "/", icon: LayoutDashboard },
-    ],
-  },
-  {
-    label: "Operations",
-    color: "text-module-operations",
-    items: [
-      { title: "Budget Dashboard", url: "/operations", icon: PiggyBank },
-      { title: "Expenses", url: "/operations/expenses", icon: DollarSign },
-      { title: "Stipends", url: "/operations/stipends", icon: Wallet },
-      { title: "Contracts", url: "/operations/contracts", icon: FileText },
-    ],
-  },
-  {
-    label: "Program",
-    color: "text-module-events",
-    items: [
-      { title: "Smart Calendar", url: "/events", icon: CalendarDays },
-      { title: "Planning", url: "/events/planning", icon: ClipboardCheck },
-      { title: "Logistics", url: "/events/logistics", icon: Truck },
-      { title: "Stakeholders", url: "/events/stakeholders", icon: Users2 },
-    ],
-  },
-  {
-    label: "Founders",
-    color: "text-module-founders",
-    items: [
-      { title: "Directory", url: "/founders", icon: GraduationCap },
-      { title: "Tracking", url: "/founders/tracking", icon: TrendingUp },
-      { title: "Portfolio Dashboard", url: "/founders/portfolio", icon: BarChart3 },
-    ],
-  },
-  {
-    label: "System",
-    color: "text-muted-foreground",
-    items: [
-      { title: "Budget Lines", url: "/operations/budget-lines", icon: Layers },
-      { title: "Team Profiles", url: "/system/profiles", icon: UserCircle },
-      { title: "Tags & Labels", url: "/system/tags", icon: Tag },
-      { title: "History Log", url: "/system/history", icon: History },
-      { title: "Library", url: "/library", icon: BookOpen },
-      { title: "Settings", url: "/settings", icon: Settings },
-    ],
-  },
-];
+const dashboardSection = {
+  label: "Dashboard",
+  colorClass: "text-primary",
+  items: [HOME_ITEM],
+};
+
+const allSections = [dashboardSection, ...NAV_SECTIONS];
 
 export function AppSidebar() {
   return (
@@ -77,11 +30,11 @@ export function AppSidebar() {
         <div className="px-5 py-5">
           <img src={appIcon} alt="The Forge" className="h-8 w-8 object-contain rounded-md shadow-sm" />
         </div>
-        {sections.map((section) => (
+        {allSections.map((section) => (
           <Collapsible key={section.label} defaultOpen>
             <SidebarGroup>
               <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-1 group">
-                <SidebarGroupLabel className={`text-[10px] font-bold tracking-[0.15em] uppercase ${section.color}`}>
+                <SidebarGroupLabel className={`text-[10px] font-bold tracking-[0.15em] uppercase ${section.colorClass}`}>
                   {section.label}
                 </SidebarGroupLabel>
                 <ChevronDown className="h-3 w-3 text-sidebar-foreground/50 transition-transform group-data-[state=closed]:-rotate-90" />
