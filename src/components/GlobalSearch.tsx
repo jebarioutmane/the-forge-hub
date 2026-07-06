@@ -404,7 +404,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
               const pages = [
                 { title: "Home", path: "/", icon: Home, keywords: "home command center dashboard" },
                 { title: "Operations Dashboard", path: "/operations", icon: LayoutDashboard, keywords: "operations dashboard budget overview" },
-                { title: "Budget Source", path: "/operations/source", icon: DollarSign, keywords: "budget source categories lines cohorts vendors" },
+                { title: "Budget Lines", path: "/operations/budget-lines", icon: DollarSign, keywords: "budget lines sponsor allocations categories" },
                 { title: "Expenses", path: "/operations/expenses", icon: DollarSign, keywords: "expenses spending payments" },
                 { title: "Stipends", path: "/operations/stipends", icon: Wallet, keywords: "stipends payouts founders monthly" },
                 { title: "Contracts", path: "/operations/contracts", icon: FileText, keywords: "contracts agreements vendors" },
