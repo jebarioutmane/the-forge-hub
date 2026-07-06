@@ -312,9 +312,11 @@ export default function OperationsTasks() {
     setSearch(""); setAssigneeFilter("all"); setPriorityFilter("all");
     setStatusFilter("all"); setSourceFilter("all"); setFounderFilter("all"); setEventFilter("all");
   };
-  const hasActiveFilters =
+  const hasActiveFilters = Boolean(
     search || assigneeFilter !== "all" || priorityFilter !== "all" || statusFilter !== "all" ||
-    sourceFilter !== "all" || founderFilter !== "all" || eventFilter !== "all";
+    sourceFilter !== "all" || founderFilter !== "all" || eventFilter !== "all"
+  );
+
 
   // DnD handlers
   const onDragStart = (e: DragStartEvent) => setActiveDragId(String(e.active.id));
