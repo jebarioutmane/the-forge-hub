@@ -13,7 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
-import { Download, Trash2, Pencil, DollarSign, Users, CheckCircle, Clock, Zap, MoreHorizontal, Eye, Copy, Plus, Link as LinkIcon, ExternalLink } from "lucide-react";
+import { Download, Trash2, Pencil, DollarSign, Users, CheckCircle, Clock, Zap, MoreHorizontal, Eye, Copy, Plus, Link as LinkIcon, ExternalLink, AlertTriangle, ArchiveRestore, History, Wallet } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import ViewDetailDialog from "@/components/ViewDetailDialog";
@@ -84,6 +85,9 @@ export default function Stipends() {
   const [viewing, setViewing] = useState<StipendRecord | null>(null);
   const [bulkBaseOpen, setBulkBaseOpen] = useState(false);
   const [bulkBaseAmount, setBulkBaseAmount] = useState("12000");
+  const [showRisk, setShowRisk] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
+  const [selectedBudgetLineId, setSelectedBudgetLineId] = useState<string>("");
 
   const cohortFounders = useMemo(
     () => founders.filter((f) => f.cohort_year === cohortYear),
@@ -92,16 +96,102 @@ export default function Stipends() {
 
   const monthKey = `${paymentMonth} ${cohortYear}`;
 
-  const { data: records = [], isLoading } = useQuery({
-    queryKey: ["stipend_records", cohortYear, paymentMonth],
+  // Resolve current cohort_id (uuid) from the label for budget_lines / engagement.
+  const { data: cohortRow } = useQuery({
+    queryKey: ["cohort-by-label", cohortYear],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("cohorts").select("id,label").eq("label", cohortYear).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const cohortId = cohortRow?.id ?? null;
+
+  const { data: budgetLines = [] } = useQuery({
+    queryKey: ["budget_lines-for-stipends", cohortId],
+    enabled: !!cohortId,
     queryFn: async () => {
       const { data, error } = await supabase
+        .from("budget_lines")
+        .select("id,name,cohort_id,allocated_amount,is_archived")
+        .eq("cohort_id", cohortId as string)
+        .eq("is_archived", false)
+        .order("name");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Auto-select default 'Stipends' line (or first) when the list arrives / cohort changes.
+  useMemo(() => {
+    if (!budgetLines.length) { if (selectedBudgetLineId) setSelectedBudgetLineId(""); return; }
+    const stillValid = budgetLines.some((b: any) => b.id === selectedBudgetLineId);
+    if (stillValid) return;
+    const stipendsLine = budgetLines.find((b: any) => (b.name || "").trim().toLowerCase() === "stipends");
+    setSelectedBudgetLineId((stipendsLine || budgetLines[0]).id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [budgetLines, cohortId]);
+
+  const { data: engagement = [] } = useQuery({
+    queryKey: ["founder_engagement-for-stipends", cohortId],
+    enabled: !!cohortId && showRisk,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("founder_engagement" as any)
+        .select("founder_id,risk_status,attendance_rate")
+        .eq("cohort_id", cohortId as string);
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+  });
+  const engagementByFounder = useMemo(() => {
+    const m = new Map<string, { risk_status: string | null; attendance_rate: number | null }>();
+    engagement.forEach((e: any) => m.set(e.founder_id, { risk_status: e.risk_status, attendance_rate: e.attendance_rate }));
+    return m;
+  }, [engagement]);
+
+  const { data: records = [], isLoading } = useQuery({
+    queryKey: ["stipend_records", cohortYear, paymentMonth, showArchived],
+    queryFn: async () => {
+      let q = supabase
         .from("stipend_records")
         .select("*")
         .eq("cohort_year", cohortYear)
         .eq("payment_month", monthKey);
+      if (!showArchived) q = q.eq("is_archived", false);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
+    },
+  });
+
+  // Previous-month lookup for carry-forward base only. We look at every prior month
+  // for this cohort and take each founder's most recent base.
+  const { data: priorMonthMeta } = useQuery({
+    queryKey: ["stipend_records-prev-for-carry", cohortYear, paymentMonth],
+    enabled: records.length === 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("stipend_records")
+        .select("founder_id,payment_month,base_amount,created_at")
+        .eq("cohort_year", cohortYear)
+        .eq("is_archived", false)
+        .neq("payment_month", monthKey)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      // Reduce to latest per founder.
+      const latest = new Map<string, { base: number; month: string }>();
+      (data || []).forEach((r: any) => {
+        if (!r.founder_id) return;
+        if (!latest.has(r.founder_id)) latest.set(r.founder_id, { base: Number(r.base_amount) || 0, month: r.payment_month });
+      });
+      // pick the most common source month (best label)
+      const monthCounts = new Map<string, number>();
+      latest.forEach((v) => monthCounts.set(v.month, (monthCounts.get(v.month) || 0) + 1));
+      let sourceMonth: string | null = null;
+      let best = 0;
+      monthCounts.forEach((n, m) => { if (n > best) { best = n; sourceMonth = m; } });
+      return { latest, sourceMonth };
     },
   });
 
@@ -163,6 +253,8 @@ export default function Stipends() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const recordsQueryKey = ["stipend_records", cohortYear, paymentMonth, showArchived] as const;
+
   const updateFieldMutation = useMutation({
     mutationFn: async ({ id, field, value }: { id: string; field: string; value: any }) => {
       const rec = records.find((r) => r.id === id);
@@ -182,8 +274,60 @@ export default function Stipends() {
         .eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
+    // Optimistic: patch cache immediately so Net + KPIs update live without waiting on the roundtrip.
+    onMutate: async ({ id, field, value }) => {
+      await queryClient.cancelQueries({ queryKey: recordsQueryKey });
+      const prev = queryClient.getQueryData<StipendRecord[]>(recordsQueryKey);
+      if (prev) {
+        queryClient.setQueryData<StipendRecord[]>(recordsQueryKey, prev.map((r) => {
+          if (r.id !== id) return r;
+          const updated: any = { ...r, [field]: value };
+          updated.total_net = calcNet(
+            Number(updated.base_amount) || 0,
+            Number(updated.deduction_percent) || 0,
+            Number(updated.deduction_fixed) || 0,
+            Number(updated.addition_percent) || 0,
+            Number(updated.addition_fixed) || 0,
+            Number(updated.reimbursement) || 0
+          );
+          return updated;
+        }));
+      }
+      return { prev };
+    },
+    onError: (e: any, _v, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(recordsQueryKey, ctx.prev);
+      toast.error(e.message);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["stipend_records", cohortYear, paymentMonth] });
+    },
+  });
+
+  // Status flow is manual. When moving into "paid" we also stamp paid_at and
+  // attach the currently selected budget line so the Budget Dashboard rolls it up.
+  const setStatusMutation = useMutation({
+    mutationFn: async ({ id, next }: { id: string; next: string }) => {
+      const patch: any = { status: next };
+      if (next === "paid") {
+        patch.paid_at = new Date().toISOString();
+        if (selectedBudgetLineId) patch.budget_line_id = selectedBudgetLineId;
+      } else {
+        // Reversing a payment: clear paid_at / budget link so it stops counting against budget.
+        patch.paid_at = null;
+        patch.budget_line_id = null;
+      }
+      const { error } = await supabase.from("stipend_records").update(patch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, v) => {
+      queryClient.invalidateQueries({ queryKey: ["stipend_records", cohortYear, paymentMonth] });
+      queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      if (v.next === "paid" && !selectedBudgetLineId) {
+        toast.warning("Marked Paid, but no budget line selected — won't count against budget.");
+      } else {
+        toast.success(`Marked ${v.next}`);
+      }
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -192,7 +336,7 @@ export default function Stipends() {
     const order = ["pending", "approved", "paid"];
     const idx = order.indexOf(rec.status || "pending");
     const next = order[(idx + 1) % order.length];
-    updateFieldMutation.mutate({ id: rec.id, field: "status", value: next });
+    setStatusMutation.mutate({ id: rec.id, next });
   };
 
   const saveEditMutation = useMutation({
@@ -228,30 +372,40 @@ export default function Stipends() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  // Soft-delete: mark archived instead of hard delete. Restore is available via the Archived toggle.
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("stipend_records").delete().eq("id", id);
+      const rec = records.find((r) => r.id === id);
+      const archiving = !rec?.is_archived;
+      const { error } = await supabase
+        .from("stipend_records")
+        .update({ is_archived: archiving, archived_at: archiving ? new Date().toISOString() : null } as any)
+        .eq("id", id);
       if (error) throw error;
+      return archiving;
     },
-    onSuccess: (_d, id) => {
+    onSuccess: (archiving) => {
       queryClient.invalidateQueries({ queryKey: ["stipend_records", cohortYear, paymentMonth] });
       setDeleteId(null);
-      toast.success("Record deleted");
+      toast.success(archiving ? "Record archived" : "Record restored");
     },
     onError: (e: any) => toast.error(e.message),
   });
 
   const bulkDeleteMutation = useMutation({
     mutationFn: async () => {
-      const ids = records.map((r) => r.id);
+      const ids = records.filter((r) => !r.is_archived).map((r) => r.id);
       if (!ids.length) return;
-      const { error } = await supabase.from("stipend_records").delete().in("id", ids);
+      const { error } = await supabase
+        .from("stipend_records")
+        .update({ is_archived: true, archived_at: new Date().toISOString() } as any)
+        .in("id", ids);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stipend_records", cohortYear, paymentMonth] });
       setBulkDeleteOpen(false);
-      toast.success("All records for this month deleted");
+      toast.success("All records for this month archived");
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -321,6 +475,43 @@ export default function Stipends() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stipend_records", cohortYear, paymentMonth] });
       toast.success("All founders initialized");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  // Carry-forward BASE only from each founder's most recent prior month.
+  // Explicit action — never automatic. Deductions / additions / reimbursement reset to 0.
+  const carryForwardMutation = useMutation({
+    mutationFn: async () => {
+      const latest = priorMonthMeta?.latest;
+      if (!latest || latest.size === 0) return 0;
+      const missing = cohortFounders.filter((f) => !recordsByFounder.has(f.id));
+      const rows = missing
+        .filter((f) => latest.has(f.id))
+        .map((f) => {
+          const base = latest.get(f.id)!.base || 0;
+          return {
+            founder_id: f.id,
+            cohort_year: cohortYear,
+            payment_month: monthKey,
+            base_amount: base,
+            deduction_percent: 0,
+            deduction_fixed: 0,
+            addition_percent: 0,
+            addition_fixed: 0,
+            reimbursement: 0,
+            total_net: base,
+            status: "pending",
+          };
+        });
+      if (!rows.length) return 0;
+      const { error } = await supabase.from("stipend_records").insert(rows);
+      if (error) throw error;
+      return rows.length;
+    },
+    onSuccess: (n) => {
+      queryClient.invalidateQueries({ queryKey: ["stipend_records", cohortYear, paymentMonth] });
+      toast.success(n ? `Carried forward base for ${n} founder${n === 1 ? "" : "s"}` : "Nothing to carry forward");
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -430,30 +621,66 @@ export default function Stipends() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Label className="text-sm font-medium whitespace-nowrap">Cohort Year</Label>
-            <CohortSelect value={cohortYear} onChange={setCohortYear} className="w-28 h-9" />
+        <CardContent className="p-4 flex flex-col gap-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium whitespace-nowrap">Cohort Year</Label>
+              <CohortSelect value={cohortYear} onChange={setCohortYear} className="w-28 h-9" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium whitespace-nowrap">Payment Month</Label>
+              <Select value={paymentMonth} onValueChange={setPaymentMonth}>
+                <SelectTrigger className="w-36 h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {MONTHS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium whitespace-nowrap flex items-center gap-1"><Wallet className="h-3.5 w-3.5" /> Budget Line</Label>
+              <Select value={selectedBudgetLineId || "none"} onValueChange={(v) => setSelectedBudgetLineId(v === "none" ? "" : v)}>
+                <SelectTrigger className="w-52 h-9"><SelectValue placeholder={cohortId ? "Select budget line" : "No cohort match"} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— None (won't draw)</SelectItem>
+                  {budgetLines.map((b: any) => (
+                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {uninitializedCount > 0 && (
+              <Button size="sm" onClick={() => initAllMutation.mutate()} disabled={initAllMutation.isPending}>
+                <Zap className="mr-1 h-3.5 w-3.5" /> Initialize All ({uninitializedCount})
+              </Button>
+            )}
+            {records.length === 0 && priorMonthMeta?.latest && priorMonthMeta.latest.size > 0 && (
+              <Button size="sm" variant="outline" onClick={() => carryForwardMutation.mutate()} disabled={carryForwardMutation.isPending}>
+                <History className="mr-1 h-3.5 w-3.5" />
+                Carry forward base{priorMonthMeta.sourceMonth ? ` from ${priorMonthMeta.sourceMonth.replace(` ${cohortYear}`, "")}` : ""}
+              </Button>
+            )}
+            <span className="text-xs text-muted-foreground ml-auto">
+              {cohortFounders.length} founder{cohortFounders.length !== 1 ? "s" : ""} in cohort
+            </span>
           </div>
-          <div className="flex items-center gap-2">
-            <Label className="text-sm font-medium whitespace-nowrap">Payment Month</Label>
-            <Select value={paymentMonth} onValueChange={setPaymentMonth}>
-              <SelectTrigger className="w-36 h-9"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {MONTHS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-6 pt-1 border-t">
+            <label className="flex items-center gap-2 text-xs text-muted-foreground pt-2">
+              <Switch checked={showRisk} onCheckedChange={setShowRisk} />
+              <AlertTriangle className="h-3.5 w-3.5" /> Show founder risk
+            </label>
+            <label className="flex items-center gap-2 text-xs text-muted-foreground pt-2">
+              <Switch checked={showArchived} onCheckedChange={setShowArchived} />
+              <ArchiveRestore className="h-3.5 w-3.5" /> Show archived
+            </label>
+            {selectedBudgetLineId && (
+              <span className="text-xs text-muted-foreground pt-2 ml-auto">
+                Paid stipends will draw against <span className="font-medium text-foreground">{budgetLines.find((b: any) => b.id === selectedBudgetLineId)?.name}</span>
+              </span>
+            )}
           </div>
-          {uninitializedCount > 0 && (
-            <Button size="sm" onClick={() => initAllMutation.mutate()} disabled={initAllMutation.isPending}>
-              <Zap className="mr-1 h-3.5 w-3.5" /> Initialize All ({uninitializedCount})
-            </Button>
-          )}
-          <span className="text-xs text-muted-foreground ml-auto">
-            {cohortFounders.length} founder{cohortFounders.length !== 1 ? "s" : ""} in cohort
-          </span>
         </CardContent>
       </Card>
+
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -544,7 +771,10 @@ export default function Stipends() {
                         <TableRow key={founder.id} className="bg-muted/30">
                           <TableCell>
                             <div>
-                              <p className="font-medium text-sm">{founder.founder_name}</p>
+                              <p className="font-medium text-sm flex items-center gap-1.5">
+                                {founder.founder_name}
+                                {showRisk && <RiskBadge info={engagementByFounder.get(founder.id)} />}
+                              </p>
                               <p className="text-xs text-muted-foreground">{founder.startup_name}</p>
                             </div>
                           </TableCell>
@@ -575,13 +805,18 @@ export default function Stipends() {
                     const links = parseLinks(rec.stipend_links);
 
                     return (
-                      <TableRow key={rec.id}>
+                      <TableRow key={rec.id} className={rec.is_archived ? "opacity-60" : ""}>
                         <TableCell>
                           <div>
-                            <p className="font-medium text-sm">{founder.founder_name}</p>
+                            <p className="font-medium text-sm flex items-center gap-1.5">
+                              {founder.founder_name}
+                              {rec.is_archived && <Badge variant="outline" className="text-[10px] px-1 py-0">Archived</Badge>}
+                              {showRisk && <RiskBadge info={engagementByFounder.get(founder.id)} />}
+                            </p>
                             <p className="text-xs text-muted-foreground">{founder.startup_name}</p>
                           </div>
                         </TableCell>
+
                         <TableCell>
                           <RibDisplay rib={rib} />
                         </TableCell>
@@ -652,8 +887,8 @@ export default function Stipends() {
                               <DropdownMenuItem onClick={() => openEdit(rec)}>
                                 <Pencil className="mr-2 h-3 w-3" /> Edit
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(rec.id)}>
-                                <Trash2 className="mr-2 h-3 w-3" /> Delete
+                              <DropdownMenuItem className={rec.is_archived ? "" : "text-destructive"} onClick={() => setDeleteId(rec.id)}>
+                                {rec.is_archived ? (<><ArchiveRestore className="mr-2 h-3 w-3" /> Restore</>) : (<><Trash2 className="mr-2 h-3 w-3" /> Archive</>)}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -915,3 +1150,25 @@ function InlineInput({ value, onCommit }: { value: number | null; onCommit: (v: 
     />
   );
 }
+
+/* ── Founder Risk badge (informational only — never auto-applies a deduction) ── */
+function RiskBadge({ info }: { info?: { risk_status: string | null; attendance_rate: number | null } }) {
+  if (!info || !info.risk_status) {
+    return <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">no signal</Badge>;
+  }
+  const risk = (info.risk_status || "").toLowerCase();
+  const style =
+    risk === "high" || risk === "at_risk" || risk === "at risk"
+      ? "bg-red-100 text-red-700 border-0"
+      : risk === "medium" || risk === "watch"
+      ? "bg-orange-100 text-orange-700 border-0"
+      : "bg-emerald-100 text-emerald-700 border-0";
+  const rate = info.attendance_rate != null ? ` · ${Math.round(Number(info.attendance_rate) * (Number(info.attendance_rate) <= 1 ? 100 : 1))}%` : "";
+  return (
+    <Badge className={`text-[10px] px-1.5 py-0 font-normal gap-0.5 ${style}`}>
+      <AlertTriangle className="h-2.5 w-2.5" />
+      {info.risk_status}{rate}
+    </Badge>
+  );
+}
+
