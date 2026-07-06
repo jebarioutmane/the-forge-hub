@@ -1,4 +1,4 @@
-import { Users, TrendingUp, BookOpen, Settings, ClipboardCheck } from "lucide-react";
+import { Users, TrendingUp, BookOpen, Settings, ClipboardCheck, BarChart3 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
