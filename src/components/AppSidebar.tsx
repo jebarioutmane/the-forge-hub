@@ -62,6 +62,7 @@ const sections = [
     items: [
       { title: "Budget Lines", url: "/operations/budget-lines", icon: Layers },
       { title: "Team Profiles", url: "/system/profiles", icon: UserCircle },
+      { title: "Tags & Labels", url: "/system/tags", icon: Tag },
       { title: "History Log", url: "/system/history", icon: History },
       { title: "Library", url: "/library", icon: BookOpen },
       { title: "Settings", url: "/settings", icon: Settings },
