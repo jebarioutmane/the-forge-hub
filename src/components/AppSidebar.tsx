@@ -31,7 +31,7 @@ const sections = [
     label: "Operations",
     color: "text-module-operations",
     items: [
-      { title: "Budget Dashboard", url: "/operations/source", icon: PiggyBank },
+      { title: "Budget Dashboard", url: "/operations", icon: PiggyBank },
       { title: "Expenses", url: "/operations/expenses", icon: DollarSign },
       { title: "Stipends", url: "/operations/stipends", icon: Wallet },
       { title: "Contracts", url: "/operations/contracts", icon: FileText },

@@ -404,7 +404,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
               const pages = [
                 { title: "Home", path: "/", icon: Home, keywords: "home command center dashboard" },
                 { title: "Operations Dashboard", path: "/operations", icon: LayoutDashboard, keywords: "operations dashboard budget overview" },
-                { title: "Budget Source", path: "/operations/source", icon: DollarSign, keywords: "budget source categories lines cohorts vendors" },
+                { title: "Budget Lines", path: "/operations/budget-lines", icon: DollarSign, keywords: "budget lines sponsor allocations categories" },
                 { title: "Expenses", path: "/operations/expenses", icon: DollarSign, keywords: "expenses spending payments" },
                 { title: "Stipends", path: "/operations/stipends", icon: Wallet, keywords: "stipends payouts founders monthly" },
                 { title: "Contracts", path: "/operations/contracts", icon: FileText, keywords: "contracts agreements vendors" },
@@ -562,7 +562,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
             {expenses && expenses.length > 0 && (
               <CommandGroup heading="Expenses">
                 {expenses.map((e) => (
-                  <CommandItem key={e.id} value={`expense-${e.description}-${e.beneficiary_name}`} onSelect={() => go(`/operations/source?highlight=${e.id}`)} className="flex items-center gap-3 cursor-pointer">
+                  <CommandItem key={e.id} value={`expense-${e.description}-${e.beneficiary_name}`} onSelect={() => go(`/operations/expenses?highlight=${e.id}`)} className="flex items-center gap-3 cursor-pointer">
                     <DollarSign className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <div className="flex flex-col min-w-0">
                       <span className="text-sm font-medium truncate">{highlightMatch(e.description, trimmed)}</span>
@@ -607,7 +607,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
             {budgetLines && budgetLines.length > 0 && (
               <CommandGroup heading="Budget Lines">
                 {budgetLines.map((b: any) => (
-                  <CommandItem key={b.id} value={`bline-${b.id}-${b.name}`} onSelect={() => go(`/operations/source?highlight=${b.id}`)} className="flex items-center gap-3 cursor-pointer">
+                  <CommandItem key={b.id} value={`bline-${b.id}-${b.name}`} onSelect={() => go(`/operations/budget-lines?highlight=${b.id}`)} className="flex items-center gap-3 cursor-pointer">
                     <DollarSign className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <div className="flex flex-col min-w-0">
                       <span className="text-sm font-medium truncate">{highlightMatch(b.name, trimmed)}</span>
@@ -623,7 +623,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
             {vendors && vendors.length > 0 && (
               <CommandGroup heading="Vendors">
                 {vendors.map((v: any) => (
-                  <CommandItem key={v.id} value={`vendor-${v.id}-${v.name}`} onSelect={() => go(`/operations/source?highlight=${v.id}`)} className="flex items-center gap-3 cursor-pointer">
+                  <CommandItem key={v.id} value={`vendor-${v.id}-${v.name}`} onSelect={() => go(`/operations/expenses?highlight=${v.id}`)} className="flex items-center gap-3 cursor-pointer">
                     <Handshake className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <div className="flex flex-col min-w-0">
                       <span className="text-sm font-medium truncate">{highlightMatch(v.name, trimmed)}</span>
@@ -637,7 +637,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
             {cohorts && cohorts.length > 0 && (
               <CommandGroup heading="Cohorts">
                 {cohorts.map((c: any) => (
-                  <CommandItem key={c.id} value={`cohort-${c.id}-${c.name}`} onSelect={() => go(`/operations/source?highlight=${c.id}`)} className="flex items-center gap-3 cursor-pointer">
+                  <CommandItem key={c.id} value={`cohort-${c.id}-${c.name}`} onSelect={() => go(`/operations/expenses?highlight=${c.id}`)} className="flex items-center gap-3 cursor-pointer">
                     <DollarSign className="h-4 w-4 shrink-0 text-muted-foreground" />
                     <div className="flex flex-col min-w-0">
                       <span className="text-sm font-medium truncate">{highlightMatch(c.name, trimmed)}</span>
