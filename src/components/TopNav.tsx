@@ -194,6 +194,8 @@ export function TopNav() {
 
         {/* Right side */}
         <div className="flex items-center gap-2">
+          {/* Global cohort selector — shared context across every page */}
+          <CohortSwitcher compact={isMobile} />
           {/* Mobile: always show search icon */}
           {isMobile && (
             <button
