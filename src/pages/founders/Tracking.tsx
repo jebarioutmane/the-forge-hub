@@ -864,7 +864,7 @@ export default function Tracking() {
 
       <ConfirmDeleteDialog
         open={!!deleteId}
-        onOpenChange={(o) => !o && setDeleteId(null)}
+        onCancel={() => setDeleteId(null)}
         onConfirm={() => deleteId && archiveMutation.mutate(deleteId)}
         title="Remove this check-in?"
         description="It will be archived and hidden from history."
