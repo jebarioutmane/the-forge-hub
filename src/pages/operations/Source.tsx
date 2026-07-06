@@ -78,9 +78,7 @@ export default function Source() {
   // Paid stipends also draw against a budget line. Additional spend sources
   // (e.g. contract payments) should be added the same way: query, then merge
   // into spentByLine below.
-  const cohortLabelForStipends = cohortScoped
-    ? (useCohort().selectedCohort?.label ?? null)
-    : null;
+  const cohortLabelForStipends = cohortScoped ? (selectedCohort?.label ?? null) : null;
   const { data: paidStipends = [] } = useQuery({
     queryKey: ["stipend_records", "for-budget", selectedCohortId, cohortLabelForStipends],
     queryFn: async () => {
