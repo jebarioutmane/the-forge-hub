@@ -774,15 +774,23 @@ export default function Tracking() {
                                   <DropdownMenuItem onClick={() => setViewingCheckin(c)}>
                                     <Eye className="h-3.5 w-3.5 mr-2" /> View
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => beginEdit(c)}>
-                                    <Pencil className="h-3.5 w-3.5 mr-2" /> Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => setDeleteId(c.id)}
-                                    className="text-destructive focus:text-destructive"
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
-                                  </DropdownMenuItem>
+                                  {showArchived ? (
+                                    <DropdownMenuItem onClick={() => restoreMutation.mutate(c.id)}>
+                                      <RotateCcw className="h-3.5 w-3.5 mr-2" /> Restore
+                                    </DropdownMenuItem>
+                                  ) : (
+                                    <>
+                                      <DropdownMenuItem onClick={() => beginEdit(c)}>
+                                        <Pencil className="h-3.5 w-3.5 mr-2" /> Edit
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        onClick={() => setDeleteId(c.id)}
+                                        className="text-destructive focus:text-destructive"
+                                      >
+                                        <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </div>
