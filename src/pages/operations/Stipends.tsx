@@ -887,8 +887,8 @@ export default function Stipends() {
                               <DropdownMenuItem onClick={() => openEdit(rec)}>
                                 <Pencil className="mr-2 h-3 w-3" /> Edit
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive" onClick={() => setDeleteId(rec.id)}>
-                                <Trash2 className="mr-2 h-3 w-3" /> Delete
+                              <DropdownMenuItem className={rec.is_archived ? "" : "text-destructive"} onClick={() => setDeleteId(rec.id)}>
+                                {rec.is_archived ? (<><ArchiveRestore className="mr-2 h-3 w-3" /> Restore</>) : (<><Trash2 className="mr-2 h-3 w-3" /> Archive</>)}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
