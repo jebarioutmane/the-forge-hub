@@ -75,14 +75,39 @@ export default function Source() {
     },
   });
 
+  // Paid stipends also draw against a budget line. Additional spend sources
+  // (e.g. contract payments) should be added the same way: query, then merge
+  // into spentByLine below.
+  const cohortLabelForStipends = cohortScoped
+    ? (useCohort().selectedCohort?.label ?? null)
+    : null;
+  const { data: paidStipends = [] } = useQuery({
+    queryKey: ["stipend_records", "for-budget", selectedCohortId, cohortLabelForStipends],
+    queryFn: async () => {
+      let q = supabase
+        .from("stipend_records")
+        .select("id, total_net, budget_line_id, status, is_archived, cohort_year")
+        .eq("is_archived", false)
+        .eq("status", "paid");
+      if (cohortScoped && cohortLabelForStipends) {
+        q = q.eq("cohort_year", cohortLabelForStipends);
+      }
+      const { data, error } = await q;
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const spentByLine = useMemo(() => {
     const m: Record<string, number> = {};
-    for (const e of expenses as any[]) {
-      if (!e.budget_line_id) continue;
-      m[e.budget_line_id] = (m[e.budget_line_id] || 0) + Number(e.amount || 0);
-    }
+    const add = (lineId: string | null | undefined, amt: number) => {
+      if (!lineId) return;
+      m[lineId] = (m[lineId] || 0) + amt;
+    };
+    for (const e of expenses as any[]) add(e.budget_line_id, Number(e.amount || 0));
+    for (const s of paidStipends as any[]) add(s.budget_line_id, Number(s.total_net || 0));
     return m;
-  }, [expenses]);
+  }, [expenses, paidStipends]);
 
   const totalAllocated = useMemo(
     () => lines.reduce((s, l) => s + Number(l.allocated_amount || 0), 0),
