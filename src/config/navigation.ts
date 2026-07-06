@@ -2,7 +2,7 @@ import {
   LayoutDashboard, DollarSign, FileText, CalendarDays,
   ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
   Settings, Wallet, PiggyBank, ClipboardList,
-  BarChart3, Users2, Layers, Tag, UserCircle,
+  BarChart3, Users2, Layers, Tag, UserCircle, ListTodo,
   type LucideIcon,
 } from "lucide-react";
 
