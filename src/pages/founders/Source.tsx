@@ -388,6 +388,10 @@ export default function FoundersSource() {
         passport_number: form.passport_number || null,
         birthday: form.birthday || null,
         photo_url: form.photo_url || null,
+        sector: form.sector || null,
+        stage: form.stage || null,
+        funding_raised: form.funding_raised ? Number(form.funding_raised) : null,
+        funding_currency: form.funding_currency || "MAD",
       };
       if (editing) {
         const { error } = await supabase.from("founders").update(payload).eq("id", editing.id);
