@@ -309,7 +309,7 @@ function OverviewTab({
 
       <div>
         <Label className="text-xs">Tags</Label>
-        <TagPicker selectedIds={form.tag_ids} onChange={ids => set("tag_ids", ids)} />
+        <TagPicker value={form.tag_ids} onChange={ids => set("tag_ids", ids)} />
       </div>
 
       <LinksEditor value={form.links} onChange={v => set("links", v)} />
