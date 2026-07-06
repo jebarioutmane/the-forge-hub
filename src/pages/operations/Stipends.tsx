@@ -88,6 +88,8 @@ export default function Stipends() {
   const [showRisk, setShowRisk] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [selectedBudgetLineId, setSelectedBudgetLineId] = useState<string>("");
+  const [bulkStatusTarget, setBulkStatusTarget] = useState<"pending" | "approved" | "paid" | "">("");
+  const [bulkStatusConfirmOpen, setBulkStatusConfirmOpen] = useState(false);
 
   const cohortFounders = useMemo(
     () => founders.filter((f) => f.cohort_year === cohortYear),
