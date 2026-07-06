@@ -101,6 +101,10 @@ interface FounderForm {
   passport_number: string;
   birthday: string;
   photo_url: string;
+  sector: string;
+  stage: string;
+  funding_raised: string;
+  funding_currency: string;
 }
 
 const emptyForm: FounderForm = {
@@ -119,6 +123,10 @@ const emptyForm: FounderForm = {
   passport_number: "",
   birthday: "",
   photo_url: "",
+  sector: "",
+  stage: "",
+  funding_raised: "",
+  funding_currency: "MAD",
 };
 
 const NONE = "__none__";
