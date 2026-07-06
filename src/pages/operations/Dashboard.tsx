@@ -146,7 +146,7 @@ export default function OperationsDashboard() {
     const evts: Ev[] = [];
     for (const e of expenses as any[]) {
       if (String(e.status).toLowerCase() === "paid") {
-        evts.push({ at: (e.paid_at || e.created_at || "").slice(0, 10), amt: Number(e.amount || 0) });
+        evts.push({ at: (e.created_at || "").slice(0, 10), amt: Number(e.amount || 0) });
       }
     }
     for (const s of stipends as any[]) {
