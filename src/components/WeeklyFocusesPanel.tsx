@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ChevronRight,
   Plus,
+  Pencil,
   Link as LinkIcon,
   ExternalLink,
   Archive,
@@ -286,8 +287,9 @@ export default function WeeklyFocusesPanel() {
                             variant="ghost" size="icon" className="h-7 w-7"
                             onClick={() => { setEditing(f); setDialogOpen(true); }}
                             aria-label="Edit"
+                            title="Edit"
                           >
-                            <Plus className="h-3.5 w-3.5 rotate-45" />
+                            <Pencil className="h-3.5 w-3.5" />
                           </Button>
                           <Button
                             variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-rose-600"
@@ -377,10 +379,8 @@ function FocusDialog({
   const [newLinkUrl, setNewLinkUrl] = useState("");
   const [saving, setSaving] = useState(false);
 
-  useState(() => {}); // no-op
-
-  // Reset when opening
-  useMemo(() => {
+  // Reset form state whenever the dialog opens or the editing target changes
+  useEffect(() => {
     if (open) {
       setTitle(editing?.title ?? "");
       setDetails(editing?.details ?? "");
