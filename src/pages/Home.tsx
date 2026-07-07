@@ -132,6 +132,10 @@ export default function Home() {
       {/* Event Countdowns */}
       <EventCountdowns />
 
+      {/* Upcoming Birthdays */}
+      <BirthdaysPanel />
+
+
       {/* Split Layout: Leaderboard + Map */}
       <div className="flex flex-col gap-8 w-full">
         <div className="w-full bg-card rounded-2xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-[500px]">
