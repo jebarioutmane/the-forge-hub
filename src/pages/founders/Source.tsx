@@ -941,7 +941,7 @@ export default function FoundersSource() {
                 <DetailRow
                   icon={<IdCard className="h-4 w-4" />}
                   label="CIN"
-                  value={viewing.cin_number}
+                  value={<Sensitive section="founders" value={viewing.cin_number} />}
                 />
                 <DetailRow
                   icon={<BadgeCheck className="h-4 w-4" />}
