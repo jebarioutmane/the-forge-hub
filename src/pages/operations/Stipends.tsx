@@ -51,6 +51,10 @@ function parseLinks(raw: any): StipendLink[] {
 
 export default function Stipends() {
   const { user } = useAuth();
+  const { canEdit, canDelete, canSeeSensitive } = usePermissions();
+  const mayEdit = canEdit("stipends");
+  const mayDelete = canDelete("stipends");
+  const maySeeRib = canSeeSensitive("stipends");
   const queryClient = useQueryClient();
 
   const { data: founders = [] } = useQuery({
