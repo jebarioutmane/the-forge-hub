@@ -83,10 +83,16 @@ export function TopNav() {
   const location = useLocation();
   const isMobile = useIsMobile();
   const { onlineUserIds } = usePresence();
+  const { canView } = usePermissions();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const isHome = location.pathname === "/";
+
+  const visibleSections = NAV_SECTIONS
+    .map((s) => ({ ...s, items: s.items.filter((i) => canView(i.section as PermissionSection | undefined)) }))
+    .filter((s) => s.items.length > 0);
+
 
   return (
     <>
