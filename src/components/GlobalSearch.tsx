@@ -15,6 +15,7 @@ import {
   DollarSign, ListTodo, BookOpen, Handshake, Wallet,
   TrendingUp, ClipboardCheck, History, Home, Settings, LayoutDashboard,
   Tag, UserCog, Briefcase, Link as LinkIcon,
+  FileBarChart, ClipboardList, Target,
 } from "lucide-react";
 import { getFlag } from "@/lib/countries";
 
@@ -375,6 +376,49 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     },
   });
 
+  const { data: reportTemplates } = useQuery({
+    queryKey: ["global-search-report-templates", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("report_templates")
+        .select("id, name, description, is_archived")
+        .eq("is_archived", false)
+        .or(`name.ilike.%${trimmed}%,description.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: reportInstances } = useQuery({
+    queryKey: ["global-search-report-instances", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("report_instances")
+        .select("id, title, status, period_start, period_end, is_archived")
+        .eq("is_archived", false)
+        .or(`title.ilike.%${trimmed}%,status.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: weeklyFocuses } = useQuery({
+    queryKey: ["global-search-weekly-focuses", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("weekly_focuses")
+        .select("id, title, details, deadline, is_done, is_archived")
+        .eq("is_archived", false)
+        .or(`title.ilike.%${trimmed}%,details.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+
   const go = useCallback(
     (path: string) => {
       onOpenChange(false);
@@ -417,6 +461,9 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                 { title: "Portfolio Dashboard", path: "/founders/portfolio", icon: LayoutDashboard, keywords: "portfolio dashboard founders overview charts" },
                 { title: "Library", path: "/library", icon: BookOpen, keywords: "library resources documents links" },
                 { title: "Team Profiles", path: "/system/profiles", icon: Users2, keywords: "team profiles staff members system" },
+                { title: "Roles & Permissions", path: "/system/roles", icon: UserCog, keywords: "roles permissions access super admin" },
+                { title: "Report Templates", path: "/reporting/templates", icon: ClipboardList, keywords: "report templates reporting" },
+                { title: "Reports", path: "/reporting/reports", icon: FileBarChart, keywords: "reports reporting export pdf excel" },
                 { title: "History Log", path: "/system/history", icon: History, keywords: "history log audit time machine changes" },
                 { title: "Settings", path: "/settings", icon: Settings, keywords: "settings preferences tags configuration" },
               ];
@@ -759,6 +806,50 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                 ))}
               </CommandGroup>
             )}
+
+            {reportTemplates && reportTemplates.length > 0 && (
+              <CommandGroup heading="Report Templates">
+                {reportTemplates.map((t: any) => (
+                  <CommandItem key={t.id} value={`rtpl-${t.id}-${t.name}`} onSelect={() => go(`/reporting/templates/${t.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <ClipboardList className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(t.name, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{(t.description ?? "Template").slice(0, 80)}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {reportInstances && reportInstances.length > 0 && (
+              <CommandGroup heading="Reports">
+                {reportInstances.map((r: any) => (
+                  <CommandItem key={r.id} value={`rrep-${r.id}-${r.title}`} onSelect={() => go(`/reporting/reports/${r.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <FileBarChart className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(r.title, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{r.status ?? "draft"} · {r.period_start ?? ""}{r.period_end ? ` → ${r.period_end}` : ""}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {weeklyFocuses && weeklyFocuses.length > 0 && (
+              <CommandGroup heading="Weekly Focuses">
+                {weeklyFocuses.map((w: any) => (
+                  <CommandItem key={w.id} value={`wfoc-${w.id}-${w.title}`} onSelect={() => go(`/?highlight=${w.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <Target className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(w.title, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{w.is_done ? "Done" : "Open"}{w.deadline ? ` · due ${w.deadline}` : ""}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+
 
 
             {cohortsRes && cohortsRes.length > 0 && (
