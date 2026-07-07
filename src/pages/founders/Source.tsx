@@ -76,6 +76,8 @@ import { TagBadges } from "@/components/TagBadges";
 import { format } from "date-fns";
 import { formatUrl } from "@/lib/formatUrl";
 import type { Tables } from "@/integrations/supabase/types";
+import { usePermissions } from "@/hooks/usePermissions";
+import { Sensitive } from "@/components/permissions/Sensitive";
 
 type Founder = Tables<"founders">;
 type Cohort = Tables<"cohorts">;
