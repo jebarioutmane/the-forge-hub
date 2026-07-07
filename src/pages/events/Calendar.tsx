@@ -70,6 +70,21 @@ export default function Calendar() {
   const [wsEventId, setWsEventId] = useState<string | null>(null);
   const [wsInitialMultipart, setWsInitialMultipart] = useState(false);
   const [typeChooserOpen, setTypeChooserOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Deep-link: /events/calendar?event=<id> opens that event in the workspace.
+  useEffect(() => {
+    const id = searchParams.get("event");
+    if (id) {
+      setWsEventId(id);
+      setWsInitialMultipart(false);
+      setWsOpen(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete("event");
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
 
   const { data: rawEvents = [], isLoading } = useQuery({
