@@ -174,7 +174,7 @@ export default function Calendar() {
             One workspace per event · attendance, stakeholders, logistics & checklist
           </p>
         </div>
-        <Button onClick={() => openEvent(null)} className="rounded-full">
+        <Button onClick={() => setTypeChooserOpen(true)} className="rounded-full">
           <Plus className="h-4 w-4 mr-1.5" /> New Event
         </Button>
       </div>
