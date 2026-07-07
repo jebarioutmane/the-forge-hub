@@ -347,6 +347,18 @@ function OverviewTab({
 
       <SlotsEditor value={form.one_on_one_slots} onChange={v => set("one_on_one_slots", v)} />
 
+      {isMultipart && (
+        event
+          ? <SessionsEditor eventId={event.id} />
+          : (
+            <div className="rounded-lg border border-dashed p-4 text-xs text-muted-foreground">
+              <Layers className="h-4 w-4 inline mr-1.5 -mt-0.5" />
+              Save the event first, then add its sessions here.
+            </div>
+          )
+      )}
+
+
       <div className="flex items-center justify-between pt-4 border-t">
         <div>
           {event && (
