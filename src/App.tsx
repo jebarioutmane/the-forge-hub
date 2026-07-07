@@ -87,8 +87,9 @@ const App = () => (
         </Routes>
         <InstallPrompt />
       </BrowserRouter>
-      </TooltipProvider>
-    </CohortProvider>
+        </TooltipProvider>
+      </CohortProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
