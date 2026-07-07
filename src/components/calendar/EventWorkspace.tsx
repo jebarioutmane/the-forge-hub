@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import {
   Plus, X, Trash2, Archive, ArchiveRestore, Link as LinkIcon,
   Users, UserPlus, Utensils, Bed, Plane, ClipboardList, ExternalLink,
+  ArrowUp, ArrowDown, Layers,
 } from "lucide-react";
 import type { Tables, Json } from "@/integrations/supabase/types";
 
