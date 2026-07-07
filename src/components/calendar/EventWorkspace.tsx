@@ -475,12 +475,151 @@ function SlotsEditor({ value, onChange }: { value: SlotItem[]; onChange: (v: Slo
   );
 }
 
+/* ============================== SESSIONS EDITOR ============================== */
+type EventSession = Tables<"event_sessions">;
+
+function SessionsEditor({ eventId }: { eventId: string }) {
+  const qc = useQueryClient();
+  const { data: sessions = [] } = useQuery({
+    queryKey: ["event-sessions", eventId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("event_sessions")
+        .select("*").eq("event_id", eventId).order("sort_order").order("session_date");
+      if (error) throw error;
+      return data as EventSession[];
+    },
+  });
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["event-sessions", eventId] });
+    qc.invalidateQueries({ queryKey: ["event-attendance", eventId] });
+  };
+
+  const addSession = useMutation({
+    mutationFn: async () => {
+      const nextOrder = sessions.length ? Math.max(...sessions.map(s => s.sort_order ?? 0)) + 1 : 1;
+      const { error } = await supabase.from("event_sessions").insert({
+        event_id: eventId,
+        title: `Session ${sessions.length + 1}`,
+        sort_order: nextOrder,
+      });
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const updateSession = useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: Partial<EventSession> }) => {
+      const { error } = await supabase.from("event_sessions").update(patch).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const removeSession = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("event_sessions").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const reorder = useMutation({
+    mutationFn: async ({ id, dir }: { id: string; dir: -1 | 1 }) => {
+      const idx = sessions.findIndex(s => s.id === id);
+      const swap = sessions[idx + dir];
+      if (!swap) return;
+      const a = sessions[idx];
+      await supabase.from("event_sessions").update({ sort_order: swap.sort_order }).eq("id", a.id);
+      await supabase.from("event_sessions").update({ sort_order: a.sort_order }).eq("id", swap.id);
+    },
+    onSuccess: invalidate,
+  });
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <Layers className="h-4 w-4 text-muted-foreground" /> Sessions
+          <span className="text-xs text-muted-foreground font-normal">({sessions.length})</span>
+        </div>
+        <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => addSession.mutate()}>
+          <Plus className="h-3 w-3 mr-1" /> Add session
+        </Button>
+      </div>
+      {sessions.length === 0 ? (
+        <div className="text-xs text-muted-foreground border rounded-lg px-3 py-6 text-center">
+          No sessions yet. Add Day 1 / Day 2 or Morning / Afternoon.
+        </div>
+      ) : (
+        <div className="space-y-1.5">
+          {sessions.map((s, i) => (
+            <div key={s.id} className="grid grid-cols-[1fr_auto_auto_auto_1fr_auto] gap-1.5 items-center">
+              <Input className="h-8 text-xs" placeholder="Session title" defaultValue={s.title}
+                onBlur={e => e.target.value !== s.title && updateSession.mutate({ id: s.id, patch: { title: e.target.value } })} />
+              <Input type="date" className="h-8 text-xs w-36" defaultValue={s.session_date ?? ""}
+                onBlur={e => updateSession.mutate({ id: s.id, patch: { session_date: e.target.value || null } })} />
+              <Input type="time" className="h-8 text-xs w-24"
+                defaultValue={s.start_time ? new Date(s.start_time).toTimeString().slice(0,5) : ""}
+                onBlur={e => {
+                  const t = e.target.value; if (!t || !s.session_date) return updateSession.mutate({ id: s.id, patch: { start_time: null } });
+                  updateSession.mutate({ id: s.id, patch: { start_time: new Date(`${s.session_date}T${t}:00`).toISOString() } });
+                }} />
+              <Input type="time" className="h-8 text-xs w-24"
+                defaultValue={s.end_time ? new Date(s.end_time).toTimeString().slice(0,5) : ""}
+                onBlur={e => {
+                  const t = e.target.value; if (!t || !s.session_date) return updateSession.mutate({ id: s.id, patch: { end_time: null } });
+                  updateSession.mutate({ id: s.id, patch: { end_time: new Date(`${s.session_date}T${t}:00`).toISOString() } });
+                }} />
+              <Input className="h-8 text-xs" placeholder="Location (optional)" defaultValue={s.location ?? ""}
+                onBlur={e => updateSession.mutate({ id: s.id, patch: { location: e.target.value || null } })} />
+              <div className="flex items-center">
+                <Button variant="ghost" size="icon" className="h-8 w-8" disabled={i === 0}
+                  onClick={() => reorder.mutate({ id: s.id, dir: -1 })}>
+                  <ArrowUp className="h-3.5 w-3.5" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8" disabled={i === sessions.length - 1}
+                  onClick={() => reorder.mutate({ id: s.id, dir: 1 })}>
+                  <ArrowDown className="h-3.5 w-3.5" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeSession.mutate(s.id)}>
+                  <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ============================== ATTENDANCE ============================== */
 function AttendanceTab({ event }: { event: Tables<"events"> }) {
   const qc = useQueryClient();
-  const [session, setSession] = useState("");
+  const isMultipart = !!(event as any).is_multipart;
 
-  // Founders in event's cohort_year (if set), else all
+  const { data: sessions = [] } = useQuery({
+    queryKey: ["event-sessions", event.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("event_sessions")
+        .select("*").eq("event_id", event.id).order("sort_order").order("session_date");
+      if (error) throw error;
+      return data as EventSession[];
+    },
+    enabled: isMultipart,
+  });
+
+  const [selectedSessionId, setSelectedSessionId] = useState<string>("");
+  useEffect(() => {
+    if (isMultipart && sessions.length && !sessions.find(s => s.id === selectedSessionId)) {
+      setSelectedSessionId(sessions[0].id);
+    }
+  }, [isMultipart, sessions, selectedSessionId]);
+
   const { data: founders = [] } = useQuery({
     queryKey: ["founders-for-attendance", event.cohort_year],
     queryFn: async () => {
@@ -497,17 +636,17 @@ function AttendanceTab({ event }: { event: Tables<"events"> }) {
     queryFn: async () => {
       const { data, error } = await supabase.from("event_attendance").select("*").eq("event_id", event.id);
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 
-  const sessionFilter = (r: any) => {
-    if (!session) return !r.notes || !r.notes.startsWith("session:");
-    return r.notes === `session:${session}`;
-  };
-  const relevantRecords = records.filter(sessionFilter);
+  // For multipart: scope records to the currently selected session_id.
+  // For simple: use rows with no session_id (ignore any legacy notes).
+  const scopeFilter = (r: any) => isMultipart
+    ? r.session_id === selectedSessionId
+    : (r.session_id == null);
+  const relevantRecords = records.filter(scopeFilter);
 
-  // If not all_founders, only show founders that already have any attendance record for this event
   const founderList = useMemo(() => {
     if (event.all_founders) return founders;
     const withRec = new Set(records.map(r => r.founder_id));
@@ -517,15 +656,21 @@ function AttendanceTab({ event }: { event: Tables<"events"> }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const availableToAdd = founders.filter(f => !founderList.find(x => x.id === f.id));
 
+  const scopePayload = () => ({
+    session_id: isMultipart ? selectedSessionId : null,
+    notes: null as string | null,
+  });
+
   const setStatus = useMutation({
     mutationFn: async ({ founder_id, status }: { founder_id: string; status: string }) => {
-      const notes = session ? `session:${session}` : null;
-      const existing = records.find(r => r.founder_id === founder_id && ((r.notes || null) === notes));
+      const { session_id } = scopePayload();
+      const existing = records.find(r => r.founder_id === founder_id && ((r.session_id ?? null) === session_id));
       if (existing) {
         const { error } = await supabase.from("event_attendance").update({ status }).eq("id", existing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("event_attendance").insert({ event_id: event.id, founder_id, status, notes });
+        const { error } = await supabase.from("event_attendance")
+          .insert({ event_id: event.id, founder_id, status, session_id, notes: null });
         if (error) throw error;
       }
     },
@@ -535,8 +680,9 @@ function AttendanceTab({ event }: { event: Tables<"events"> }) {
 
   const addFounder = useMutation({
     mutationFn: async (founder_id: string) => {
-      const notes = session ? `session:${session}` : null;
-      const { error } = await supabase.from("event_attendance").insert({ event_id: event.id, founder_id, status: null, notes });
+      const { session_id } = scopePayload();
+      const { error } = await supabase.from("event_attendance")
+        .insert({ event_id: event.id, founder_id, status: null, session_id, notes: null });
       if (error) throw error;
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["event-attendance", event.id] }); setPickerOpen(false); },
@@ -547,16 +693,16 @@ function AttendanceTab({ event }: { event: Tables<"events"> }) {
 
   const bulkSet = useMutation({
     mutationFn: async (status: string) => {
-      const notes = session ? `session:${session}` : null;
-      const updates: { id: string }[] = [];
-      const inserts: { event_id: string; founder_id: string; status: string; notes: string | null }[] = [];
+      const { session_id } = scopePayload();
+      const updates: string[] = [];
+      const inserts: any[] = [];
       for (const f of founderList) {
-        const existing = records.find(r => r.founder_id === f.id && ((r.notes || null) === notes));
-        if (existing) updates.push({ id: existing.id });
-        else inserts.push({ event_id: event.id, founder_id: f.id, status, notes });
+        const existing = records.find(r => r.founder_id === f.id && ((r.session_id ?? null) === session_id));
+        if (existing) updates.push(existing.id);
+        else inserts.push({ event_id: event.id, founder_id: f.id, status, session_id, notes: null });
       }
       if (updates.length) {
-        const { error } = await supabase.from("event_attendance").update({ status }).in("id", updates.map(u => u.id));
+        const { error } = await supabase.from("event_attendance").update({ status }).in("id", updates);
         if (error) throw error;
       }
       if (inserts.length) {
@@ -571,17 +717,47 @@ function AttendanceTab({ event }: { event: Tables<"events"> }) {
     onError: (e: any) => toast.error(e.message),
   });
 
+  // Per-founder session summary (multipart only)
+  const founderSessionSummary = (founder_id: string) => {
+    const present = records.filter(r => r.founder_id === founder_id && r.status === "Present" && r.session_id).length;
+    return { present, total: sessions.length };
+  };
+
+  if (isMultipart && sessions.length === 0) {
+    return (
+      <div className="text-sm text-muted-foreground text-center py-10 border rounded-xl">
+        <Layers className="h-5 w-5 mx-auto mb-2 opacity-60" />
+        This is a multi-part event, but no sessions have been added yet.<br />
+        Go to the Overview tab to add sessions first.
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <Label className="text-xs whitespace-nowrap">Session label</Label>
-          <Input value={session} onChange={e => setSession(e.target.value)}
-            placeholder="Whole event" className="h-8 w-52 text-xs" />
+      {isMultipart && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <Label className="text-xs whitespace-nowrap">Session</Label>
+          <Select value={selectedSessionId} onValueChange={setSelectedSessionId}>
+            <SelectTrigger className="h-8 w-64 text-xs"><SelectValue placeholder="Pick a session" /></SelectTrigger>
+            <SelectContent>
+              {sessions.map(s => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.title}{s.session_date ? ` · ${s.session_date}` : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
+      )}
+
+      <div className="flex items-center gap-3 flex-wrap">
         <div className="ml-auto text-sm">
           <span className="font-mono tabular-nums font-semibold">{attended}</span>
           <span className="text-muted-foreground"> / {founderList.length} present</span>
+          {isMultipart && (
+            <span className="text-muted-foreground"> · this session</span>
+          )}
         </div>
       </div>
 
@@ -602,7 +778,6 @@ function AttendanceTab({ event }: { event: Tables<"events"> }) {
           </Button>
         </div>
       )}
-
 
       {!event.all_founders && (
         <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
@@ -637,11 +812,19 @@ function AttendanceTab({ event }: { event: Tables<"events"> }) {
           {founderList.map((f, idx) => {
             const rec = relevantRecords.find(r => r.founder_id === f.id);
             const status = rec?.status ?? "";
+            const summary = isMultipart ? founderSessionSummary(f.id) : null;
             return (
               <div key={f.id} className={"flex items-center gap-3 px-3 py-2 " + (idx > 0 ? "border-t" : "")}>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium truncate">{f.founder_name}</div>
-                  <div className="text-xs text-muted-foreground truncate">{f.startup_name}</div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {f.startup_name}
+                    {summary && (
+                      <span className="ml-2 text-[11px]">
+                        · attended {summary.present}/{summary.total} sessions
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="inline-flex rounded-full border p-0.5 bg-muted/40">
                   {ATTENDANCE_STATUSES.map(s => (
