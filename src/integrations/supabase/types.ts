@@ -1989,6 +1989,8 @@ export type Database = {
     Functions: {
       active_cohort_id: { Args: never; Returns: string }
       bytea_to_text: { Args: { data: string }; Returns: string }
+      can_view_section: { Args: { sec: string; uid: string }; Returns: boolean }
+      cohort_in_scope: { Args: { c: string; uid: string }; Returns: boolean }
       http: {
         Args: { request: Database["public"]["CompositeTypes"]["http_request"] }
         Returns: Database["public"]["CompositeTypes"]["http_response"]
@@ -2115,6 +2117,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_internal: { Args: { uid: string }; Returns: boolean }
       is_super_admin: { Args: { uid: string }; Returns: boolean }
       text_to_bytea: { Args: { data: string }; Returns: string }
       update_user_role: {
