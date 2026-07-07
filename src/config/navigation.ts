@@ -14,6 +14,8 @@ export type NavItem = {
   url: string;
   icon: LucideIcon;
   description: string;
+  /** Permission section key from role_permissions. Undefined = always visible. */
+  section?: string;
 };
 
 export type NavSection = {
