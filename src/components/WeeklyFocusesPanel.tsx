@@ -33,7 +33,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { formatRelativeUrl } from "@/lib/formatUrl";
+import { formatUrl } from "@/lib/formatUrl";
 
 interface FocusLink {
   label?: string;
