@@ -10,6 +10,7 @@ import EventCountdowns from "@/components/EventCountdowns";
 import TeamPresence from "@/components/TeamPresence";
 import FoundersLeaderboard from "@/components/FoundersLeaderboard";
 import NeedsAttentionPanel from "@/components/NeedsAttentionPanel";
+import BirthdaysPanel from "@/components/BirthdaysPanel";
 
 const shortcuts = [
   {
@@ -130,6 +131,10 @@ export default function Home() {
 
       {/* Event Countdowns */}
       <EventCountdowns />
+
+      {/* Upcoming Birthdays */}
+      <BirthdaysPanel />
+
 
       {/* Split Layout: Leaderboard + Map */}
       <div className="flex flex-col gap-8 w-full">
