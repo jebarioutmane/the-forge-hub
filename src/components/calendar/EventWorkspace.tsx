@@ -233,7 +233,7 @@ function OverviewTab({
         if (error) throw error;
         return event.id;
       } else {
-        const { data, error } = await supabase.from("events").insert(payload).select("id").single();
+        const { data, error } = await supabase.from("events").insert({ ...payload, is_multipart: initialIsMultipart }).select("id").single();
         if (error) throw error;
         return data.id as string;
       }
