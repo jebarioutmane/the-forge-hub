@@ -36,6 +36,7 @@ import NotFound from "./pages/NotFound";
 import { InstallPrompt } from "./components/InstallPrompt";
 import { CohortProvider } from "./contexts/CohortContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { EdgeQuickPanel } from "./components/EdgeQuickPanel";
 import { SectionGate } from "./components/permissions/SectionGate";
 import type { PermissionSection } from "./hooks/usePermissions";
 
@@ -86,6 +87,7 @@ const App = () => (
 
         </Routes>
         <InstallPrompt />
+        <EdgeQuickPanel />
       </BrowserRouter>
         </TooltipProvider>
       </CohortProvider>
