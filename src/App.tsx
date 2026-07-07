@@ -68,6 +68,9 @@ const App = () => (
           <Route path="/system/tags" element={<MainLayout><SystemTags /></MainLayout>} />
           <Route path="/reporting/templates" element={<MainLayout><ReportTemplates /></MainLayout>} />
           <Route path="/reporting/templates/:id" element={<MainLayout><TemplateEditor /></MainLayout>} />
+          <Route path="/reporting/reports" element={<MainLayout><Reports /></MainLayout>} />
+          <Route path="/reporting/reports/:id" element={<MainLayout><ReportEditor /></MainLayout>} />
+
         <Route path="*" element={<NotFound />} />
 
         </Routes>
