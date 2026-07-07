@@ -2,7 +2,7 @@ import { useState } from "react";
 import { LayoutDashboard, Menu, ChevronRight, Search } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MyProfileDialog } from "@/components/MyProfileDialog";
+import { UserMenu } from "@/components/UserMenu";
 import { useIsMobile } from "@/hooks/use-mobile";
 import TeamPresence from "@/components/TeamPresence";
 const appIcon = "/pwa-512x512.png";
