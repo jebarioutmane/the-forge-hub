@@ -375,8 +375,8 @@ export default function SystemProfiles() {
                     )}
                   </div>
 
-                  {/* Role selector for admins */}
-                  {hasEditRights && !isOwn && (
+                  {/* Role selector for admins (legacy text role) */}
+                  {hasEditRights && !isOwn && !isSuperAdmin && (
                     <div className="mt-2">
                       <Select
                         value={profile.role || "user"}
@@ -394,6 +394,19 @@ export default function SystemProfiles() {
                         </SelectContent>
                       </Select>
                     </div>
+                  )}
+
+                  {/* Role assignment (Super Admin only) */}
+                  {isSuperAdmin && (
+                    <RoleAssignmentBlock
+                      profile={profile}
+                      rolesList={rolesList}
+                      cohorts={cohorts}
+                      superAdminRoleId={superAdminRoleId}
+                      superAdminCount={superAdminCount}
+                      onAssignRole={(role_id) => roleIdMutation.mutate({ profileId: profile.id, role_id })}
+                      onScopeChange={(ids) => cohortScopeMutation.mutate({ profileId: profile.id, ids })}
+                    />
                   )}
                 </div>
               </Card>
