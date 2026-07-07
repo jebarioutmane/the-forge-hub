@@ -218,6 +218,10 @@ export default function FoundersSource() {
   const [searchParams] = useSearchParams();
   const highlightId = searchParams.get("highlight");
   const queryClient = useQueryClient();
+  const { canEdit, canDelete, canSeeSensitive } = usePermissions();
+  const mayEdit = canEdit("founders");
+  const mayDelete = canDelete("founders");
+  const maySeeSensitive = canSeeSensitive("founders");
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Founder | null>(null);
