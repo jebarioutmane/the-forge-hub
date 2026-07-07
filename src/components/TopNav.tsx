@@ -116,7 +116,7 @@ export function TopNav() {
               onValueChange={(val) => setIsMenuOpen(!!val)}
             >
               <NavigationMenuList className="gap-0">
-                {NAV_SECTIONS.map((section) => (
+                {visibleSections.map((section) => (
                   <NavigationMenuItem key={section.label}>
                     <NavigationMenuTrigger className="h-auto px-2.5 py-1.5 text-[13px] font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent data-[active]:bg-transparent">
                       {section.label}
@@ -205,7 +205,7 @@ export function TopNav() {
                   </button>
 
                   <Accordion type="single" collapsible className="w-full">
-                    {NAV_SECTIONS.map((section) => (
+                    {visibleSections.map((section) => (
                       <AccordionItem key={section.label} value={section.label} className="border-border">
                         <AccordionTrigger className="py-3 text-xl font-semibold tracking-tight text-muted-foreground hover:text-foreground hover:no-underline">
                           {section.label}
