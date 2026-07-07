@@ -523,6 +523,32 @@ function AttendanceTab({ event }: { event: Tables<"events"> }) {
 
   const attended = relevantRecords.filter(r => r.status === "Present").length;
 
+  const bulkSet = useMutation({
+    mutationFn: async (status: string) => {
+      const notes = session ? `session:${session}` : null;
+      const updates: { id: string }[] = [];
+      const inserts: { event_id: string; founder_id: string; status: string; notes: string | null }[] = [];
+      for (const f of founderList) {
+        const existing = records.find(r => r.founder_id === f.id && ((r.notes || null) === notes));
+        if (existing) updates.push({ id: existing.id });
+        else inserts.push({ event_id: event.id, founder_id: f.id, status, notes });
+      }
+      if (updates.length) {
+        const { error } = await supabase.from("event_attendance").update({ status }).in("id", updates.map(u => u.id));
+        if (error) throw error;
+      }
+      if (inserts.length) {
+        const { error } = await supabase.from("event_attendance").insert(inserts);
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_d, status) => {
+      qc.invalidateQueries({ queryKey: ["event-attendance", event.id] });
+      toast.success(`Marked all ${status.toLowerCase()}`);
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3 flex-wrap">
@@ -536,6 +562,25 @@ function AttendanceTab({ event }: { event: Tables<"events"> }) {
           <span className="text-muted-foreground"> / {founderList.length} present</span>
         </div>
       </div>
+
+      {founderList.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-muted-foreground">Bulk:</span>
+          <Button variant="outline" size="sm" className="h-7 text-xs"
+            disabled={bulkSet.isPending} onClick={() => bulkSet.mutate("Present")}>
+            Mark all present
+          </Button>
+          <Button variant="outline" size="sm" className="h-7 text-xs"
+            disabled={bulkSet.isPending} onClick={() => bulkSet.mutate("Absent")}>
+            Mark all absent
+          </Button>
+          <Button variant="outline" size="sm" className="h-7 text-xs"
+            disabled={bulkSet.isPending} onClick={() => bulkSet.mutate("Excused")}>
+            Mark all excused
+          </Button>
+        </div>
+      )}
+
 
       {!event.all_founders && (
         <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
