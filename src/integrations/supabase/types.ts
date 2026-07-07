@@ -404,6 +404,7 @@ export type Database = {
           founder_id: string | null
           id: string
           notes: string | null
+          session_id: string | null
           status: string | null
         }
         Insert: {
@@ -412,6 +413,7 @@ export type Database = {
           founder_id?: string | null
           id?: string
           notes?: string | null
+          session_id?: string | null
           status?: string | null
         }
         Update: {
@@ -420,6 +422,7 @@ export type Database = {
           founder_id?: string | null
           id?: string
           notes?: string | null
+          session_id?: string | null
           status?: string | null
         }
         Relationships: [
@@ -442,6 +445,13 @@ export type Database = {
             columns: ["founder_id"]
             isOneToOne: false
             referencedRelation: "founders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_attendance_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "event_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -483,6 +493,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "event_logistics_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_sessions: {
+        Row: {
+          created_at: string
+          end_time: string | null
+          event_id: string
+          id: string
+          location: string | null
+          session_date: string | null
+          sort_order: number | null
+          start_time: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          end_time?: string | null
+          event_id: string
+          id?: string
+          location?: string | null
+          session_date?: string | null
+          sort_order?: number | null
+          start_time?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string | null
+          event_id?: string
+          id?: string
+          location?: string | null
+          session_date?: string | null
+          sort_order?: number | null
+          start_time?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_sessions_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
@@ -556,6 +610,7 @@ export type Database = {
           expert_id: string | null
           id: string
           is_archived: boolean
+          is_multipart: boolean
           linked_founder_id: string | null
           links: Json | null
           location: string | null
@@ -580,6 +635,7 @@ export type Database = {
           expert_id?: string | null
           id?: string
           is_archived?: boolean
+          is_multipart?: boolean
           linked_founder_id?: string | null
           links?: Json | null
           location?: string | null
@@ -604,6 +660,7 @@ export type Database = {
           expert_id?: string | null
           id?: string
           is_archived?: boolean
+          is_multipart?: boolean
           linked_founder_id?: string | null
           links?: Json | null
           location?: string | null
