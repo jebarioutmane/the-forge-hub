@@ -17,11 +17,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Plus, Pencil, Eye, User, CalendarIcon, Link2, X, Trash2, Shield, ShieldCheck, ShieldAlert, Search, Check, Mail, Phone, ExternalLink } from "lucide-react";
+import { Plus, Pencil, Eye, User, CalendarIcon, Link2, X, Trash2, Shield, ShieldCheck, ShieldAlert, Search, Check, Mail, Phone, ExternalLink, Lock } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { COUNTRIES, getFlag } from "@/lib/countries";
 import { formatUrl } from "@/lib/formatUrl";
+import { useCohort } from "@/contexts/CohortContext";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Profile = Tables<"profiles">;
@@ -84,8 +85,25 @@ export default function SystemProfiles() {
     },
   });
 
+  const { data: rolesList = [] } = useQuery({
+    queryKey: ["roles-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("roles").select("id,name,is_system,is_external,cohort_scoped").order("name");
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  const { cohorts } = useCohort();
+
   const currentProfile = profiles.find((p) => p.id === user?.id);
+  const currentRoleName = rolesList.find((r) => r.id === (currentProfile as any)?.role_id)?.name;
+  const isSuperAdmin = currentRoleName === "Super Admin";
   const hasEditRights = canEditProfiles(user?.email, currentProfile?.role);
+  const superAdminRoleId = rolesList.find((r) => r.name === "Super Admin")?.id;
+  const superAdminCount = superAdminRoleId
+    ? profiles.filter((p: any) => p.role_id === superAdminRoleId).length
+    : 0;
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -150,6 +168,30 @@ export default function SystemProfiles() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profiles"] });
       toast.success("Role updated");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const roleIdMutation = useMutation({
+    mutationFn: async ({ profileId, role_id }: { profileId: string; role_id: string }) => {
+      const { error } = await supabase.from("profiles").update({ role_id }).eq("id", profileId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
+      toast.success("Role assigned");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const cohortScopeMutation = useMutation({
+    mutationFn: async ({ profileId, ids }: { profileId: string; ids: string[] }) => {
+      const { error } = await supabase.from("profiles").update({ scoped_cohort_ids: ids.length ? ids : null }).eq("id", profileId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
+      toast.success("Cohort scope updated");
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -333,8 +375,8 @@ export default function SystemProfiles() {
                     )}
                   </div>
 
-                  {/* Role selector for admins */}
-                  {hasEditRights && !isOwn && (
+                  {/* Role selector for admins (legacy text role) */}
+                  {hasEditRights && !isOwn && !isSuperAdmin && (
                     <div className="mt-2">
                       <Select
                         value={profile.role || "user"}
@@ -352,6 +394,19 @@ export default function SystemProfiles() {
                         </SelectContent>
                       </Select>
                     </div>
+                  )}
+
+                  {/* Role assignment (Super Admin only) */}
+                  {isSuperAdmin && (
+                    <RoleAssignmentBlock
+                      profile={profile}
+                      rolesList={rolesList}
+                      cohorts={cohorts}
+                      superAdminRoleId={superAdminRoleId}
+                      superAdminCount={superAdminCount}
+                      onAssignRole={(role_id) => roleIdMutation.mutate({ profileId: profile.id, role_id })}
+                      onScopeChange={(ids) => cohortScopeMutation.mutate({ profileId: profile.id, ids })}
+                    />
                   )}
                 </div>
               </Card>
@@ -759,4 +814,84 @@ function getRoleBadgeStatic(role: string | null) {
     default:
       return { label: "User", className: "bg-muted text-muted-foreground border-border" };
   }
+}
+
+function RoleAssignmentBlock({
+  profile, rolesList, cohorts, superAdminRoleId, superAdminCount, onAssignRole, onScopeChange,
+}: {
+  profile: any;
+  rolesList: any[];
+  cohorts: { id: string; label: string }[];
+  superAdminRoleId?: string;
+  superAdminCount: number;
+  onAssignRole: (role_id: string) => void;
+  onScopeChange: (ids: string[]) => void;
+}) {
+  const currentRole = rolesList.find((r) => r.id === profile.role_id);
+  const isLastSuperAdmin =
+    currentRole?.name === "Super Admin" && superAdminCount <= 1;
+  const isHardcodedSuperAdmin = (profile.email || "").toLowerCase() === "outmane.jebari@um6p.ma";
+  const locked = isLastSuperAdmin || isHardcodedSuperAdmin;
+  const scoped: string[] = Array.isArray(profile.scoped_cohort_ids) ? profile.scoped_cohort_ids : [];
+
+  return (
+    <div className="mt-2 space-y-2 text-left">
+      <div className="flex items-center gap-1.5">
+        <Select
+          value={profile.role_id || ""}
+          disabled={locked}
+          onValueChange={(val) => {
+            if (currentRole?.name === "Super Admin" && val !== superAdminRoleId && superAdminCount <= 1) {
+              toast.error("At least one Super Admin must remain");
+              return;
+            }
+            onAssignRole(val);
+          }}
+        >
+          <SelectTrigger className="h-7 text-[11px]">
+            <SelectValue placeholder="Assign role" />
+          </SelectTrigger>
+          <SelectContent>
+            {rolesList.map((r) => (
+              <SelectItem key={r.id} value={r.id} className="text-xs">
+                {r.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {locked && <Lock className="h-3 w-3 text-muted-foreground shrink-0" />}
+      </div>
+
+      {currentRole?.cohort_scoped && (
+        <div className="space-y-1">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground text-left">Cohort scope</p>
+          <div className="flex flex-wrap gap-1">
+            {cohorts.map((c) => {
+              const on = scoped.includes(c.id);
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() =>
+                    onScopeChange(on ? scoped.filter((x) => x !== c.id) : [...scoped, c.id])
+                  }
+                  className={cn(
+                    "px-2 py-0.5 rounded-md text-[10px] border transition-colors",
+                    on
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-secondary text-muted-foreground border-border hover:bg-accent"
+                  )}
+                >
+                  {c.label}
+                </button>
+              );
+            })}
+            {cohorts.length === 0 && (
+              <span className="text-[10px] text-muted-foreground">No cohorts</span>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

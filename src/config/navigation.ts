@@ -3,7 +3,7 @@ import {
   ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
   Settings, Wallet, PiggyBank, ClipboardList,
   BarChart3, Users2, Layers, Tag, UserCircle, ListTodo,
-  FileBarChart, FileSpreadsheet,
+  FileBarChart, FileSpreadsheet, ShieldCheck,
 
   type LucideIcon,
 } from "lucide-react";
@@ -85,6 +85,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { title: "Budget Lines", url: "/operations/budget-lines", icon: Layers, description: "Sponsor budget lines and allocations" },
       { title: "Team Profiles", url: "/system/profiles", icon: UserCircle, description: "Team member directory" },
+      { title: "Roles & Permissions", url: "/system/roles", icon: ShieldCheck, description: "Manage roles and access control (Super Admin)" },
       { title: "Tags & Labels", url: "/system/tags", icon: Tag, description: "Shared tags used across the platform" },
       { title: "History Log", url: "/system/history", icon: ClipboardList, description: "Audit trail and restore" },
       { title: "Library", url: "/library", icon: BookOpen, description: "Shared resource library" },
