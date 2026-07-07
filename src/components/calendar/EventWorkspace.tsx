@@ -157,15 +157,17 @@ function WTab({ v, label, disabled }: { v: string; label: string; disabled?: boo
 
 /* ============================== OVERVIEW ============================== */
 function OverviewTab({
-  event, cohorts, fallbackCohortLabel, onSaved, onArchivedToggle, onClose,
+  event, cohorts, fallbackCohortLabel, initialIsMultipart, onSaved, onArchivedToggle, onClose,
 }: {
   event: Tables<"events"> | null;
   cohorts: Tables<"cohorts">[];
   fallbackCohortLabel: string;
+  initialIsMultipart: boolean;
   onSaved: (id: string) => void;
   onArchivedToggle: () => void;
   onClose: () => void;
 }) {
+  const isMultipart = event ? !!(event as any).is_multipart : initialIsMultipart;
   const qc = useQueryClient();
   const toTimeInput = (v: unknown): string => {
     if (typeof v !== "string" || !v) return "";
