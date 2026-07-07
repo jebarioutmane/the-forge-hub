@@ -25,6 +25,7 @@ import Library from "./pages/Library";
 import SystemProfiles from "./pages/system/Profiles";
 import HistoryLog from "./pages/system/HistoryLog";
 import SystemTags from "./pages/system/Tags";
+import RolesPermissions from "./pages/system/RolesPermissions";
 import ReportTemplates from "./pages/reporting/Templates";
 import TemplateEditor from "./pages/reporting/TemplateEditor";
 import Reports from "./pages/reporting/Reports";
