@@ -507,19 +507,21 @@ export default function FoundersSource() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button
-            onClick={() => {
-              setForm({
-                ...emptyForm,
-                cohort_id:
-                  selectedCohortId !== ALL_COHORTS ? selectedCohortId : "",
-              });
-              setEditing(null);
-              setDialogOpen(true);
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" /> Add founder
-          </Button>
+          {mayEdit && (
+            <Button
+              onClick={() => {
+                setForm({
+                  ...emptyForm,
+                  cohort_id:
+                    selectedCohortId !== ALL_COHORTS ? selectedCohortId : "",
+                });
+                setEditing(null);
+                setDialogOpen(true);
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4" /> Add founder
+            </Button>
+          )}
         </div>
       </div>
 
