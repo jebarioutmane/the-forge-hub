@@ -751,7 +751,7 @@ export default function FoundersSource() {
                         {f.phone && (
                           <span className="inline-flex items-center gap-1">
                             <Phone className="h-3 w-3" />
-                            {f.phone}
+                            {maySeeSensitive ? f.phone : <span className="italic">•••• (restricted)</span>}
                           </span>
                         )}
                       </div>
