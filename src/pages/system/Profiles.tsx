@@ -663,6 +663,9 @@ export default function SystemProfiles() {
 
 /* ── View Profile Sub-component ── */
 function ViewProfileContent({ profile, initials }: { profile: Profile; initials: (n: string | null) => string }) {
+  const { canSeeSensitive } = require("@/hooks/usePermissions").usePermissions() as { canSeeSensitive: (s: string) => boolean };
+  const maySee = canSeeSensitive("team");
+  const mask = (v: string | null | undefined) => (maySee ? (v ?? null) : "•••• (restricted)");
   const links = parseLinks(profile.links);
   const nationalities = (profile.nationalities as string[]) || [];
   const tags = (profile.tags as string[]) || [];
