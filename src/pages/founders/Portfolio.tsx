@@ -388,7 +388,7 @@ export default function PortfolioDashboard() {
                                 </Badge>
                               </td>
                               <td className="px-4 py-3">
-                                {row.attendance_rate != null ? `${Math.round(Number(row.attendance_rate) * 100)}%` : "—"}
+                                {row.attendance_rate != null ? `${Math.round(Number(row.attendance_rate))}%` : "—"}
                               </td>
                               <td className="px-4 py-3 capitalize text-muted-foreground">
                                 {row.latest_effort_signal ?? "—"}
