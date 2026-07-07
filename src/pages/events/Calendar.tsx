@@ -65,6 +65,9 @@ export default function Calendar() {
   const [showArchived, setShowArchived] = useState(false);
   const [wsOpen, setWsOpen] = useState(false);
   const [wsEventId, setWsEventId] = useState<string | null>(null);
+  const [wsInitialMultipart, setWsInitialMultipart] = useState(false);
+  const [typeChooserOpen, setTypeChooserOpen] = useState(false);
+
 
   const { data: rawEvents = [], isLoading } = useQuery({
     queryKey: ["events", showArchived],
