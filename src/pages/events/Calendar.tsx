@@ -35,16 +35,24 @@ function typeStyle(t?: string | null) { return TYPE_STYLES[t || "General"] || TY
 function isValidTime(t?: string | null): t is string {
   return typeof t === "string" && /^\d{2}:\d{2}(:\d{2})?$/.test(t);
 }
+function extractTime(v: unknown): string | null {
+  if (typeof v !== "string" || !v) return null;
+  if (/^\d{2}:\d{2}(:\d{2})?$/.test(v)) return v.slice(0, 5);
+  const d = new Date(v);
+  if (isNaN(d.getTime())) return null;
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
 function enrich(ev: Tables<"events">): CalendarEvent | null {
   if (!ev.start_date) return null;
-  const start = isValidTime(ev.start_time) ? ev.start_time : "09:00";
-  const end = isValidTime(ev.end_time) ? ev.end_time : "17:00";
+  const start = extractTime(ev.start_time) || "09:00";
+  const end = extractTime(ev.end_time) || "17:00";
   const endDate = ev.end_date || ev.start_date;
   const s = new Date(`${ev.start_date}T${start}:00`);
   const e = new Date(`${endDate}T${end}:00`);
   if (isNaN(s.getTime()) || isNaN(e.getTime())) return null;
   return { ...ev, _start: s.toISOString(), _end: e.toISOString() };
 }
+
 
 type View = "month" | "week";
 

@@ -164,13 +164,32 @@ function OverviewTab({
   onClose: () => void;
 }) {
   const qc = useQueryClient();
+  const toTimeInput = (v: unknown): string => {
+    if (typeof v !== "string" || !v) return "";
+    // Already an HH:MM(:SS) time string
+    if (/^\d{2}:\d{2}(:\d{2})?$/.test(v)) return v.slice(0, 5);
+    // Full timestamp — extract local HH:MM
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return "";
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+  };
+  const toTimestamp = (dateStr: string, timeStr: string): string | null => {
+    if (!dateStr || !timeStr) return null;
+    const t = timeStr.length === 5 ? `${timeStr}:00` : timeStr;
+    const d = new Date(`${dateStr}T${t}`);
+    if (isNaN(d.getTime())) return null;
+    return d.toISOString();
+  };
+
   const [form, setForm] = useState(() => ({
     name: event?.name ?? "",
     event_type: event?.event_type ?? "General",
     start_date: event?.start_date ?? new Date().toISOString().slice(0, 10),
     end_date: event?.end_date ?? event?.start_date ?? new Date().toISOString().slice(0, 10),
-    start_time: event?.start_time ?? "09:00",
-    end_time: event?.end_time ?? "17:00",
+    start_time: toTimeInput(event?.start_time) || "09:00",
+    end_time: toTimeInput(event?.end_time) || "17:00",
     location: event?.location ?? "",
     status: event?.status ?? "Planning",
     cohort_year: event?.cohort_year ?? fallbackCohortLabel,
@@ -186,13 +205,14 @@ function OverviewTab({
   const save = useMutation({
     mutationFn: async () => {
       if (!form.name.trim()) throw new Error("Title is required");
+      const endDate = form.end_date || form.start_date;
       const payload: any = {
         name: form.name.trim(),
         event_type: form.event_type,
         start_date: form.start_date,
-        end_date: form.end_date || form.start_date,
-        start_time: form.start_time || null,
-        end_time: form.end_time || null,
+        end_date: endDate,
+        start_time: toTimestamp(form.start_date, form.start_time),
+        end_time: toTimestamp(endDate, form.end_time),
         location: form.location || null,
         status: form.status,
         cohort_year: form.cohort_year || null,
@@ -202,6 +222,7 @@ function OverviewTab({
         one_on_one_slots: form.one_on_one_slots as unknown as Json,
         needs: { description: form.description } as unknown as Json,
       };
+
       if (event) {
         const { error } = await supabase.from("events").update(payload).eq("id", event.id);
         if (error) throw error;
