@@ -698,10 +698,12 @@ export default function StakeholdersDirectory() {
                         <DropdownMenuItem onClick={() => setViewing(s)}>
                           <Eye className="mr-2 h-3.5 w-3.5" /> View
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openEdit(s)}>
-                          <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
-                        </DropdownMenuItem>
-                        {s.is_archived ? (
+                        {mayEdit && (
+                          <DropdownMenuItem onClick={() => openEdit(s)}>
+                            <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
+                          </DropdownMenuItem>
+                        )}
+                        {mayDelete && (s.is_archived ? (
                           <DropdownMenuItem onClick={() => restoreMutation.mutate(s.id)}>
                             <ArchiveRestore className="mr-2 h-3.5 w-3.5" /> Restore
                           </DropdownMenuItem>
@@ -712,7 +714,7 @@ export default function StakeholdersDirectory() {
                           >
                             <Trash2 className="mr-2 h-3.5 w-3.5" /> Archive
                           </DropdownMenuItem>
-                        )}
+                        ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>
