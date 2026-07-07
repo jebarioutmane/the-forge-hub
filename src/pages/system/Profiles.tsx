@@ -815,3 +815,83 @@ function getRoleBadgeStatic(role: string | null) {
       return { label: "User", className: "bg-muted text-muted-foreground border-border" };
   }
 }
+
+function RoleAssignmentBlock({
+  profile, rolesList, cohorts, superAdminRoleId, superAdminCount, onAssignRole, onScopeChange,
+}: {
+  profile: any;
+  rolesList: any[];
+  cohorts: { id: string; label: string }[];
+  superAdminRoleId?: string;
+  superAdminCount: number;
+  onAssignRole: (role_id: string) => void;
+  onScopeChange: (ids: string[]) => void;
+}) {
+  const currentRole = rolesList.find((r) => r.id === profile.role_id);
+  const isLastSuperAdmin =
+    currentRole?.name === "Super Admin" && superAdminCount <= 1;
+  const isHardcodedSuperAdmin = (profile.email || "").toLowerCase() === "outmane.jebari@um6p.ma";
+  const locked = isLastSuperAdmin || isHardcodedSuperAdmin;
+  const scoped: string[] = Array.isArray(profile.scoped_cohort_ids) ? profile.scoped_cohort_ids : [];
+
+  return (
+    <div className="mt-2 space-y-2 text-left">
+      <div className="flex items-center gap-1.5">
+        <Select
+          value={profile.role_id || ""}
+          disabled={locked}
+          onValueChange={(val) => {
+            if (currentRole?.name === "Super Admin" && val !== superAdminRoleId && superAdminCount <= 1) {
+              toast.error("At least one Super Admin must remain");
+              return;
+            }
+            onAssignRole(val);
+          }}
+        >
+          <SelectTrigger className="h-7 text-[11px]">
+            <SelectValue placeholder="Assign role" />
+          </SelectTrigger>
+          <SelectContent>
+            {rolesList.map((r) => (
+              <SelectItem key={r.id} value={r.id} className="text-xs">
+                {r.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {locked && <Lock className="h-3 w-3 text-muted-foreground shrink-0" />}
+      </div>
+
+      {currentRole?.cohort_scoped && (
+        <div className="space-y-1">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground text-left">Cohort scope</p>
+          <div className="flex flex-wrap gap-1">
+            {cohorts.map((c) => {
+              const on = scoped.includes(c.id);
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() =>
+                    onScopeChange(on ? scoped.filter((x) => x !== c.id) : [...scoped, c.id])
+                  }
+                  className={cn(
+                    "px-2 py-0.5 rounded-md text-[10px] border transition-colors",
+                    on
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-secondary text-muted-foreground border-border hover:bg-accent"
+                  )}
+                >
+                  {c.label}
+                </button>
+              );
+            })}
+            {cohorts.length === 0 && (
+              <span className="text-[10px] text-muted-foreground">No cohorts</span>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
