@@ -26,9 +26,9 @@ import type { Tables } from "@/integrations/supabase/types";
 type HistoryLog = Tables<"history_logs">;
 
 const actionColor: Record<string, string> = {
-  INSERT: "bg-emerald-500/15 text-emerald-700 border-emerald-500/20",
-  UPDATE: "bg-amber-500/15 text-amber-700 border-amber-500/20",
-  DELETE: "bg-destructive/15 text-destructive border-destructive/20",
+  INSERT: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
+  UPDATE: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
+  DELETE: "bg-destructive/15 text-destructive border-destructive/30",
 };
 
 function JsonView({ data }: { data: any }) {
@@ -144,7 +144,7 @@ export default function HistoryLog() {
       key: "created_at",
       label: "When",
       render: (row) => (
-        <span className="text-sm tabular-nums text-[#1D1D1F]">
+        <span className="text-sm tabular-nums text-foreground">
           {format(new Date(row.created_at), "MMM d, yyyy HH:mm")}
         </span>
       ),
@@ -192,7 +192,7 @@ export default function HistoryLog() {
           <HistoryIcon className="h-3.5 w-3.5" />
           System · Audit Trail
         </div>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-[#1D1D1F]">
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-foreground">
           History Log
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -202,7 +202,7 @@ export default function HistoryLog() {
       </div>
 
       {/* Filters */}
-      <div className="rounded-2xl border border-black/5 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+      <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
           <div className="lg:col-span-2 relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
