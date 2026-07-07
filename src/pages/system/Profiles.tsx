@@ -172,6 +172,30 @@ export default function SystemProfiles() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const roleIdMutation = useMutation({
+    mutationFn: async ({ profileId, role_id }: { profileId: string; role_id: string }) => {
+      const { error } = await supabase.from("profiles").update({ role_id }).eq("id", profileId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
+      toast.success("Role assigned");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const cohortScopeMutation = useMutation({
+    mutationFn: async ({ profileId, ids }: { profileId: string; ids: string[] }) => {
+      const { error } = await supabase.from("profiles").update({ scoped_cohort_ids: ids.length ? ids : null }).eq("id", profileId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
+      toast.success("Cohort scope updated");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   function openEdit(profile: Profile) {
     setIsNew(false);
     setSelectedProfile(profile);
