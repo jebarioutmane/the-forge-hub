@@ -72,7 +72,9 @@ export const NAV_SECTIONS: NavSection[] = [
     colorClass: "text-primary",
     items: [
       { title: "Report Templates", url: "/reporting/templates", icon: FileBarChart, description: "Reusable report templates and questions" },
+      { title: "Reports", url: "/reporting/reports", icon: FileSpreadsheet, description: "Launch, fill, and export reports" },
     ],
+
   },
   {
 
