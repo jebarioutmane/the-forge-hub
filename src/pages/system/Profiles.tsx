@@ -721,7 +721,7 @@ function ViewProfileContent({ profile, initials }: { profile: Profile; initials:
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Contact</p>
         <div className="grid grid-cols-2 gap-x-6 gap-y-2">
           <DetailRow label="Email" value={profile.email} icon={<Mail className="h-3 w-3" />} />
-          <DetailRow label="Phone" value={profile.phone} icon={<Phone className="h-3 w-3" />} />
+          <DetailRow label="Phone" value={mask(profile.phone)} icon={<Phone className="h-3 w-3" />} />
         </div>
       </div>
 
@@ -729,8 +729,8 @@ function ViewProfileContent({ profile, initials }: { profile: Profile; initials:
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">HR Details</p>
         <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-          <DetailRow label="CIN Number" value={profile.cin_number} />
-          <DetailRow label="Passport" value={profile.passport_number} />
+          <DetailRow label="CIN Number" value={mask(profile.cin_number)} />
+          <DetailRow label="Passport" value={mask(profile.passport_number)} />
           <DetailRow label="Birthday" value={profile.birthday ? format(new Date(profile.birthday), "PPP") : null} />
           <DetailRow label="Date Joined" value={profile.date_joined ? format(new Date(profile.date_joined), "PPP") : null} />
         </div>
