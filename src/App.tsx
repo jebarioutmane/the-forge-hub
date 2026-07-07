@@ -47,8 +47,9 @@ const gated = (section: PermissionSection, element: React.ReactNode) => (
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <CohortProvider>
-      <TooltipProvider>
+    <ThemeProvider>
+      <CohortProvider>
+        <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
