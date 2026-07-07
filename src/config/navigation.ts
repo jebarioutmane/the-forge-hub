@@ -3,7 +3,8 @@ import {
   ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
   Settings, Wallet, PiggyBank, ClipboardList,
   BarChart3, Users2, Layers, Tag, UserCircle, ListTodo,
-  FileBarChart,
+  FileBarChart, FileSpreadsheet,
+
   type LucideIcon,
 } from "lucide-react";
 
