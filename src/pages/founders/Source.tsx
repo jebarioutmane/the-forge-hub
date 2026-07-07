@@ -946,7 +946,7 @@ export default function FoundersSource() {
                 <DetailRow
                   icon={<BadgeCheck className="h-4 w-4" />}
                   label="Passport"
-                  value={viewing.passport_number}
+                  value={<Sensitive section="founders" value={viewing.passport_number} />}
                 />
                 <DetailRow
                   icon={<BookOpen className="h-4 w-4" />}
