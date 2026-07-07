@@ -48,8 +48,9 @@ function fmt(n: number, ccy: Currency = "MAD") {
 
 export default function BudgetLines() {
   const qc = useQueryClient();
-  const { selectedCohortId, selectedCohortLabel, selectedCohort, cohorts } = useCohort();
+  const { selectedCohortId, selectedCohortLabel, selectedCohort, cohorts, isLoading: cohortLoading } = useCohort();
   const cohortScoped = selectedCohortId && selectedCohortId !== ALL_COHORTS;
+
 
   const [search, setSearch] = useState("");
   const [showArchived, setShowArchived] = useState(false);
@@ -194,13 +195,20 @@ export default function BudgetLines() {
         </div>
       </header>
 
-      {!cohortScoped && (
+      {cohortLoading && (
+        <Card className="border-dashed">
+          <CardContent className="py-6 text-center text-sm text-muted-foreground">Loading cohort…</CardContent>
+        </Card>
+      )}
+
+      {!cohortLoading && !cohortScoped && (
         <Card className="border-dashed">
           <CardContent className="py-6 text-center text-sm text-muted-foreground">
             Select a specific cohort to manage its budget lines.
           </CardContent>
         </Card>
       )}
+
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
