@@ -310,7 +310,9 @@ export default function Calendar() {
         </Card>
       ) : null}
 
-      <EventWorkspace open={wsOpen} onOpenChange={setWsOpen} eventId={wsEventId} />
+      <EventWorkspace open={wsOpen} onOpenChange={setWsOpen} eventId={wsEventId} initialIsMultipart={wsInitialMultipart} />
+
+      <EventTypeChooser open={typeChooserOpen} onOpenChange={setTypeChooserOpen} onPick={openNewEvent} />
     </div>
   );
 }
