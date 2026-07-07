@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { CohortSwitcher } from "@/components/CohortSwitcher";
 import { NAV_SECTIONS, type NavSection } from "@/config/navigation";
+import { usePermissions, type PermissionSection } from "@/hooks/usePermissions";
 import {
   NavigationMenu,
   NavigationMenuContent,
