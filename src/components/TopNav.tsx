@@ -2,7 +2,7 @@ import { useState } from "react";
 import { LayoutDashboard, Menu, ChevronRight, Search } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MyProfileDialog } from "@/components/MyProfileDialog";
+import { UserMenu } from "@/components/UserMenu";
 import { useIsMobile } from "@/hooks/use-mobile";
 import TeamPresence from "@/components/TeamPresence";
 const appIcon = "/pwa-512x512.png";
@@ -171,7 +171,7 @@ export function TopNav() {
             </button>
           )}
           {!isMobile && !isHome && <TeamPresence onlineUserIds={onlineUserIds} />}
-          {!isMobile && <MyProfileDialog />}
+          <UserMenu />
 
           {/* Mobile hamburger */}
           {isMobile && (
@@ -241,7 +241,7 @@ export function TopNav() {
                   <div className="mt-6 pt-5 border-t border-border flex flex-col gap-3">
                     <TeamPresence onlineUserIds={onlineUserIds} />
                     <div className="flex items-center gap-2 pt-2">
-                      <MyProfileDialog />
+                      <UserMenu />
                     </div>
                   </div>
                 </div>

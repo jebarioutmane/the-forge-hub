@@ -35,6 +35,7 @@ import NotFound from "./pages/NotFound";
 
 import { InstallPrompt } from "./components/InstallPrompt";
 import { CohortProvider } from "./contexts/CohortContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import { SectionGate } from "./components/permissions/SectionGate";
 import type { PermissionSection } from "./hooks/usePermissions";
 
@@ -46,8 +47,9 @@ const gated = (section: PermissionSection, element: React.ReactNode) => (
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <CohortProvider>
-      <TooltipProvider>
+    <ThemeProvider>
+      <CohortProvider>
+        <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -85,8 +87,9 @@ const App = () => (
         </Routes>
         <InstallPrompt />
       </BrowserRouter>
-      </TooltipProvider>
-    </CohortProvider>
+        </TooltipProvider>
+      </CohortProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

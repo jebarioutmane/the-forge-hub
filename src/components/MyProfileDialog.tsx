@@ -11,12 +11,24 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
-export function MyProfileDialog() {
+type MyProfileDialogProps = {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
+};
+
+export function MyProfileDialog({ open: openProp, onOpenChange, hideTrigger }: MyProfileDialogProps = {}) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = openProp !== undefined;
+  const open = isControlled ? !!openProp : internalOpen;
+  const setOpen = (v: boolean) => {
+    if (!isControlled) setInternalOpen(v);
+    onOpenChange?.(v);
+  };
   const [fullName, setFullName] = useState("");
   const [title, setTitle] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -79,11 +91,13 @@ export function MyProfileDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-          <User className="h-5 w-5" />
-        </Button>
-      </DialogTrigger>
+      {!hideTrigger && (
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+            <User className="h-5 w-5" />
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>My Profile</DialogTitle>

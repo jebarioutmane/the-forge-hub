@@ -76,6 +76,63 @@
     --font-display: var(--font-serif);
     --font-body: 'Inter', 'Twemoji Country Flags', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
+
+  .dark {
+    /* Deep navy-charcoal, keeps Forge navy identity */
+    --background: 215 40% 8%;              /* #0B1220 page */
+    --foreground: 210 30% 94%;             /* off-white */
+
+    --card: 215 35% 11%;                   /* #111a2b surface */
+    --card-foreground: 210 30% 94%;
+
+    --popover: 215 35% 12%;
+    --popover-foreground: 210 30% 94%;
+
+    /* Signal blue becomes the primary in dark for punch */
+    --primary: 217 92% 62%;
+    --primary-foreground: 215 40% 8%;
+
+    --secondary: 215 30% 15%;
+    --secondary-foreground: 210 30% 94%;
+
+    --muted: 215 30% 15%;
+    --muted-foreground: 214 20% 68%;       /* muted grey-blue */
+
+    --accent: 215 30% 17%;
+    --accent-foreground: 210 30% 94%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Subtle light-on-dark hairline */
+    --border: 215 25% 20%;
+    --input: 215 25% 20%;
+    --ring: 217 92% 62%;
+
+    --signal: 217 92% 62%;
+    --signal-foreground: 215 40% 8%;
+
+    /* Keep ink readable — flip to near-white for headings */
+    --ink: 210 30% 96%;
+
+    --sidebar-background: 215 40% 9%;
+    --sidebar-foreground: 214 20% 68%;
+    --sidebar-primary: 217 92% 62%;
+    --sidebar-primary-foreground: 215 40% 8%;
+    --sidebar-accent: 215 30% 15%;
+    --sidebar-accent-foreground: 210 30% 94%;
+    --sidebar-border: 215 25% 20%;
+    --sidebar-ring: 217 92% 62%;
+
+    /* Brighter status tones for dark surfaces */
+    --status-ontrack: 152 60% 50%;
+    --status-watch: 38 92% 60%;
+    --status-atrisk: 0 78% 62%;
+
+    --module-operations: 152 60% 50%;
+    --module-events: 217 92% 62%;
+    --module-founders: 200 95% 62%;
+  }
 }
 
 @layer base {
