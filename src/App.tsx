@@ -63,7 +63,10 @@ const App = () => (
           <Route path="/system/profiles" element={<MainLayout><SystemProfiles /></MainLayout>} />
           <Route path="/system/history" element={<MainLayout><HistoryLog /></MainLayout>} />
           <Route path="/system/tags" element={<MainLayout><SystemTags /></MainLayout>} />
+          <Route path="/reporting/templates" element={<MainLayout><ReportTemplates /></MainLayout>} />
+          <Route path="/reporting/templates/:id" element={<MainLayout><TemplateEditor /></MainLayout>} />
         <Route path="*" element={<NotFound />} />
+
         </Routes>
         <InstallPrompt />
       </BrowserRouter>
