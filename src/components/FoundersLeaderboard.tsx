@@ -160,11 +160,12 @@ export default function FoundersLeaderboard() {
                         {Math.round(Number(entry.attendanceRate))}%
                       </Badge>
                     )}
-                    {entry.avgScore > 0 && (
-                      <span className="text-[13px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg">
-                        {entry.avgScore}
-                      </span>
-                    )}
+                    <span
+                      className="text-[13px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg"
+                      title={entry.avgScore == null ? "No check-in score yet" : "Avg check-in score"}
+                    >
+                      {entry.avgScore != null ? entry.avgScore : "—"}
+                    </span>
                   </div>
                 </div>
               ))}
