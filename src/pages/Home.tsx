@@ -65,10 +65,10 @@ export default function Home() {
 
   return (
     <div className="px-6 lg:px-10 py-8 space-y-8 max-w-7xl mx-auto">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-4 page-header">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight">Command Center</h1>
-          <p className="text-muted-foreground mt-1 text-lg">Welcome back. Here's your overview.</p>
+          <h1 className="font-serif text-4xl font-bold tracking-tight text-ink">Command Center</h1>
+          <p className="text-muted-foreground mt-2 text-base">Welcome back. Here's your overview.</p>
         </div>
         <TeamPresence />
       </div>
