@@ -220,7 +220,7 @@ function MultiSelect({
 
 export default function StakeholdersDirectory() {
   const queryClient = useQueryClient();
-  const { canEdit, canDelete, canSeeSensitive } = require("@/hooks/usePermissions").usePermissions();
+  const { canEdit, canDelete, canSeeSensitive } = usePermissions();
   const mayEdit = canEdit("stakeholders");
   const mayDelete = canDelete("stakeholders");
   const maySeeSensitive = canSeeSensitive("stakeholders");
