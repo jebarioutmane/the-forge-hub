@@ -804,6 +804,50 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
               </CommandGroup>
             )}
 
+            {reportTemplates && reportTemplates.length > 0 && (
+              <CommandGroup heading="Report Templates">
+                {reportTemplates.map((t: any) => (
+                  <CommandItem key={t.id} value={`rtpl-${t.id}-${t.name}`} onSelect={() => go(`/reporting/templates/${t.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <ClipboardList className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(t.name, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{(t.description ?? "Template").slice(0, 80)}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {reportInstances && reportInstances.length > 0 && (
+              <CommandGroup heading="Reports">
+                {reportInstances.map((r: any) => (
+                  <CommandItem key={r.id} value={`rrep-${r.id}-${r.title}`} onSelect={() => go(`/reporting/reports/${r.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <FileBarChart className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(r.title, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{r.status ?? "draft"} · {r.period_start ?? ""}{r.period_end ? ` → ${r.period_end}` : ""}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+            {weeklyFocuses && weeklyFocuses.length > 0 && (
+              <CommandGroup heading="Weekly Focuses">
+                {weeklyFocuses.map((w: any) => (
+                  <CommandItem key={w.id} value={`wfoc-${w.id}-${w.title}`} onSelect={() => go(`/?highlight=${w.id}`)} className="flex items-center gap-3 cursor-pointer">
+                    <Target className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium truncate">{highlightMatch(w.title, trimmed)}</span>
+                      <span className="text-xs text-muted-foreground truncate">{w.is_done ? "Done" : "Open"}{w.deadline ? ` · due ${w.deadline}` : ""}</span>
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            )}
+
+
+
 
             {cohortsRes && cohortsRes.length > 0 && (
               <CommandGroup heading="Cohorts">
