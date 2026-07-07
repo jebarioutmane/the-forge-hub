@@ -171,7 +171,7 @@ export function TopNav() {
             </button>
           )}
           {!isMobile && !isHome && <TeamPresence onlineUserIds={onlineUserIds} />}
-          {!isMobile && <MyProfileDialog />}
+          <UserMenu />
 
           {/* Mobile hamburger */}
           {isMobile && (
