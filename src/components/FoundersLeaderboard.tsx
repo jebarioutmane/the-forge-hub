@@ -12,7 +12,7 @@ interface LeaderboardEntry {
   founder_name: string;
   startup_name: string;
   photo_url: string | null;
-  avgScore: number;
+  avgScore: number | null;
   riskStatus: string | null;
   attendanceRate: number | null;
 }
