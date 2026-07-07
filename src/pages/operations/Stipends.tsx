@@ -954,12 +954,16 @@ export default function Stipends() {
                               <DropdownMenuItem onClick={() => setViewing(rec)}>
                                 <Eye className="mr-2 h-3 w-3" /> View
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => openEdit(rec)}>
-                                <Pencil className="mr-2 h-3 w-3" /> Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className={rec.is_archived ? "" : "text-destructive"} onClick={() => setDeleteId(rec.id)}>
-                                {rec.is_archived ? (<><ArchiveRestore className="mr-2 h-3 w-3" /> Restore</>) : (<><Trash2 className="mr-2 h-3 w-3" /> Archive</>)}
-                              </DropdownMenuItem>
+                              {mayEdit && (
+                                <DropdownMenuItem onClick={() => openEdit(rec)}>
+                                  <Pencil className="mr-2 h-3 w-3" /> Edit
+                                </DropdownMenuItem>
+                              )}
+                              {mayDelete && (
+                                <DropdownMenuItem className={rec.is_archived ? "" : "text-destructive"} onClick={() => setDeleteId(rec.id)}>
+                                  {rec.is_archived ? (<><ArchiveRestore className="mr-2 h-3 w-3" /> Restore</>) : (<><Trash2 className="mr-2 h-3 w-3" /> Archive</>)}
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
