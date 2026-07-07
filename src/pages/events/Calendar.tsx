@@ -139,7 +139,10 @@ export default function Calendar() {
     ? `${format(weekStart, "MMM d")} – ${format(weekEnd, "MMM d, yyyy")}`
     : format(cursor, "MMMM yyyy");
 
-  function openEvent(id: string | null) { setWsEventId(id); setWsOpen(true); }
+  function openEvent(id: string | null) { setWsEventId(id); setWsInitialMultipart(false); setWsOpen(true); }
+  function openNewEvent(isMultipart: boolean) {
+    setWsEventId(null); setWsInitialMultipart(isMultipart); setTypeChooserOpen(false); setWsOpen(true);
+  }
 
   const renderEventChip = (ev: CalendarEvent, size: "sm" | "md" = "sm") => {
     const s = typeStyle(ev.event_type);
