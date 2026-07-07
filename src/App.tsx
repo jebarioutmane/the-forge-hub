@@ -27,7 +27,10 @@ import HistoryLog from "./pages/system/HistoryLog";
 import SystemTags from "./pages/system/Tags";
 import ReportTemplates from "./pages/reporting/Templates";
 import TemplateEditor from "./pages/reporting/TemplateEditor";
+import Reports from "./pages/reporting/Reports";
+import ReportEditor from "./pages/reporting/ReportEditor";
 import NotFound from "./pages/NotFound";
+
 
 import { InstallPrompt } from "./components/InstallPrompt";
 import { CohortProvider } from "./contexts/CohortContext";
