@@ -474,15 +474,17 @@ export default function StakeholdersDirectory() {
             Network CRM — mentors, investors, partners & speakers.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setForm(emptyForm);
-            setEditing(null);
-            setDialogOpen(true);
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" /> Add stakeholder
-        </Button>
+        {mayEdit && (
+          <Button
+            onClick={() => {
+              setForm(emptyForm);
+              setEditing(null);
+              setDialogOpen(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" /> Add stakeholder
+          </Button>
+        )}
       </div>
 
       {/* Filter bar */}
