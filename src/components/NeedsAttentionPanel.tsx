@@ -71,7 +71,7 @@ export default function NeedsAttentionPanel() {
                     {RISK_LABELS[r.risk_status || ""] || r.risk_status}
                   </Badge>
                   <Badge variant="outline" className="text-[10px]">
-                    {r.attendance_rate != null ? `${Math.round(Number(r.attendance_rate) * 100)}%` : "—"}
+                    {r.attendance_rate != null ? `${Math.round(Number(r.attendance_rate))}%` : "—"}
                   </Badge>
                   <span className="text-xs text-muted-foreground w-24 text-right">
                     {r.days_since_last_checkin != null
