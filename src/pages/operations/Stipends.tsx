@@ -1262,7 +1262,7 @@ function RiskBadge({ info }: { info?: { risk_status: string | null; attendance_r
       : risk === "medium" || risk === "watch"
       ? "bg-orange-100 text-orange-700 border-0"
       : "bg-emerald-100 text-emerald-700 border-0";
-  const rate = info.attendance_rate != null ? ` · ${Math.round(Number(info.attendance_rate) * (Number(info.attendance_rate) <= 1 ? 100 : 1))}%` : "";
+  const rate = info.attendance_rate != null ? ` · ${Math.round(Number(info.attendance_rate))}%` : "";
   return (
     <Badge className={`text-[10px] px-1.5 py-0 font-normal gap-0.5 ${style}`}>
       <AlertTriangle className="h-2.5 w-2.5" />
