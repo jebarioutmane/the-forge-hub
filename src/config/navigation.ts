@@ -3,8 +3,10 @@ import {
   ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
   Settings, Wallet, PiggyBank, ClipboardList,
   BarChart3, Users2, Layers, Tag, UserCircle, ListTodo,
+  FileBarChart,
   type LucideIcon,
 } from "lucide-react";
+
 
 export type NavItem = {
   title: string;
