@@ -152,7 +152,7 @@ export default function FoundersLeaderboard() {
                     )}
                     {entry.attendanceRate != null && (
                       <Badge variant="outline" className="text-[10px]">
-                        {Math.round(Number(entry.attendanceRate) * 100)}%
+                        {Math.round(Number(entry.attendanceRate))}%
                       </Badge>
                     )}
                     {entry.avgScore > 0 && (
