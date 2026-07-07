@@ -461,6 +461,9 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                 { title: "Portfolio Dashboard", path: "/founders/portfolio", icon: LayoutDashboard, keywords: "portfolio dashboard founders overview charts" },
                 { title: "Library", path: "/library", icon: BookOpen, keywords: "library resources documents links" },
                 { title: "Team Profiles", path: "/system/profiles", icon: Users2, keywords: "team profiles staff members system" },
+                { title: "Roles & Permissions", path: "/system/roles", icon: UserCog, keywords: "roles permissions access super admin" },
+                { title: "Report Templates", path: "/reporting/templates", icon: ClipboardList, keywords: "report templates reporting" },
+                { title: "Reports", path: "/reporting/reports", icon: FileBarChart, keywords: "reports reporting export pdf excel" },
                 { title: "History Log", path: "/system/history", icon: History, keywords: "history log audit time machine changes" },
                 { title: "Settings", path: "/settings", icon: Settings, keywords: "settings preferences tags configuration" },
               ];
