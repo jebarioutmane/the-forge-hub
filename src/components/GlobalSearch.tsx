@@ -376,6 +376,49 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     },
   });
 
+  const { data: reportTemplates } = useQuery({
+    queryKey: ["global-search-report-templates", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("report_templates")
+        .select("id, name, description, is_archived")
+        .eq("is_archived", false)
+        .or(`name.ilike.%${trimmed}%,description.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: reportInstances } = useQuery({
+    queryKey: ["global-search-report-instances", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("report_instances")
+        .select("id, title, status, period_start, period_end, is_archived")
+        .eq("is_archived", false)
+        .or(`title.ilike.%${trimmed}%,status.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  const { data: weeklyFocuses } = useQuery({
+    queryKey: ["global-search-weekly-focuses", trimmed],
+    enabled,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("weekly_focuses")
+        .select("id, title, details, deadline, is_done, is_archived")
+        .eq("is_archived", false)
+        .or(`title.ilike.%${trimmed}%,details.ilike.%${trimmed}%`)
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+
   const go = useCallback(
     (path: string) => {
       onOpenChange(false);
