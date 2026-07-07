@@ -10,21 +10,11 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
-function getInitialTheme(): Theme {
-  if (typeof window === "undefined") return "light";
-  try {
-    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      return "dark";
-    }
-  } catch {
-    // ignore
-  }
-  return "light";
-}
-
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Session-only state; deliberately NOT persisted to localStorage.
-  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
+  // Session-only state; deliberately NOT persisted and NOT tied to system
+  // preference. Every user starts in LIGHT mode and can toggle to dark.
+  const [theme, setThemeState] = useState<Theme>("light");
+
 
   useEffect(() => {
     const root = document.documentElement;
