@@ -264,6 +264,11 @@ function OverviewTab({
 
   return (
     <div className="space-y-5">
+      <div className="flex items-center gap-2">
+        <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+          {isMultipart ? <><Layers className="h-3 w-3 mr-1" /> Multi-part event</> : "Simple event"}
+        </Badge>
+      </div>
       <div>
         <Label className="text-xs">Title</Label>
         <Input value={form.name} onChange={e => set("name", e.target.value)} placeholder="Event title" />
