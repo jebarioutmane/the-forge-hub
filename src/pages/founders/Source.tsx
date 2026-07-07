@@ -881,7 +881,7 @@ export default function FoundersSource() {
                   Contact
                 </h3>
                 <DetailRow icon={<Mail className="h-4 w-4" />} label="Email" value={viewing.email} />
-                <DetailRow icon={<Phone className="h-4 w-4" />} label="Phone" value={viewing.phone} />
+                <DetailRow icon={<Phone className="h-4 w-4" />} label="Phone" value={<Sensitive section="founders" value={viewing.phone} />} />
                 <DetailRow
                   icon={<UserCircle2 className="h-4 w-4" />}
                   label="Venture associate"
