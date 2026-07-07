@@ -145,11 +145,11 @@ export default function GlobalNetworkMap() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-5 py-4 border-b border-border/40 flex items-center gap-2.5">
-        <div className="h-8 w-8 rounded-lg bg-sky-50 flex items-center justify-center">
-          <Globe2 className="h-4 w-4 text-sky-600" />
+      <div className="px-5 py-4 border-b border-border flex items-center gap-2.5">
+        <div className="h-8 w-8 rounded-md border border-border bg-secondary flex items-center justify-center">
+          <Globe2 className="h-4 w-4 text-ink" />
         </div>
-        <h3 className="text-[15px] font-semibold text-foreground tracking-tight">Global Network</h3>
+        <h3 className="font-serif text-base font-semibold text-ink tracking-tight">Global Network</h3>
         <div className="ml-auto flex items-center gap-3 text-[11px] text-muted-foreground">
           <span className="hidden sm:inline"><strong className="text-foreground font-semibold">{stats.totalCountries}</strong> countries</span>
           <span className="hidden sm:inline"><strong className="text-foreground font-semibold">{stats.nationalitiesCount}</strong> nationalities</span>
