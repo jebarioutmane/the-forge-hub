@@ -241,7 +241,7 @@ export function TopNav() {
                   <div className="mt-6 pt-5 border-t border-border flex flex-col gap-3">
                     <TeamPresence onlineUserIds={onlineUserIds} />
                     <div className="flex items-center gap-2 pt-2">
-                      <MyProfileDialog />
+                      <UserMenu />
                     </div>
                   </div>
                 </div>
