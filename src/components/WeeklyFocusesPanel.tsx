@@ -58,7 +58,7 @@ interface Profile {
   id: string;
   full_name: string | null;
   email: string;
-  photo_url: string | null;
+  avatar_url: string | null;
 }
 
 const formatDeadline = (d: string) => {
@@ -95,7 +95,7 @@ export default function WeeklyFocusesPanel() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, email, photo_url")
+        .select("id, full_name, email, avatar_url")
         .eq("status", "Active");
       if (error) throw error;
       return (data ?? []) as Profile[];
@@ -231,7 +231,7 @@ export default function WeeklyFocusesPanel() {
                         <div className="flex -space-x-1.5">
                           {owners.slice(0, 3).map((o) => (
                             <Avatar key={o.id} className="h-6 w-6 border-2 border-card" title={o.full_name || o.email}>
-                              {o.photo_url && <AvatarImage src={o.photo_url} />}
+                              {o.avatar_url && <AvatarImage src={o.avatar_url} />}
                               <AvatarFallback className="text-[9px] bg-muted">
                                 {initials(o.full_name || o.email)}
                               </AvatarFallback>
@@ -324,7 +324,7 @@ export default function WeeklyFocusesPanel() {
                           {links.map((lnk, idx) => (
                             <a
                               key={idx}
-                              href={formatRelativeUrl(lnk.url)}
+                              href={formatUrl(lnk.url)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-[12px] text-primary hover:underline flex items-center gap-1.5"
