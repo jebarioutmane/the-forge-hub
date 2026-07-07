@@ -668,7 +668,7 @@ export default function Stipends() {
           <Button variant="outline" size="sm" onClick={exportCSV} disabled={records.length === 0}>
             <Download className="mr-1 h-3.5 w-3.5" /> Export CSV
           </Button>
-          {records.length > 0 && (
+          {mayDelete && records.length > 0 && (
             <Button variant="destructive" size="sm" onClick={() => setBulkDeleteOpen(true)}>
               <Trash2 className="mr-1 h-3.5 w-3.5" /> Delete All
             </Button>
