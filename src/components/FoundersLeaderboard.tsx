@@ -40,12 +40,12 @@ export default function FoundersLeaderboard() {
     },
   });
 
-  const { data: evaluations = [] } = useQuery({
-    queryKey: ["evaluations-leaderboard"],
+  const { data: checkins = [] } = useQuery({
+    queryKey: ["checkins-leaderboard"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("founder_evaluations")
-        .select("founder_id, total_score");
+        .from("founder_checkins")
+        .select("founder_id, overall_score");
       if (error) throw error;
       return data;
     },
