@@ -849,7 +849,7 @@ export default function Stipends() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <RibDisplay rib={rib} />
+                            <RibDisplay rib={rib} allowed={maySeeRib} />
                           </TableCell>
                           <TableCell colSpan={9} className="text-center text-muted-foreground text-sm">
                             No record for this month
@@ -888,7 +888,7 @@ export default function Stipends() {
                         </TableCell>
 
                         <TableCell>
-                          <RibDisplay rib={rib} />
+                          <RibDisplay rib={rib} allowed={maySeeRib} />
                         </TableCell>
                         <TableCell className="text-right">
                           <InlineInput
