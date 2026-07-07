@@ -67,12 +67,12 @@ export default function BirthdaysPanel() {
 
   if (upcoming.length === 0) {
     return (
-      <div className="rounded-2xl border border-border/40 bg-card shadow-sm p-5">
+      <div className="rounded-md border border-border bg-card p-5">
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-lg bg-pink-50 flex items-center justify-center">
-            <Cake className="h-4 w-4 text-pink-600" />
+          <div className="h-8 w-8 rounded-md border border-border bg-secondary flex items-center justify-center">
+            <Cake className="h-4 w-4 text-ink" />
           </div>
-          <h3 className="text-[15px] font-semibold text-foreground tracking-tight">Birthdays</h3>
+          <h3 className="font-serif text-base font-semibold text-ink tracking-tight">Birthdays</h3>
         </div>
         <p className="text-sm text-muted-foreground mt-3">No upcoming birthdays in the next 7 days.</p>
       </div>
@@ -83,15 +83,15 @@ export default function BirthdaysPanel() {
     name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
   return (
-    <div className="rounded-2xl border border-border/40 bg-card shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-border/40 flex items-center gap-2.5">
-        <div className="h-8 w-8 rounded-lg bg-pink-50 flex items-center justify-center">
-          <Cake className="h-4 w-4 text-pink-600" />
+    <div className="rounded-md border border-border bg-card overflow-hidden">
+      <div className="px-5 py-4 border-b border-border flex items-center gap-2.5">
+        <div className="h-8 w-8 rounded-md border border-border bg-secondary flex items-center justify-center">
+          <Cake className="h-4 w-4 text-ink" />
         </div>
-        <h3 className="text-[15px] font-semibold text-foreground tracking-tight">
+        <h3 className="font-serif text-base font-semibold text-ink tracking-tight">
           Upcoming Birthdays
         </h3>
-        <Badge variant="outline" className="ml-auto text-[10px]">Next 7 days</Badge>
+        <Badge variant="outline" className="ml-auto">Next 7 days</Badge>
       </div>
       <div className="p-3 flex flex-col gap-1.5">
         {upcoming.map((entry) => {
