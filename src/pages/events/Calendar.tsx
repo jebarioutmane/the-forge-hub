@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
   ChevronLeft, ChevronRight, Plus, Users, ClipboardList, ArchiveRestore, Archive,
+  CalendarDays, Layers,
 } from "lucide-react";
 import {
   startOfMonth, endOfMonth, eachDayOfInterval, format, parseISO,
@@ -65,6 +67,9 @@ export default function Calendar() {
   const [showArchived, setShowArchived] = useState(false);
   const [wsOpen, setWsOpen] = useState(false);
   const [wsEventId, setWsEventId] = useState<string | null>(null);
+  const [wsInitialMultipart, setWsInitialMultipart] = useState(false);
+  const [typeChooserOpen, setTypeChooserOpen] = useState(false);
+
 
   const { data: rawEvents = [], isLoading } = useQuery({
     queryKey: ["events", showArchived],
@@ -136,7 +141,10 @@ export default function Calendar() {
     ? `${format(weekStart, "MMM d")} – ${format(weekEnd, "MMM d, yyyy")}`
     : format(cursor, "MMMM yyyy");
 
-  function openEvent(id: string | null) { setWsEventId(id); setWsOpen(true); }
+  function openEvent(id: string | null) { setWsEventId(id); setWsInitialMultipart(false); setWsOpen(true); }
+  function openNewEvent(isMultipart: boolean) {
+    setWsEventId(null); setWsInitialMultipart(isMultipart); setTypeChooserOpen(false); setWsOpen(true);
+  }
 
   const renderEventChip = (ev: CalendarEvent, size: "sm" | "md" = "sm") => {
     const s = typeStyle(ev.event_type);
@@ -168,7 +176,7 @@ export default function Calendar() {
             One workspace per event · attendance, stakeholders, logistics & checklist
           </p>
         </div>
-        <Button onClick={() => openEvent(null)} className="rounded-full">
+        <Button onClick={() => setTypeChooserOpen(true)} className="rounded-full">
           <Plus className="h-4 w-4 mr-1.5" /> New Event
         </Button>
       </div>
@@ -304,7 +312,50 @@ export default function Calendar() {
         </Card>
       ) : null}
 
-      <EventWorkspace open={wsOpen} onOpenChange={setWsOpen} eventId={wsEventId} />
+      <EventWorkspace open={wsOpen} onOpenChange={setWsOpen} eventId={wsEventId} initialIsMultipart={wsInitialMultipart} />
+
+      <EventTypeChooser open={typeChooserOpen} onOpenChange={setTypeChooserOpen} onPick={openNewEvent} />
     </div>
+  );
+}
+
+function EventTypeChooser({
+  open, onOpenChange, onPick,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  onPick: (isMultipart: boolean) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>What kind of event?</DialogTitle>
+          <DialogDescription>Pick a format. You can't change this later.</DialogDescription>
+        </DialogHeader>
+        <div className="grid grid-cols-2 gap-3 pt-2">
+          <button
+            onClick={() => onPick(false)}
+            className="text-left rounded-xl border p-4 hover:bg-muted/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <CalendarDays className="h-5 w-5 mb-2 text-primary" />
+            <div className="font-medium text-sm">Simple event</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              A single meeting, class, or session. Attendance is tracked for the whole event.
+            </div>
+          </button>
+          <button
+            onClick={() => onPick(true)}
+            className="text-left rounded-xl border p-4 hover:bg-muted/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <Layers className="h-5 w-5 mb-2 text-primary" />
+            <div className="font-medium text-sm">Multi-part event</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              A bootcamp, week, or program with several named sessions. Attendance is tracked per session.
+            </div>
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
