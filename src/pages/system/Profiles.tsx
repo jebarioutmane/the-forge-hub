@@ -85,8 +85,25 @@ export default function SystemProfiles() {
     },
   });
 
+  const { data: rolesList = [] } = useQuery({
+    queryKey: ["roles-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("roles").select("id,name,is_system,is_external,cohort_scoped").order("name");
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  const { cohorts } = useCohort();
+
   const currentProfile = profiles.find((p) => p.id === user?.id);
+  const currentRoleName = rolesList.find((r) => r.id === (currentProfile as any)?.role_id)?.name;
+  const isSuperAdmin = currentRoleName === "Super Admin";
   const hasEditRights = canEditProfiles(user?.email, currentProfile?.role);
+  const superAdminRoleId = rolesList.find((r) => r.name === "Super Admin")?.id;
+  const superAdminCount = superAdminRoleId
+    ? profiles.filter((p: any) => p.role_id === superAdminRoleId).length
+    : 0;
 
   const saveMutation = useMutation({
     mutationFn: async () => {
