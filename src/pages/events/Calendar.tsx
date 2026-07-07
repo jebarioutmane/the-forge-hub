@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
   ChevronLeft, ChevronRight, Plus, Users, ClipboardList, ArchiveRestore, Archive,
+  CalendarDays, Layers,
 } from "lucide-react";
 import {
   startOfMonth, endOfMonth, eachDayOfInterval, format, parseISO,
