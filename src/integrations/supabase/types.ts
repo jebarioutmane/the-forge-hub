@@ -1303,6 +1303,199 @@ export type Database = {
         }
         Relationships: []
       }
+      report_answers: {
+        Row: {
+          answer_number: number | null
+          answer_text: string | null
+          answer_type: string | null
+          category: string | null
+          created_at: string
+          id: string
+          instance_id: string | null
+          is_auto: boolean | null
+          question_text: string
+          sort_order: number | null
+        }
+        Insert: {
+          answer_number?: number | null
+          answer_text?: string | null
+          answer_type?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          is_auto?: boolean | null
+          question_text: string
+          sort_order?: number | null
+        }
+        Update: {
+          answer_number?: number | null
+          answer_text?: string | null
+          answer_type?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          is_auto?: boolean | null
+          question_text?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_answers_instance_id_fkey"
+            columns: ["instance_id"]
+            isOneToOne: false
+            referencedRelation: "report_instances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_instances: {
+        Row: {
+          archived_at: string | null
+          cohort_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_archived: boolean
+          period_end: string | null
+          period_start: string | null
+          status: string
+          template_id: string | null
+          title: string
+        }
+        Insert: {
+          archived_at?: string | null
+          cohort_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_archived?: boolean
+          period_end?: string | null
+          period_start?: string | null
+          status?: string
+          template_id?: string | null
+          title: string
+        }
+        Update: {
+          archived_at?: string | null
+          cohort_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_archived?: boolean
+          period_end?: string | null
+          period_start?: string | null
+          status?: string
+          template_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_instances_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_instances_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_instances_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "report_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_questions: {
+        Row: {
+          answer_type: string
+          auto_metric: string | null
+          category: string | null
+          created_at: string
+          id: string
+          question_text: string
+          sort_order: number | null
+          source_type: string
+          template_id: string | null
+        }
+        Insert: {
+          answer_type?: string
+          auto_metric?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          question_text: string
+          sort_order?: number | null
+          source_type?: string
+          template_id?: string | null
+        }
+        Update: {
+          answer_type?: string
+          auto_metric?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          question_text?: string
+          sort_order?: number | null
+          source_type?: string
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_questions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "report_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_templates: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_archived: boolean
+          name: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_archived?: boolean
+          name: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_archived?: boolean
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       resource_library: {
         Row: {
           archived_at: string | null

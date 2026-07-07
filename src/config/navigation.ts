@@ -3,8 +3,10 @@ import {
   ClipboardCheck, GraduationCap, TrendingUp, BookOpen,
   Settings, Wallet, PiggyBank, ClipboardList,
   BarChart3, Users2, Layers, Tag, UserCircle, ListTodo,
+  FileBarChart,
   type LucideIcon,
 } from "lucide-react";
+
 
 export type NavItem = {
   title: string;
@@ -63,6 +65,16 @@ export const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
+    label: "Reporting",
+    headline: "Reporting",
+    description: "Design report templates and generate program reports.",
+    colorClass: "text-primary",
+    items: [
+      { title: "Report Templates", url: "/reporting/templates", icon: FileBarChart, description: "Reusable report templates and questions" },
+    ],
+  },
+  {
+
     label: "System",
     headline: "System & Settings",
     description: "Application configuration and shared resources.",
