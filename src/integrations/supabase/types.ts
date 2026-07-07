@@ -1250,6 +1250,8 @@ export type Database = {
           passport_number: string | null
           phone: string | null
           role: string | null
+          role_id: string | null
+          scoped_cohort_ids: string[] | null
           status: string | null
           status_note: string | null
           status_until: string | null
@@ -1272,6 +1274,8 @@ export type Database = {
           passport_number?: string | null
           phone?: string | null
           role?: string | null
+          role_id?: string | null
+          scoped_cohort_ids?: string[] | null
           status?: string | null
           status_note?: string | null
           status_until?: string | null
@@ -1294,6 +1298,8 @@ export type Database = {
           passport_number?: string | null
           phone?: string | null
           role?: string | null
+          role_id?: string | null
+          scoped_cohort_ids?: string[] | null
           status?: string | null
           status_note?: string | null
           status_until?: string | null
@@ -1301,7 +1307,15 @@ export type Database = {
           title?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       report_answers: {
         Row: {
@@ -1538,6 +1552,74 @@ export type Database = {
           tag_ids?: string[]
           updated_at?: string
           url?: string
+        }
+        Relationships: []
+      }
+      role_permissions: {
+        Row: {
+          can_delete: boolean
+          can_edit: boolean
+          can_see_sensitive: boolean
+          can_view: boolean
+          id: string
+          role_id: string
+          section: string
+        }
+        Insert: {
+          can_delete?: boolean
+          can_edit?: boolean
+          can_see_sensitive?: boolean
+          can_view?: boolean
+          id?: string
+          role_id: string
+          section: string
+        }
+        Update: {
+          can_delete?: boolean
+          can_edit?: boolean
+          can_see_sensitive?: boolean
+          can_view?: boolean
+          id?: string
+          role_id?: string
+          section?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          cohort_scoped: boolean
+          created_at: string
+          description: string | null
+          id: string
+          is_external: boolean
+          is_system: boolean
+          name: string
+        }
+        Insert: {
+          cohort_scoped?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_external?: boolean
+          is_system?: boolean
+          name: string
+        }
+        Update: {
+          cohort_scoped?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_external?: boolean
+          is_system?: boolean
+          name?: string
         }
         Relationships: []
       }
@@ -2033,6 +2115,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_super_admin: { Args: { uid: string }; Returns: boolean }
       text_to_bytea: { Args: { data: string }; Returns: string }
       update_user_role: {
         Args: { _new_role: string; _target_id: string }
