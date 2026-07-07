@@ -318,3 +318,44 @@ export default function Calendar() {
     </div>
   );
 }
+
+function EventTypeChooser({
+  open, onOpenChange, onPick,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  onPick: (isMultipart: boolean) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>What kind of event?</DialogTitle>
+          <DialogDescription>Pick a format. You can't change this later.</DialogDescription>
+        </DialogHeader>
+        <div className="grid grid-cols-2 gap-3 pt-2">
+          <button
+            onClick={() => onPick(false)}
+            className="text-left rounded-xl border p-4 hover:bg-muted/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <CalendarDays className="h-5 w-5 mb-2 text-primary" />
+            <div className="font-medium text-sm">Simple event</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              A single meeting, class, or session. Attendance is tracked for the whole event.
+            </div>
+          </button>
+          <button
+            onClick={() => onPick(true)}
+            className="text-left rounded-xl border p-4 hover:bg-muted/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <Layers className="h-5 w-5 mb-2 text-primary" />
+            <div className="font-medium text-sm">Multi-part event</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              A bootcamp, week, or program with several named sessions. Attendance is tracked per session.
+            </div>
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
