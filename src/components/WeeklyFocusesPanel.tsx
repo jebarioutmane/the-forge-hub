@@ -379,10 +379,8 @@ function FocusDialog({
   const [newLinkUrl, setNewLinkUrl] = useState("");
   const [saving, setSaving] = useState(false);
 
-  useState(() => {}); // no-op
-
-  // Reset when opening
-  useMemo(() => {
+  // Reset form state whenever the dialog opens or the editing target changes
+  useEffect(() => {
     if (open) {
       setTitle(editing?.title ?? "");
       setDetails(editing?.details ?? "");
