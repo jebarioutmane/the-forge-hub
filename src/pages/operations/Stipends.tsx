@@ -69,9 +69,10 @@ export default function Stipends() {
     },
   });
 
-  const { selectedCohortId, selectedCohortLabel } = useCohort();
+  const { selectedCohortId, selectedCohortLabel, isLoading: cohortLoading } = useCohort();
   const isAllCohorts = selectedCohortId === ALL_COHORTS;
   const cohortYear = isAllCohorts ? "" : selectedCohortLabel;
+
   const [paymentMonth, setPaymentMonth] = useState(MONTHS[currentMonthIndex]);
 
   const [editOpen, setEditOpen] = useState(false);
@@ -676,7 +677,11 @@ export default function Stipends() {
         </div>
       </div>
 
-      {isAllCohorts && (
+      {cohortLoading && (
+        <Card><CardContent className="p-4 text-sm text-muted-foreground">Loading cohort…</CardContent></Card>
+      )}
+
+      {!cohortLoading && isAllCohorts && (
         <Card className="border-amber-200 bg-amber-50/50">
           <CardContent className="p-4 flex items-center gap-3">
             <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
@@ -686,6 +691,7 @@ export default function Stipends() {
           </CardContent>
         </Card>
       )}
+
 
       {/* Filters */}
       <Card>
