@@ -65,6 +65,16 @@ export const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
+    label: "Reporting",
+    headline: "Reporting",
+    description: "Design report templates and generate program reports.",
+    colorClass: "text-primary",
+    items: [
+      { title: "Report Templates", url: "/reporting/templates", icon: FileBarChart, description: "Reusable report templates and questions" },
+    ],
+  },
+  {
+
     label: "System",
     headline: "System & Settings",
     description: "Application configuration and shared resources.",
