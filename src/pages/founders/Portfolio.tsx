@@ -154,7 +154,7 @@ export default function PortfolioDashboard() {
   const avgAttendance = useMemo(() => {
     const rates = engagement.map(e => Number(e.attendance_rate)).filter(n => !isNaN(n) && n !== null);
     if (!rates.length) return null;
-    return Math.round((rates.reduce((a, b) => a + b, 0) / rates.length) * 100);
+    return Math.round(rates.reduce((a, b) => a + b, 0) / rates.length);
   }, [engagement]);
 
   const latestBlock = useMemo(() => {
@@ -388,7 +388,7 @@ export default function PortfolioDashboard() {
                                 </Badge>
                               </td>
                               <td className="px-4 py-3">
-                                {row.attendance_rate != null ? `${Math.round(Number(row.attendance_rate) * 100)}%` : "—"}
+                                {row.attendance_rate != null ? `${Math.round(Number(row.attendance_rate))}%` : "—"}
                               </td>
                               <td className="px-4 py-3 capitalize text-muted-foreground">
                                 {row.latest_effort_signal ?? "—"}

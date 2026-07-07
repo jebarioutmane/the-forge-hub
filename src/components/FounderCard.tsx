@@ -126,7 +126,7 @@ export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, o
           )}
           {attendanceRate != null && (
             <Badge variant="outline" className="text-[10px] font-medium">
-              Attendance {Math.round(Number(attendanceRate) * 100)}%
+              Attendance {Math.round(Number(attendanceRate))}%
             </Badge>
           )}
         </div>
