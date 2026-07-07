@@ -27,7 +27,10 @@ import HistoryLog from "./pages/system/HistoryLog";
 import SystemTags from "./pages/system/Tags";
 import ReportTemplates from "./pages/reporting/Templates";
 import TemplateEditor from "./pages/reporting/TemplateEditor";
+import Reports from "./pages/reporting/Reports";
+import ReportEditor from "./pages/reporting/ReportEditor";
 import NotFound from "./pages/NotFound";
+
 
 import { InstallPrompt } from "./components/InstallPrompt";
 import { CohortProvider } from "./contexts/CohortContext";
@@ -65,6 +68,9 @@ const App = () => (
           <Route path="/system/tags" element={<MainLayout><SystemTags /></MainLayout>} />
           <Route path="/reporting/templates" element={<MainLayout><ReportTemplates /></MainLayout>} />
           <Route path="/reporting/templates/:id" element={<MainLayout><TemplateEditor /></MainLayout>} />
+          <Route path="/reporting/reports" element={<MainLayout><Reports /></MainLayout>} />
+          <Route path="/reporting/reports/:id" element={<MainLayout><ReportEditor /></MainLayout>} />
+
         <Route path="*" element={<NotFound />} />
 
         </Routes>
