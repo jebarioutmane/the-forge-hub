@@ -1128,8 +1128,11 @@ export default function Stipends() {
 }
 
 /* ── RIB Display with masking ── */
-function RibDisplay({ rib }: { rib: string }) {
+function RibDisplay({ rib, allowed = true }: { rib: string; allowed?: boolean }) {
   if (!rib) return <span className="text-xs text-muted-foreground">—</span>;
+  if (!allowed) {
+    return <span className="text-xs italic text-muted-foreground">•••• (restricted)</span>;
+  }
   return (
     <div className="flex items-center gap-1">
       <span className="text-xs font-mono truncate max-w-[150px]">{maskRib(rib)}</span>
