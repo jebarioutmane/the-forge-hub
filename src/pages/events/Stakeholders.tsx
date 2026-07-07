@@ -860,7 +860,7 @@ export default function StakeholdersDirectory() {
                   Contact
                 </h3>
                 <DetailRow icon={<Mail className="h-4 w-4" />} label="Email" value={viewing.email} />
-                <DetailRow icon={<Phone className="h-4 w-4" />} label="Phone" value={viewing.phone} />
+                <DetailRow icon={<Phone className="h-4 w-4" />} label="Phone" value={maySeeSensitive ? viewing.phone : <span className="italic text-muted-foreground">•••• (restricted)</span>} />
                 <DetailRow
                   icon={<UserCircle2 className="h-4 w-4" />}
                   label="Point of contact"
