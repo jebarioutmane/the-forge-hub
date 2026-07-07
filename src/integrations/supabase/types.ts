@@ -1620,6 +1620,59 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_focuses: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by: string | null
+          deadline: string | null
+          details: string | null
+          id: string
+          is_archived: boolean
+          is_done: boolean
+          links: Json | null
+          owner_ids: string[] | null
+          priority_order: number | null
+          title: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          deadline?: string | null
+          details?: string | null
+          id?: string
+          is_archived?: boolean
+          is_done?: boolean
+          links?: Json | null
+          owner_ids?: string[] | null
+          priority_order?: number | null
+          title: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          deadline?: string | null
+          details?: string | null
+          id?: string
+          is_archived?: boolean
+          is_done?: boolean
+          links?: Json | null
+          owner_ids?: string[] | null
+          priority_order?: number | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_focuses_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       founder_engagement: {
