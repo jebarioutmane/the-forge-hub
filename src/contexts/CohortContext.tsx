@@ -89,6 +89,11 @@ export function CohortProvider({ children }: { children: React.ReactNode }) {
     return selectedCohort?.label ?? "";
   }, [selectedCohort, selectedCohortId]);
 
+  // Still initializing until the cohorts query has resolved AND we've
+  // committed a default selection. Pages should render a neutral loading
+  // state during this window instead of assuming "All cohorts".
+  const isInitializing = isLoading || !selectedCohortId;
+
   const value: CohortContextValue = {
     selectedCohortId: selectedCohortId || ALL_COHORTS,
     setSelectedCohortId,
@@ -96,8 +101,9 @@ export function CohortProvider({ children }: { children: React.ReactNode }) {
     selectedCohortLabel,
     cohorts,
     activeCohort,
-    isLoading,
+    isLoading: isInitializing,
   };
+
 
   return <CohortContext.Provider value={value}>{children}</CohortContext.Provider>;
 }
