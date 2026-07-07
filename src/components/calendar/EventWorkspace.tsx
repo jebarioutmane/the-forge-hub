@@ -111,6 +111,7 @@ export function EventWorkspace({ open, onOpenChange, eventId, initialIsMultipart
                       event={event ?? null}
                       cohorts={cohorts}
                       fallbackCohortLabel={selectedCohort?.label ?? ""}
+                      initialIsMultipart={initialIsMultipart}
                       onSaved={(id) => { setCurrentId(id); invalidate(); }}
                       onArchivedToggle={invalidate}
                       onClose={() => onOpenChange(false)}
