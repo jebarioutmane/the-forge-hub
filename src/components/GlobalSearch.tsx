@@ -15,6 +15,7 @@ import {
   DollarSign, ListTodo, BookOpen, Handshake, Wallet,
   TrendingUp, ClipboardCheck, History, Home, Settings, LayoutDashboard,
   Tag, UserCog, Briefcase, Link as LinkIcon,
+  FileBarChart, ClipboardList, Target,
 } from "lucide-react";
 import { getFlag } from "@/lib/countries";
 
