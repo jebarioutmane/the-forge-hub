@@ -154,7 +154,7 @@ export default function PortfolioDashboard() {
   const avgAttendance = useMemo(() => {
     const rates = engagement.map(e => Number(e.attendance_rate)).filter(n => !isNaN(n) && n !== null);
     if (!rates.length) return null;
-    return Math.round((rates.reduce((a, b) => a + b, 0) / rates.length) * 100);
+    return Math.round(rates.reduce((a, b) => a + b, 0) / rates.length);
   }, [engagement]);
 
   const latestBlock = useMemo(() => {
