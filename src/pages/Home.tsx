@@ -88,8 +88,8 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Needs Attention */}
-      <NeedsAttentionPanel />
+      {/* Weekly Focuses */}
+      <WeeklyFocusesPanel />
 
       {/* Two KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
