@@ -44,9 +44,10 @@ interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   eventId: string | null;
+  initialIsMultipart?: boolean;
 }
 
-export function EventWorkspace({ open, onOpenChange, eventId }: Props) {
+export function EventWorkspace({ open, onOpenChange, eventId, initialIsMultipart = false }: Props) {
   const qc = useQueryClient();
   const { selectedCohortId, selectedCohort, cohorts } = useCohort();
   const [tab, setTab] = useState("overview");
