@@ -770,10 +770,12 @@ export default function FoundersSource() {
                           <DropdownMenuItem onClick={() => setViewing(f)}>
                             <Eye className="mr-2 h-3.5 w-3.5" /> View
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openEdit(f)}>
-                            <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
-                          </DropdownMenuItem>
-                          {f.is_archived ? (
+                          {mayEdit && (
+                            <DropdownMenuItem onClick={() => openEdit(f)}>
+                              <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
+                            </DropdownMenuItem>
+                          )}
+                          {mayDelete && (f.is_archived ? (
                             <DropdownMenuItem onClick={() => restoreMutation.mutate(f.id)}>
                               <ArchiveRestore className="mr-2 h-3.5 w-3.5" /> Restore
                             </DropdownMenuItem>
@@ -784,7 +786,7 @@ export default function FoundersSource() {
                             >
                               <Trash2 className="mr-2 h-3.5 w-3.5" /> Archive
                             </DropdownMenuItem>
-                          )}
+                          ))}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </td>
