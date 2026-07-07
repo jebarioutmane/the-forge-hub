@@ -59,6 +59,21 @@ export default {
         "module-operations": "hsl(var(--module-operations))",
         "module-events": "hsl(var(--module-events))",
         "module-founders": "hsl(var(--module-founders))",
+        ink: "hsl(var(--ink))",
+        signal: {
+          DEFAULT: "hsl(var(--signal))",
+          foreground: "hsl(var(--signal-foreground))",
+        },
+        status: {
+          ontrack: "hsl(var(--status-ontrack))",
+          watch: "hsl(var(--status-watch))",
+          atrisk: "hsl(var(--status-atrisk))",
+        },
+      },
+      fontFamily: {
+        serif: ["Georgia", "'Times New Roman'", "'Iowan Old Style'", "serif"],
+        sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "'Segoe UI'", "sans-serif"],
+        display: ["Georgia", "'Times New Roman'", "serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
