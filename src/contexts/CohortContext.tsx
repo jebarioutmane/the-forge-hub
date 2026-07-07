@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { usePermissions } from "@/hooks/usePermissions";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Cohort = Tables<"cohorts">;
@@ -41,10 +42,17 @@ export function CohortProvider({ children }: { children: React.ReactNode }) {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Non-archived cohorts only for the header switcher and normal consumers.
+  const { scopedCohortIds } = usePermissions();
+
+  // Non-archived cohorts only; further restricted to scoped cohort ids when set.
   const cohorts = useMemo(
-    () => allCohorts.filter((c) => !c.is_archived),
-    [allCohorts]
+    () => {
+      const base = allCohorts.filter((c) => !c.is_archived);
+      if (!scopedCohortIds) return base;
+      const allow = new Set(scopedCohortIds);
+      return base.filter((c) => allow.has(c.id));
+    },
+    [allCohorts, scopedCohortIds]
   );
 
   const activeCohort = useMemo(

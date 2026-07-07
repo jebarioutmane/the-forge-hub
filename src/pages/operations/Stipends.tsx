@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +51,10 @@ function parseLinks(raw: any): StipendLink[] {
 
 export default function Stipends() {
   const { user } = useAuth();
+  const { canEdit, canDelete, canSeeSensitive } = usePermissions();
+  const mayEdit = canEdit("stipends");
+  const mayDelete = canDelete("stipends");
+  const maySeeRib = canSeeSensitive("stipends");
   const queryClient = useQueryClient();
 
   const { data: founders = [] } = useQuery({
@@ -663,7 +668,7 @@ export default function Stipends() {
           <Button variant="outline" size="sm" onClick={exportCSV} disabled={records.length === 0}>
             <Download className="mr-1 h-3.5 w-3.5" /> Export CSV
           </Button>
-          {records.length > 0 && (
+          {mayDelete && records.length > 0 && (
             <Button variant="destructive" size="sm" onClick={() => setBulkDeleteOpen(true)}>
               <Trash2 className="mr-1 h-3.5 w-3.5" /> Delete All
             </Button>
@@ -844,7 +849,7 @@ export default function Stipends() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <RibDisplay rib={rib} />
+                            <RibDisplay rib={rib} allowed={maySeeRib} />
                           </TableCell>
                           <TableCell colSpan={9} className="text-center text-muted-foreground text-sm">
                             No record for this month
@@ -883,7 +888,7 @@ export default function Stipends() {
                         </TableCell>
 
                         <TableCell>
-                          <RibDisplay rib={rib} />
+                          <RibDisplay rib={rib} allowed={maySeeRib} />
                         </TableCell>
                         <TableCell className="text-right">
                           <InlineInput
@@ -949,12 +954,16 @@ export default function Stipends() {
                               <DropdownMenuItem onClick={() => setViewing(rec)}>
                                 <Eye className="mr-2 h-3 w-3" /> View
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => openEdit(rec)}>
-                                <Pencil className="mr-2 h-3 w-3" /> Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className={rec.is_archived ? "" : "text-destructive"} onClick={() => setDeleteId(rec.id)}>
-                                {rec.is_archived ? (<><ArchiveRestore className="mr-2 h-3 w-3" /> Restore</>) : (<><Trash2 className="mr-2 h-3 w-3" /> Archive</>)}
-                              </DropdownMenuItem>
+                              {mayEdit && (
+                                <DropdownMenuItem onClick={() => openEdit(rec)}>
+                                  <Pencil className="mr-2 h-3 w-3" /> Edit
+                                </DropdownMenuItem>
+                              )}
+                              {mayDelete && (
+                                <DropdownMenuItem className={rec.is_archived ? "" : "text-destructive"} onClick={() => setDeleteId(rec.id)}>
+                                  {rec.is_archived ? (<><ArchiveRestore className="mr-2 h-3 w-3" /> Restore</>) : (<><Trash2 className="mr-2 h-3 w-3" /> Archive</>)}
+                                </DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -1123,8 +1132,11 @@ export default function Stipends() {
 }
 
 /* ── RIB Display with masking ── */
-function RibDisplay({ rib }: { rib: string }) {
+function RibDisplay({ rib, allowed = true }: { rib: string; allowed?: boolean }) {
   if (!rib) return <span className="text-xs text-muted-foreground">—</span>;
+  if (!allowed) {
+    return <span className="text-xs italic text-muted-foreground">•••• (restricted)</span>;
+  }
   return (
     <div className="flex items-center gap-1">
       <span className="text-xs font-mono truncate max-w-[150px]">{maskRib(rib)}</span>

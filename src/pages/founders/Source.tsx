@@ -76,6 +76,8 @@ import { TagBadges } from "@/components/TagBadges";
 import { format } from "date-fns";
 import { formatUrl } from "@/lib/formatUrl";
 import type { Tables } from "@/integrations/supabase/types";
+import { usePermissions } from "@/hooks/usePermissions";
+import { Sensitive } from "@/components/permissions/Sensitive";
 
 type Founder = Tables<"founders">;
 type Cohort = Tables<"cohorts">;
@@ -216,6 +218,10 @@ export default function FoundersSource() {
   const [searchParams] = useSearchParams();
   const highlightId = searchParams.get("highlight");
   const queryClient = useQueryClient();
+  const { canEdit, canDelete, canSeeSensitive } = usePermissions();
+  const mayEdit = canEdit("founders");
+  const mayDelete = canDelete("founders");
+  const maySeeSensitive = canSeeSensitive("founders");
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Founder | null>(null);
@@ -501,19 +507,21 @@ export default function FoundersSource() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button
-            onClick={() => {
-              setForm({
-                ...emptyForm,
-                cohort_id:
-                  selectedCohortId !== ALL_COHORTS ? selectedCohortId : "",
-              });
-              setEditing(null);
-              setDialogOpen(true);
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" /> Add founder
-          </Button>
+          {mayEdit && (
+            <Button
+              onClick={() => {
+                setForm({
+                  ...emptyForm,
+                  cohort_id:
+                    selectedCohortId !== ALL_COHORTS ? selectedCohortId : "",
+                });
+                setEditing(null);
+                setDialogOpen(true);
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4" /> Add founder
+            </Button>
+          )}
         </div>
       </div>
 
@@ -743,7 +751,7 @@ export default function FoundersSource() {
                         {f.phone && (
                           <span className="inline-flex items-center gap-1">
                             <Phone className="h-3 w-3" />
-                            {f.phone}
+                            {maySeeSensitive ? f.phone : <span className="italic">•••• (restricted)</span>}
                           </span>
                         )}
                       </div>
@@ -762,10 +770,12 @@ export default function FoundersSource() {
                           <DropdownMenuItem onClick={() => setViewing(f)}>
                             <Eye className="mr-2 h-3.5 w-3.5" /> View
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openEdit(f)}>
-                            <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
-                          </DropdownMenuItem>
-                          {f.is_archived ? (
+                          {mayEdit && (
+                            <DropdownMenuItem onClick={() => openEdit(f)}>
+                              <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
+                            </DropdownMenuItem>
+                          )}
+                          {mayDelete && (f.is_archived ? (
                             <DropdownMenuItem onClick={() => restoreMutation.mutate(f.id)}>
                               <ArchiveRestore className="mr-2 h-3.5 w-3.5" /> Restore
                             </DropdownMenuItem>
@@ -776,7 +786,7 @@ export default function FoundersSource() {
                             >
                               <Trash2 className="mr-2 h-3.5 w-3.5" /> Archive
                             </DropdownMenuItem>
-                          )}
+                          ))}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </td>
@@ -871,7 +881,7 @@ export default function FoundersSource() {
                   Contact
                 </h3>
                 <DetailRow icon={<Mail className="h-4 w-4" />} label="Email" value={viewing.email} />
-                <DetailRow icon={<Phone className="h-4 w-4" />} label="Phone" value={viewing.phone} />
+                <DetailRow icon={<Phone className="h-4 w-4" />} label="Phone" value={<Sensitive section="founders" value={viewing.phone} />} />
                 <DetailRow
                   icon={<UserCircle2 className="h-4 w-4" />}
                   label="Venture associate"
@@ -931,12 +941,12 @@ export default function FoundersSource() {
                 <DetailRow
                   icon={<IdCard className="h-4 w-4" />}
                   label="CIN"
-                  value={viewing.cin_number}
+                  value={<Sensitive section="founders" value={viewing.cin_number} />}
                 />
                 <DetailRow
                   icon={<BadgeCheck className="h-4 w-4" />}
                   label="Passport"
-                  value={viewing.passport_number}
+                  value={<Sensitive section="founders" value={viewing.passport_number} />}
                 />
                 <DetailRow
                   icon={<BookOpen className="h-4 w-4" />}

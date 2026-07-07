@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { CohortSwitcher } from "@/components/CohortSwitcher";
 import { NAV_SECTIONS, type NavSection } from "@/config/navigation";
+import { usePermissions, type PermissionSection } from "@/hooks/usePermissions";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -82,10 +83,16 @@ export function TopNav() {
   const location = useLocation();
   const isMobile = useIsMobile();
   const { onlineUserIds } = usePresence();
+  const { canView } = usePermissions();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const isHome = location.pathname === "/";
+
+  const visibleSections = NAV_SECTIONS
+    .map((s) => ({ ...s, items: s.items.filter((i) => canView(i.section as PermissionSection | undefined)) }))
+    .filter((s) => s.items.length > 0);
+
 
   return (
     <>
@@ -109,7 +116,7 @@ export function TopNav() {
               onValueChange={(val) => setIsMenuOpen(!!val)}
             >
               <NavigationMenuList className="gap-0">
-                {NAV_SECTIONS.map((section) => (
+                {visibleSections.map((section) => (
                   <NavigationMenuItem key={section.label}>
                     <NavigationMenuTrigger className="h-auto px-2.5 py-1.5 text-[13px] font-medium text-muted-foreground hover:text-foreground bg-transparent hover:bg-transparent data-[state=open]:bg-transparent data-[active]:bg-transparent">
                       {section.label}
@@ -198,7 +205,7 @@ export function TopNav() {
                   </button>
 
                   <Accordion type="single" collapsible className="w-full">
-                    {NAV_SECTIONS.map((section) => (
+                    {visibleSections.map((section) => (
                       <AccordionItem key={section.label} value={section.label} className="border-border">
                         <AccordionTrigger className="py-3 text-xl font-semibold tracking-tight text-muted-foreground hover:text-foreground hover:no-underline">
                           {section.label}

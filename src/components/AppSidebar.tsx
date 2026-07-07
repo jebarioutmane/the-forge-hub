@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { NAV_SECTIONS, HOME_ITEM } from "@/config/navigation";
+import { usePermissions, type PermissionSection } from "@/hooks/usePermissions";
 const appIcon = "/pwa-512x512.png";
 
 const dashboardSection = {
@@ -21,9 +22,12 @@ const dashboardSection = {
   items: [HOME_ITEM],
 };
 
-const allSections = [dashboardSection, ...NAV_SECTIONS];
-
 export function AppSidebar() {
+  const { canView } = usePermissions();
+  const visibleNav = NAV_SECTIONS
+    .map((s) => ({ ...s, items: s.items.filter((i) => canView((i as any).section as PermissionSection | undefined)) }))
+    .filter((s) => s.items.length > 0);
+  const allSections = [dashboardSection, ...visibleNav];
   return (
     <Sidebar>
       <SidebarContent>

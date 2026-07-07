@@ -14,6 +14,8 @@ export type NavItem = {
   url: string;
   icon: LucideIcon;
   description: string;
+  /** Permission section key from role_permissions. Undefined = always visible. */
+  section?: string;
 };
 
 export type NavSection = {
@@ -36,10 +38,10 @@ export const NAV_SECTIONS: NavSection[] = [
     description: "Manage portfolio founders, track progress, and run evaluations.",
     colorClass: "text-module-founders",
     items: [
-      { title: "Directory", url: "/founders", icon: GraduationCap, description: "Browse and manage all founders" },
-      { title: "Tracking", url: "/founders/tracking", icon: TrendingUp, description: "Weekly check-ins and 1:1 progress" },
-      { title: "Evaluations", url: "/founders/evaluations", icon: ClipboardCheck, description: "Formal block-end founder evaluations" },
-      { title: "Portfolio Dashboard", url: "/founders/portfolio", icon: BarChart3, description: "High-level portfolio view" },
+      { title: "Directory", url: "/founders", icon: GraduationCap, description: "Browse and manage all founders", section: "founders" },
+      { title: "Tracking", url: "/founders/tracking", icon: TrendingUp, description: "Weekly check-ins and 1:1 progress", section: "tracking" },
+      { title: "Evaluations", url: "/founders/evaluations", icon: ClipboardCheck, description: "Formal block-end founder evaluations", section: "evaluations" },
+      { title: "Portfolio Dashboard", url: "/founders/portfolio", icon: BarChart3, description: "High-level portfolio view", section: "portfolio" },
     ],
   },
   {
@@ -48,8 +50,8 @@ export const NAV_SECTIONS: NavSection[] = [
     description: "Plan, coordinate, and execute program events seamlessly.",
     colorClass: "text-module-events",
     items: [
-      { title: "Events Calendar", url: "/events", icon: CalendarDays, description: "Unified event workspace" },
-      { title: "Stakeholders", url: "/events/stakeholders", icon: Users2, description: "Mentors, speakers, and guests" },
+      { title: "Events Calendar", url: "/events", icon: CalendarDays, description: "Unified event workspace", section: "events" },
+      { title: "Stakeholders", url: "/events/stakeholders", icon: Users2, description: "Mentors, speakers, and guests", section: "stakeholders" },
     ],
   },
   {
@@ -58,11 +60,11 @@ export const NAV_SECTIONS: NavSection[] = [
     description: "Budget tracking, expenses, contracts, and stipends.",
     colorClass: "text-module-operations",
     items: [
-      { title: "Budget Dashboard", url: "/operations", icon: PiggyBank, description: "Financial overview" },
-      { title: "Expenses", url: "/operations/expenses", icon: DollarSign, description: "Cohort-based expense tracking" },
-      { title: "Stipends", url: "/operations/stipends", icon: Wallet, description: "Founder stipend payouts" },
-      { title: "Contracts", url: "/operations/contracts", icon: FileText, description: "Manage agreements" },
-      { title: "Tasks", url: "/operations/tasks", icon: ListTodo, description: "Team task hub — manual and automated" },
+      { title: "Budget Dashboard", url: "/operations", icon: PiggyBank, description: "Financial overview", section: "budget" },
+      { title: "Expenses", url: "/operations/expenses", icon: DollarSign, description: "Cohort-based expense tracking", section: "expenses" },
+      { title: "Stipends", url: "/operations/stipends", icon: Wallet, description: "Founder stipend payouts", section: "stipends" },
+      { title: "Contracts", url: "/operations/contracts", icon: FileText, description: "Manage agreements", section: "contracts" },
+      { title: "Tasks", url: "/operations/tasks", icon: ListTodo, description: "Team task hub — manual and automated", section: "tasks" },
     ],
   },
   {
@@ -71,8 +73,8 @@ export const NAV_SECTIONS: NavSection[] = [
     description: "Design report templates and generate program reports.",
     colorClass: "text-primary",
     items: [
-      { title: "Report Templates", url: "/reporting/templates", icon: FileBarChart, description: "Reusable report templates and questions" },
-      { title: "Reports", url: "/reporting/reports", icon: FileSpreadsheet, description: "Launch, fill, and export reports" },
+      { title: "Report Templates", url: "/reporting/templates", icon: FileBarChart, description: "Reusable report templates and questions", section: "reporting" },
+      { title: "Reports", url: "/reporting/reports", icon: FileSpreadsheet, description: "Launch, fill, and export reports", section: "reporting" },
     ],
 
   },
@@ -83,13 +85,13 @@ export const NAV_SECTIONS: NavSection[] = [
     description: "Application configuration and shared resources.",
     colorClass: "text-muted-foreground",
     items: [
-      { title: "Budget Lines", url: "/operations/budget-lines", icon: Layers, description: "Sponsor budget lines and allocations" },
-      { title: "Team Profiles", url: "/system/profiles", icon: UserCircle, description: "Team member directory" },
+      { title: "Budget Lines", url: "/operations/budget-lines", icon: Layers, description: "Sponsor budget lines and allocations", section: "budget_lines" },
+      { title: "Team Profiles", url: "/system/profiles", icon: UserCircle, description: "Team member directory", section: "team" },
       { title: "Roles & Permissions", url: "/system/roles", icon: ShieldCheck, description: "Manage roles and access control (Super Admin)" },
-      { title: "Tags & Labels", url: "/system/tags", icon: Tag, description: "Shared tags used across the platform" },
-      { title: "History Log", url: "/system/history", icon: ClipboardList, description: "Audit trail and restore" },
-      { title: "Library", url: "/library", icon: BookOpen, description: "Shared resource library" },
-      { title: "Settings", url: "/settings", icon: Settings, description: "App preferences" },
+      { title: "Tags & Labels", url: "/system/tags", icon: Tag, description: "Shared tags used across the platform", section: "settings" },
+      { title: "History Log", url: "/system/history", icon: ClipboardList, description: "Audit trail and restore", section: "history" },
+      { title: "Library", url: "/library", icon: BookOpen, description: "Shared resource library", section: "library" },
+      { title: "Settings", url: "/settings", icon: Settings, description: "App preferences", section: "settings" },
     ],
   },
 ];

@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -219,6 +220,10 @@ function MultiSelect({
 
 export default function StakeholdersDirectory() {
   const queryClient = useQueryClient();
+  const { canEdit, canDelete, canSeeSensitive } = usePermissions();
+  const mayEdit = canEdit("stakeholders");
+  const mayDelete = canDelete("stakeholders");
+  const maySeeSensitive = canSeeSensitive("stakeholders");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Stakeholder | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -469,15 +474,17 @@ export default function StakeholdersDirectory() {
             Network CRM — mentors, investors, partners & speakers.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setForm(emptyForm);
-            setEditing(null);
-            setDialogOpen(true);
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" /> Add stakeholder
-        </Button>
+        {mayEdit && (
+          <Button
+            onClick={() => {
+              setForm(emptyForm);
+              setEditing(null);
+              setDialogOpen(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" /> Add stakeholder
+          </Button>
+        )}
       </div>
 
       {/* Filter bar */}
@@ -691,10 +698,12 @@ export default function StakeholdersDirectory() {
                         <DropdownMenuItem onClick={() => setViewing(s)}>
                           <Eye className="mr-2 h-3.5 w-3.5" /> View
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openEdit(s)}>
-                          <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
-                        </DropdownMenuItem>
-                        {s.is_archived ? (
+                        {mayEdit && (
+                          <DropdownMenuItem onClick={() => openEdit(s)}>
+                            <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
+                          </DropdownMenuItem>
+                        )}
+                        {mayDelete && (s.is_archived ? (
                           <DropdownMenuItem onClick={() => restoreMutation.mutate(s.id)}>
                             <ArchiveRestore className="mr-2 h-3.5 w-3.5" /> Restore
                           </DropdownMenuItem>
@@ -705,7 +714,7 @@ export default function StakeholdersDirectory() {
                           >
                             <Trash2 className="mr-2 h-3.5 w-3.5" /> Archive
                           </DropdownMenuItem>
-                        )}
+                        ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>
@@ -851,7 +860,7 @@ export default function StakeholdersDirectory() {
                   Contact
                 </h3>
                 <DetailRow icon={<Mail className="h-4 w-4" />} label="Email" value={viewing.email} />
-                <DetailRow icon={<Phone className="h-4 w-4" />} label="Phone" value={viewing.phone} />
+                <DetailRow icon={<Phone className="h-4 w-4" />} label="Phone" value={maySeeSensitive ? viewing.phone : <span className="italic text-muted-foreground">•••• (restricted)</span>} />
                 <DetailRow
                   icon={<UserCircle2 className="h-4 w-4" />}
                   label="Point of contact"
