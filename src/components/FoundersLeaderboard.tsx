@@ -12,7 +12,7 @@ interface LeaderboardEntry {
   founder_name: string;
   startup_name: string;
   photo_url: string | null;
-  avgScore: number;
+  avgScore: number | null;
   riskStatus: string | null;
   attendanceRate: number | null;
 }
@@ -40,12 +40,12 @@ export default function FoundersLeaderboard() {
     },
   });
 
-  const { data: evaluations = [] } = useQuery({
-    queryKey: ["evaluations-leaderboard"],
+  const { data: checkins = [] } = useQuery({
+    queryKey: ["checkins-leaderboard"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("founder_evaluations")
-        .select("founder_id, total_score");
+        .from("founder_checkins")
+        .select("founder_id, overall_score");
       if (error) throw error;
       return data;
     },
@@ -70,11 +70,11 @@ export default function FoundersLeaderboard() {
 
   const leaderboard: LeaderboardEntry[] = useMemo(() => {
     const scoreMap: Record<string, { total: number; count: number }> = {};
-    evaluations.forEach((ev) => {
-      if (!ev.founder_id || ev.total_score == null) return;
-      if (!scoreMap[ev.founder_id]) scoreMap[ev.founder_id] = { total: 0, count: 0 };
-      scoreMap[ev.founder_id].total += Number(ev.total_score);
-      scoreMap[ev.founder_id].count += 1;
+    checkins.forEach((c: any) => {
+      if (!c.founder_id || c.overall_score == null) return;
+      if (!scoreMap[c.founder_id]) scoreMap[c.founder_id] = { total: 0, count: 0 };
+      scoreMap[c.founder_id].total += Number(c.overall_score);
+      scoreMap[c.founder_id].count += 1;
     });
 
     return founders
@@ -83,13 +83,18 @@ export default function FoundersLeaderboard() {
         founder_name: f.founder_name,
         startup_name: f.startup_name,
         photo_url: f.photo_url,
-        avgScore: scoreMap[f.id] ? Math.round(scoreMap[f.id].total / scoreMap[f.id].count) : 0,
+        avgScore: scoreMap[f.id] ? Math.round(scoreMap[f.id].total / scoreMap[f.id].count) : null,
         riskStatus: engagementMap[f.id]?.risk ?? null,
         attendanceRate: engagementMap[f.id]?.attendance ?? null,
       }))
-      .filter((f) => f.avgScore > 0 || f.riskStatus)
-      .sort((a, b) => b.avgScore - a.avgScore);
-  }, [founders, evaluations, engagementMap]);
+      .filter((f) => f.avgScore != null || f.riskStatus || f.attendanceRate != null)
+      .sort((a, b) => {
+        if (a.avgScore != null && b.avgScore != null) return b.avgScore - a.avgScore;
+        if (a.avgScore != null) return -1;
+        if (b.avgScore != null) return 1;
+        return (b.attendanceRate ?? -1) - (a.attendanceRate ?? -1);
+      });
+  }, [founders, checkins, engagementMap]);
 
   const getInitials = (name: string) =>
     name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
@@ -155,11 +160,12 @@ export default function FoundersLeaderboard() {
                         {Math.round(Number(entry.attendanceRate))}%
                       </Badge>
                     )}
-                    {entry.avgScore > 0 && (
-                      <span className="text-[13px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg">
-                        {entry.avgScore}
-                      </span>
-                    )}
+                    <span
+                      className="text-[13px] font-semibold text-foreground bg-secondary px-2.5 py-1 rounded-lg"
+                      title={entry.avgScore == null ? "No check-in score yet" : "Avg check-in score"}
+                    >
+                      {entry.avgScore != null ? entry.avgScore : "—"}
+                    </span>
                   </div>
                 </div>
               ))}
