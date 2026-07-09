@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
  * which mirrors what the database allows.
  */
 export async function updateProfileRole(profileId: string, newRole: string) {
-  const { error } = await supabase.rpc("update_user_role", {
+  const { error } = await (supabase as any).rpc("update_user_role", {
     _target_id: profileId,
     _new_role: newRole,
   });
