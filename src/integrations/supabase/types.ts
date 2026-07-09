@@ -2177,10 +2177,6 @@ export type Database = {
       is_internal: { Args: { uid: string }; Returns: boolean }
       is_super_admin: { Args: { uid: string }; Returns: boolean }
       text_to_bytea: { Args: { data: string }; Returns: string }
-      update_user_role: {
-        Args: { _new_role: string; _target_id: string }
-        Returns: undefined
-      }
       urlencode:
         | { Args: { data: Json }; Returns: string }
         | {
