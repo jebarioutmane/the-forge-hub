@@ -1,0 +1,7 @@
+# THE FORGE HUB
+
+> Private PMO command center for THE FORGE — a confidential internal platform for tracking founders, cohorts, events, contracts, and operations. Access is restricted to authorized personnel.
+
+## Pages
+
+- [Sign in](/auth): Restricted login for authorized THE FORGE personnel.
