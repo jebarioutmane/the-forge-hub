@@ -58,6 +58,7 @@ export default function Auth() {
       <Card className="w-full max-w-md shadow-2xl border-0">
         <CardHeader className="text-center pb-2">
           <img src={appIcon} alt="The Forge" className="h-16 w-16 object-contain rounded-xl shadow-sm mx-auto mb-3" />
+          <h1 className="sr-only">Sign in to The Forge Hub</h1>
           <CardTitle className="text-2xl tracking-tight">THE FORGE HUB</CardTitle>
           <CardDescription>Sign in to your account</CardDescription>
         </CardHeader>
@@ -90,6 +91,7 @@ export default function Auth() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   tabIndex={-1}
                 >
