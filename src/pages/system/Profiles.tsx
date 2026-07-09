@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
-import { canEditProfiles, isSuperAdminEmail, updateProfileRole } from "@/lib/rbac";
+import { updateProfileRole } from "@/lib/rbac";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,6 +65,7 @@ function parseLinks(raw: unknown): LinkItem[] {
 
 export default function SystemProfiles() {
   const { user } = useAuth();
+  const { canEdit: canEditSection, isSuperAdmin: isSuperAdminRole } = usePermissions();
   const [searchParams] = useSearchParams();
   const highlightId = searchParams.get("highlight");
   const queryClient = useQueryClient();
@@ -99,8 +100,8 @@ export default function SystemProfiles() {
 
   const currentProfile = profiles.find((p) => p.id === user?.id);
   const currentRoleName = rolesList.find((r) => r.id === (currentProfile as any)?.role_id)?.name;
-  const isSuperAdmin = currentRoleName === "Super Admin";
-  const hasEditRights = canEditProfiles(user?.email, currentProfile?.role);
+  const isSuperAdmin = isSuperAdminRole || currentRoleName === "Super Admin";
+  const hasEditRights = isSuperAdmin || canEditSection("team");
   const superAdminRoleId = rolesList.find((r) => r.name === "Super Admin")?.id;
   const superAdminCount = superAdminRoleId
     ? profiles.filter((p: any) => p.role_id === superAdminRoleId).length
@@ -834,8 +835,7 @@ function RoleAssignmentBlock({
   const currentRole = rolesList.find((r) => r.id === profile.role_id);
   const isLastSuperAdmin =
     currentRole?.name === "Super Admin" && superAdminCount <= 1;
-  const isHardcodedSuperAdmin = (profile.email || "").toLowerCase() === "outmane.jebari@um6p.ma";
-  const locked = isLastSuperAdmin || isHardcodedSuperAdmin;
+  const locked = isLastSuperAdmin;
   const scoped: string[] = Array.isArray(profile.scoped_cohort_ids) ? profile.scoped_cohort_ids : [];
 
   return (
