@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
 import { TopNav } from "@/components/TopNav";
+import { CursorSpotlight } from "@/components/CursorSpotlight";
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -23,6 +24,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
       <main className="pt-12">
         {children}
       </main>
+      <CursorSpotlight />
     </div>
   );
 }
