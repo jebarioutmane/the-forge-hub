@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { LogOut, Moon, Sun, UserCog, ChevronLeft } from "lucide-react";
+import { LogOut, UserCog, ChevronLeft } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
-import { useTheme } from "@/contexts/ThemeContext";
 import { MyProfileDialog } from "@/components/MyProfileDialog";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +18,6 @@ export function EdgeQuickPanel() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { roleName } = usePermissions();
-  const { theme, toggleTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const closeTimer = useRef<number | null>(null);
@@ -145,18 +143,6 @@ export function EdgeQuickPanel() {
             <UserCog className="h-4 w-4" /> Edit profile
           </button>
 
-          <button
-            onClick={toggleTheme}
-            className="w-full flex items-center justify-between rounded-md px-3 py-2.5 text-sm text-foreground hover:bg-accent transition-colors"
-          >
-            <span className="flex items-center gap-3">
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              {theme === "dark" ? "Light mode" : "Dark mode"}
-            </span>
-            <span className="text-[11px] uppercase tracking-wide text-muted-foreground">
-              {theme}
-            </span>
-          </button>
         </div>
 
         <div className="mt-auto p-3 border-t border-border">
