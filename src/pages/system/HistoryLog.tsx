@@ -26,8 +26,8 @@ import type { Tables } from "@/integrations/supabase/types";
 type HistoryLog = Tables<"history_logs">;
 
 const actionColor: Record<string, string> = {
-  INSERT: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
-  UPDATE: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
+  INSERT: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
+  UPDATE: "bg-amber-500/15 text-amber-700 border-amber-500/30",
   DELETE: "bg-destructive/15 text-destructive border-destructive/30",
 };
 

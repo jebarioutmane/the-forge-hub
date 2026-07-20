@@ -26,11 +26,11 @@ export type CalendarEvent = Tables<"events"> & { _start: string; _end: string };
 
 const EVENT_TYPES = ["Masterclass", "Mentorship", "Pitch Session", "Networking", "Social", "General"] as const;
 const TYPE_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
-  Masterclass:     { bg: "bg-sky-50 dark:bg-sky-500/15",         text: "text-sky-700 dark:text-sky-200",         dot: "bg-sky-500" },
-  Mentorship:      { bg: "bg-emerald-50 dark:bg-emerald-500/15", text: "text-emerald-700 dark:text-emerald-200", dot: "bg-emerald-500" },
-  "Pitch Session": { bg: "bg-amber-50 dark:bg-amber-500/15",     text: "text-amber-800 dark:text-amber-200",     dot: "bg-amber-600" },
-  Networking:      { bg: "bg-violet-50 dark:bg-violet-500/15",   text: "text-violet-700 dark:text-violet-200",   dot: "bg-violet-500" },
-  Social:          { bg: "bg-rose-50 dark:bg-rose-500/15",       text: "text-rose-700 dark:text-rose-200",       dot: "bg-rose-500" },
+  Masterclass:     { bg: "bg-sky-50",     text: "text-sky-700",     dot: "bg-sky-500" },
+  Mentorship:      { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
+  "Pitch Session": { bg: "bg-amber-50",   text: "text-amber-800",   dot: "bg-amber-600" },
+  Networking:      { bg: "bg-violet-50",  text: "text-violet-700",  dot: "bg-violet-500" },
+  Social:          { bg: "bg-rose-50",    text: "text-rose-700",    dot: "bg-rose-500" },
   General:         { bg: "bg-muted",                              text: "text-foreground",                        dot: "bg-muted-foreground" },
 };
 function typeStyle(t?: string | null) { return TYPE_STYLES[t || "General"] || TYPE_STYLES.General; }
