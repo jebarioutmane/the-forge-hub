@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Trophy } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ALL_COHORTS, useCohort } from "@/contexts/CohortContext";
 
 interface LeaderboardEntry {
   id: string;
@@ -29,12 +30,18 @@ const RISK_LABELS: Record<string, string> = {
 };
 
 export default function FoundersLeaderboard() {
+  const { selectedCohortId } = useCohort();
+  const scoped =
+    selectedCohortId && selectedCohortId !== ALL_COHORTS ? selectedCohortId : null;
+
   const { data: founders = [] } = useQuery({
-    queryKey: ["founders-leaderboard"],
+    queryKey: ["founders-leaderboard", scoped ?? "all"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("founders")
-        .select("id, founder_name, startup_name, photo_url");
+        .select("id, founder_name, startup_name, photo_url, cohort_id");
+      if (scoped) q = q.eq("cohort_id", scoped);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
