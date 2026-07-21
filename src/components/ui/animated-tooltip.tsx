@@ -60,19 +60,21 @@ export function AnimatedTooltip({ items, size = "md" }: { items: TooltipItem[]; 
             </AnimatePresence>
 
             <div className="relative">
-              <Avatar className="h-8 w-8 md:h-10 md:w-10 border-2 border-background cursor-pointer transition-transform duration-200 group-hover:scale-110 group-hover:z-30">
+              <Avatar className={cn(avatarClass, "border-2 border-background cursor-pointer transition-transform duration-200 group-hover:scale-110 group-hover:z-30")}>
                 <AvatarImage src={item.image} alt={item.name} />
-                <AvatarFallback className="text-xs font-semibold bg-muted">
+                <AvatarFallback className="text-[10px] font-semibold bg-muted">
                   {item.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <span
                 className={cn(
-                  "absolute bottom-0 right-0 h-2.5 w-2.5 md:h-3 md:w-3 rounded-full border-2 border-background",
+                  "absolute bottom-0 right-0 rounded-full border-2 border-background",
+                  dotClass,
                   item.isOnline ? "bg-emerald-500" : "bg-gray-400"
                 )}
               />
             </div>
+
           </div>
         );
       })}
