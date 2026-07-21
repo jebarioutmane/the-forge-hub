@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
 import { MyProfileDialog } from "@/components/MyProfileDialog";
+import TeamPresence from "@/components/TeamPresence";
 import { cn } from "@/lib/utils";
 
 /**
