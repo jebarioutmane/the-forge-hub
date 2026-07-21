@@ -181,17 +181,22 @@
 
 @layer utilities {
   .transition-apple {
-    transition: all 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+    transition: all var(--duration-base) var(--ease-standard);
   }
   .text-signal { color: hsl(var(--signal)); }
   .bg-signal { background-color: hsl(var(--signal)); }
   .text-ink { color: hsl(var(--ink)); }
   .bg-ink { background-color: hsl(var(--ink)); }
+
+  .shadow-elev-xs { box-shadow: var(--shadow-xs); }
+  .shadow-elev-sm { box-shadow: var(--shadow-sm); }
+  .shadow-elev-md { box-shadow: var(--shadow-md); }
+  .shadow-elev-lg { box-shadow: var(--shadow-lg); }
 }
 
 @keyframes target-flash {
   0% { background-color: transparent; }
-  10% { background-color: rgba(46, 124, 246, 0.25); box-shadow: 0 0 0 4px rgba(46, 124, 246, 0.25); }
+  10% { background-color: hsl(var(--signal) / 0.20); box-shadow: 0 0 0 4px hsl(var(--signal) / 0.20); }
   100% { background-color: transparent; box-shadow: 0 0 0 0 transparent; }
 }
 .animate-target-flash {
