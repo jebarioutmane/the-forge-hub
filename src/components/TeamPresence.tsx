@@ -3,7 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePresence } from "@/hooks/usePresence";
 import { AnimatedTooltip, TooltipItem } from "@/components/ui/animated-tooltip";
 
-export default function TeamPresence({ onlineUserIds: externalIds }: { onlineUserIds?: Set<string> } = {}) {
+export default function TeamPresence({
+  onlineUserIds: externalIds,
+  compact = false,
+}: { onlineUserIds?: Set<string>; compact?: boolean } = {}) {
   const { onlineUserIds: localIds } = usePresence();
   const onlineUserIds = externalIds ?? localIds;
 
@@ -28,6 +31,18 @@ export default function TeamPresence({ onlineUserIds: externalIds }: { onlineUse
 
   // Sort online users first
   items.sort((a, b) => (a.isOnline === b.isOnline ? 0 : a.isOnline ? -1 : 1));
+
+  if (compact) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="flex items-center gap-1 text-[9px] font-medium text-emerald-500 uppercase tracking-wider">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          Live
+        </span>
+        <AnimatedTooltip items={items} size="sm" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center gap-3">
