@@ -139,14 +139,8 @@ export function TopNav() {
         <div className="flex items-center gap-2 shrink-0">
           {/* Global cohort selector — shared context across every page */}
           <CohortSwitcher compact={isMobile} />
-          {/* Search icon (all pages) */}
-          <button
-            onClick={() => setSearchOpen(true)}
-            className="h-9 w-9 rounded-full hover:bg-secondary flex items-center justify-center transition-colors text-foreground active:scale-95"
-            title="Search"
-          >
-            <Search className={isMobile ? "h-[18px] w-[18px]" : "h-4 w-4"} />
-          </button>
+          {/* Search icon removed — search lives on the home hero and via ⌘K */}
+
           {!isMobile && !isHome && <TeamPresence onlineUserIds={onlineUserIds} />}
 
 
