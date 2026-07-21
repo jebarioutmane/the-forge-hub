@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Briefcase, CalendarDays, GraduationCap, Users, ChevronDown, ChevronUp } from "lucide-react";
+import { Briefcase, CalendarDays, GraduationCap, Users, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import TeamPresence from "@/components/TeamPresence";
 import FoundersLeaderboard from "@/components/FoundersLeaderboard";
 import WeeklyFocusesPanel from "@/components/WeeklyFocusesPanel";
 import BirthdaysPanel from "@/components/BirthdaysPanel";
+import ForgeDoodle from "@/components/ForgeDoodle";
+import { GlobalSearch } from "@/components/GlobalSearch";
 
 const shortcuts = [
   {
