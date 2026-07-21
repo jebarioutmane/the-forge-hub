@@ -159,6 +159,8 @@ export default function Home() {
           <GlobalNetworkMap />
         </div>
       </div>
+
+      <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </div>
   );
 }
