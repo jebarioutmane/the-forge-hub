@@ -96,9 +96,9 @@ export function TopNav() {
 
   return (
     <>
-      <header className="fixed top-0 w-full z-50 h-12 border-b border-border bg-card/80 backdrop-blur-xl flex items-center justify-between px-4 md:px-6">
+      <header className="fixed top-0 w-full z-50 h-12 border-b border-border bg-card/80 backdrop-blur-xl flex items-center justify-between px-4 sm:px-6 md:px-8">
         {/* Left: Logo */}
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-5 min-w-0">
           <button
             onClick={() => navigate("/")}
             className="flex items-center gap-2 hover:opacity-80 transition-opacity shrink-0"
@@ -133,44 +133,22 @@ export function TopNav() {
               </NavigationMenuList>
             </NavigationMenu>
           )}
-
-          {/* Home: prominent search bar */}
-          {!isMobile && isHome && (
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="w-full max-w-md h-10 bg-secondary rounded-xl flex items-center px-4 text-muted-foreground cursor-text hover:bg-accent transition-colors gap-2"
-            >
-              <Search className="h-4 w-4 shrink-0" />
-              <span className="text-sm">Search anything...</span>
-            </button>
-          )}
         </div>
 
         {/* Right side */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Global cohort selector — shared context across every page */}
           <CohortSwitcher compact={isMobile} />
-          {/* Mobile: always show search icon */}
-          {isMobile && (
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="h-9 w-9 rounded-full hover:bg-secondary flex items-center justify-center transition-colors text-foreground active:scale-95"
-              title="Search"
-            >
-              <Search className="h-[18px] w-[18px]" />
-            </button>
-          )}
-          {/* Desktop non-home: subtle search icon */}
-          {!isMobile && !isHome && (
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="h-9 w-9 rounded-full hover:bg-secondary flex items-center justify-center transition-colors text-foreground"
-              title="Search"
-            >
-              <Search className="h-4 w-4" />
-            </button>
-          )}
+          {/* Search icon (all pages) */}
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="h-9 w-9 rounded-full hover:bg-secondary flex items-center justify-center transition-colors text-foreground active:scale-95"
+            title="Search"
+          >
+            <Search className={isMobile ? "h-[18px] w-[18px]" : "h-4 w-4"} />
+          </button>
           {!isMobile && !isHome && <TeamPresence onlineUserIds={onlineUserIds} />}
+
 
           {/* Mobile hamburger */}
           {isMobile && (
