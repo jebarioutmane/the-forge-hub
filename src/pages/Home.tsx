@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Briefcase, CalendarDays, GraduationCap, Users, ChevronDown, ChevronUp } from "lucide-react";
+import { Briefcase, CalendarDays, GraduationCap, Users, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import TeamPresence from "@/components/TeamPresence";
 import FoundersLeaderboard from "@/components/FoundersLeaderboard";
 import WeeklyFocusesPanel from "@/components/WeeklyFocusesPanel";
 import BirthdaysPanel from "@/components/BirthdaysPanel";
+import ForgeDoodle from "@/components/ForgeDoodle";
+import { GlobalSearch } from "@/components/GlobalSearch";
 
 const shortcuts = [
   {
@@ -39,6 +41,7 @@ const shortcuts = [
 export default function Home() {
   const navigate = useNavigate();
   const [showAllFounders, setShowAllFounders] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const { data: founders = [] } = useQuery({
     queryKey: ["founders"],
@@ -65,13 +68,24 @@ export default function Home() {
 
   return (
     <div className="px-6 lg:px-10 py-8 space-y-8 max-w-7xl mx-auto">
-      <div className="flex items-start justify-between gap-4 page-header">
-        <div>
-          <h1 className="font-serif text-4xl font-bold tracking-tight text-ink">Command Center</h1>
-          <p className="text-muted-foreground mt-2 text-base">Welcome back. Here's your overview.</p>
+      {/* Hero: doodle + centered search */}
+      <div className="flex flex-col items-center gap-6 pt-4 pb-2">
+        <div className="w-full max-w-[520px] md:max-w-[600px]">
+          <ForgeDoodle />
         </div>
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="w-full max-w-xl h-12 bg-secondary rounded-full flex items-center px-5 text-muted-foreground cursor-text hover:bg-accent transition-colors gap-3 shadow-sm border border-border/40"
+        >
+          <Search className="h-4 w-4 shrink-0" />
+          <span className="text-sm">Search anything...</span>
+        </button>
+      </div>
+
+      <div className="flex items-center justify-end">
         <TeamPresence />
       </div>
+
 
       {/* Shortcut Buttons */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
@@ -145,6 +159,8 @@ export default function Home() {
           <GlobalNetworkMap />
         </div>
       </div>
+
+      <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </div>
   );
 }
