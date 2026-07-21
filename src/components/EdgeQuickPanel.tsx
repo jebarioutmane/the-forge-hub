@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
 import { MyProfileDialog } from "@/components/MyProfileDialog";
+import TeamPresence from "@/components/TeamPresence";
 import { cn } from "@/lib/utils";
 
 /**
@@ -145,6 +146,14 @@ export function EdgeQuickPanel() {
           </button>
 
         </div>
+
+        <div className="px-5 py-4 border-t border-border">
+          <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground mb-3">
+            Team · Live
+          </p>
+          <TeamPresence />
+        </div>
+
 
         <div className="mt-auto p-3 border-t border-border">
           <button

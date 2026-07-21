@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import GlobalNetworkMap from "@/components/GlobalNetworkMap";
 import EventCountdowns from "@/components/EventCountdowns";
-import TeamPresence from "@/components/TeamPresence";
+
 import FoundersLeaderboard from "@/components/FoundersLeaderboard";
 import WeeklyFocusesPanel from "@/components/WeeklyFocusesPanel";
 import BirthdaysPanel from "@/components/BirthdaysPanel";
@@ -68,10 +68,6 @@ export default function Home() {
 
   return (
     <div className="px-6 lg:px-10 py-8 space-y-8 max-w-7xl mx-auto">
-      {/* Who's online strip — top of page */}
-      <div className="flex items-center justify-end">
-        <TeamPresence />
-      </div>
 
       {/* Hero: doodle + centered search */}
       <div className="flex flex-col items-center gap-6 pt-2 pb-2">

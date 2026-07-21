@@ -96,7 +96,7 @@ export function TopNav() {
 
   return (
     <>
-      <header className="fixed top-0 w-full z-50 h-12 border-b border-border bg-card/80 backdrop-blur-xl flex items-center justify-between gap-3 pl-4 pr-4 sm:pl-6 sm:pr-6 md:pl-8 md:pr-8">
+      <header className="fixed top-0 w-full z-50 h-12 border-b border-border bg-card/80 backdrop-blur-xl flex items-center justify-between gap-3 pl-4 pr-8 sm:pl-6 sm:pr-10 md:pl-8 md:pr-12">
         {/* Left: Logo */}
         <div className="flex items-center gap-5 min-w-0">
           <button
@@ -141,7 +141,7 @@ export function TopNav() {
           <CohortSwitcher compact={isMobile} />
           {/* Search icon removed — search lives on the home hero and via ⌘K */}
 
-          {!isMobile && !isHome && <TeamPresence onlineUserIds={onlineUserIds} />}
+          
 
 
           {/* Mobile hamburger */}
