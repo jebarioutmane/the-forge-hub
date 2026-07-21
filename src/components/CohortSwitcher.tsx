@@ -20,15 +20,15 @@ export function CohortSwitcher({ className, compact }: CohortSwitcherProps) {
       <SelectTrigger
         aria-label="Select cohort"
         className={cn(
-          "h-8 gap-1.5 rounded-full border-border/70 bg-secondary/60 pl-3 pr-2 text-[13px] font-medium text-foreground hover:bg-secondary transition-colors focus:ring-0 focus:ring-offset-0 [&>svg]:opacity-60",
-          compact ? "w-auto min-w-[130px]" : "w-auto min-w-[160px]",
+          "h-8 gap-1.5 rounded-full border-border/70 bg-secondary/60 pl-3 pr-2 text-[13px] font-medium text-foreground hover:bg-secondary transition-colors focus:ring-0 focus:ring-offset-0 [&>svg]:opacity-60 [&>span]:truncate",
+          compact ? "w-auto max-w-[140px]" : "w-auto max-w-[200px] min-w-[140px]",
           className,
         )}
       >
         <Layers className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
         <SelectValue placeholder="Cohort" />
       </SelectTrigger>
-      <SelectContent align="end" className="min-w-[200px]">
+      <SelectContent align="end" collisionPadding={16} className="min-w-[200px]">
         <SelectItem value={ALL_COHORTS}>All cohorts</SelectItem>
         {cohorts.map((c) => (
           <SelectItem key={c.id} value={c.id}>
@@ -46,3 +46,4 @@ export function CohortSwitcher({ className, compact }: CohortSwitcherProps) {
     </Select>
   );
 }
+
