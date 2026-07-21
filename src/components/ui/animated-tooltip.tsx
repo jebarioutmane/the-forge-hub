@@ -11,7 +11,7 @@ export interface TooltipItem {
   isOnline: boolean;
 }
 
-export function AnimatedTooltip({ items }: { items: TooltipItem[] }) {
+export function AnimatedTooltip({ items, size = "md" }: { items: TooltipItem[]; size?: "sm" | "md" }) {
   const [hoveredIndex, setHoveredIndex] = useState<string | null>(null);
   const springConfig = { stiffness: 100, damping: 5 };
   const x = useMotionValue(0);
@@ -23,8 +23,12 @@ export function AnimatedTooltip({ items }: { items: TooltipItem[] }) {
     x.set(event.nativeEvent.offsetX - halfWidth);
   };
 
+  const avatarClass = size === "sm" ? "h-6 w-6" : "h-8 w-8 md:h-10 md:w-10";
+  const dotClass = size === "sm" ? "h-2 w-2" : "h-2.5 w-2.5 md:h-3 md:w-3";
+
   return (
-    <div className="flex items-center -space-x-2 md:-space-x-3">
+    <div className={cn("flex items-center", size === "sm" ? "-space-x-1.5" : "-space-x-2 md:-space-x-3")}>
+
       {items.map((item, idx) => {
         const isRightHalf = idx >= Math.floor(items.length / 2);
         return (
