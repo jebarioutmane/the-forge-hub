@@ -141,7 +141,7 @@ export function TopNav() {
           <CohortSwitcher compact={isMobile} />
           {/* Search icon removed — search lives on the home hero and via ⌘K */}
 
-          {!isMobile && !isHome && <TeamPresence onlineUserIds={onlineUserIds} />}
+          
 
 
           {/* Mobile hamburger */}
