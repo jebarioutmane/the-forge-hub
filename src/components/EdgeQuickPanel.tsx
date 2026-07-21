@@ -151,7 +151,7 @@ export function EdgeQuickPanel() {
           <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground mb-3">
             Team · Live
           </p>
-          <TeamPresence />
+          <TeamPresence compact />
         </div>
 
 
