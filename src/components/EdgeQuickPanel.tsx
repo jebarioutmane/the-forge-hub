@@ -71,19 +71,20 @@ export function EdgeQuickPanel() {
 
   return (
     <>
-      {/* Always-visible handle (primarily for touch users) */}
+      {/* Small centered handle — compact blue arrow tab */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label="Open quick panel"
         className={cn(
-          "fixed right-0 top-1/2 -translate-y-1/2 z-[60] h-16 w-3 rounded-l-md",
-          "bg-primary/70 hover:bg-primary text-primary-foreground shadow-md",
+          "fixed right-0 top-1/2 -translate-y-1/2 z-[60]",
+          "h-8 w-6 rounded-l-full",
+          "bg-signal/90 hover:bg-signal text-white shadow-md",
           "flex items-center justify-center transition-all",
           open && "opacity-0 pointer-events-none"
         )}
       >
-        <ChevronLeft className="h-3 w-3" />
+        <ChevronLeft className="h-4 w-4" />
       </button>
 
       {/* Panel */}
