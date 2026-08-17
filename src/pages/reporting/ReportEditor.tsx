@@ -313,7 +313,7 @@ export default function ReportEditor() {
           <ArrowLeft className="h-4 w-4 mr-1" /> All reports
         </Button>
 
-        <div className="border rounded-2xl p-6 bg-card">
+        <div className="border rounded-lg p-6 bg-card">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3 min-w-0">
               <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
@@ -352,7 +352,7 @@ export default function ReportEditor() {
       </div>
 
       {answers.length === 0 ? (
-        <div className="border border-dashed rounded-2xl py-16 text-center">
+        <div className="border border-dashed rounded-lg py-16 text-center">
           <p className="text-sm font-medium">No questions in this report yet</p>
           <p className="text-xs text-muted-foreground mt-1 mb-4">Add your first question below.</p>
           <Button size="sm" onClick={() => setAddingQ(true)}><Plus className="h-4 w-4 mr-1" /> Add question</Button>

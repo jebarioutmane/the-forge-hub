@@ -106,7 +106,7 @@ export function TopNav() {
             <img
               src={appIcon}
               alt="The Forge"
-              className="h-8 w-8 object-contain rounded-md shadow-sm"
+              className="h-8 w-8 object-contain rounded-md shadow-elev-sm"
             />
           </button>
 
@@ -158,7 +158,7 @@ export function TopNav() {
                   <img
                     src={appIcon}
                     alt="The Forge"
-                    className="h-8 w-8 object-contain rounded-md shadow-sm"
+                    className="h-8 w-8 object-contain rounded-md shadow-elev-sm"
                   />
                   <span className="font-semibold text-foreground text-sm tracking-tight">The Forge</span>
                 </div>

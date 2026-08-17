@@ -56,7 +56,7 @@ export function InstallPrompt() {
 
   return (
     <div className="fixed bottom-0 inset-x-0 z-50 p-4 pb-[env(safe-area-inset-bottom,16px)]">
-      <div className="mx-auto max-w-lg rounded-xl border border-border bg-card/95 backdrop-blur-md shadow-lg p-4 flex items-start gap-3">
+      <div className="mx-auto max-w-lg rounded-xl border border-border bg-card/95 backdrop-blur-md shadow-elev-lg p-4 flex items-start gap-3">
         <div className="shrink-0 mt-0.5 rounded-lg bg-primary/10 p-2">
           {isIOS ? <Share className="h-5 w-5 text-primary" /> : <Download className="h-5 w-5 text-primary" />}
         </div>

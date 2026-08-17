@@ -29,7 +29,7 @@ export default function ContractCard({ contract, vendorName, totalPaid, onView, 
   const currency = (contract as any).currency || "MAD";
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
+    <Card className="group hover:shadow-elev-md transition-all duration-200 hover:-translate-y-0.5">
       <CardContent className="p-5">
         <div className="flex items-start justify-between mb-3">
           <Badge className={statusColors[contract.status || "Draft"]}>{contract.status || "Draft"}</Badge>

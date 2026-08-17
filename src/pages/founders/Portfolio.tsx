@@ -59,7 +59,7 @@ function StatCard({
       onClick={onClick}
       className={cn(
         "border border-border/60 shadow-none transition-all",
-        onClick && "cursor-pointer hover:shadow-sm hover:border-border"
+        onClick && "cursor-pointer hover:shadow-elev-sm hover:border-border"
       )}
     >
       <CardContent className="p-5">

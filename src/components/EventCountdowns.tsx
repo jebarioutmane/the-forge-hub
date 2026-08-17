@@ -143,7 +143,7 @@ export default function EventCountdowns() {
                 key={`${ev.id}-${i}`}
                 type="button"
                 onClick={() => navigate(`/events?event=${ev.id}`)}
-                className="group shrink-0 w-72 text-left rounded-2xl border border-border/60 bg-background/60 backdrop-blur-xl hover:bg-accent/40 hover:border-border transition-colors px-4 py-3 shadow-sm"
+                className="group shrink-0 w-72 text-left rounded-lg border border-border/60 bg-background/60 backdrop-blur-xl hover:bg-accent/40 hover:border-border transition-colors px-4 py-3 shadow-elev-sm"
               >
                 <div className="flex items-start gap-3">
                   <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">

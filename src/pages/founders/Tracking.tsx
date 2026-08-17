@@ -446,7 +446,7 @@ export default function Tracking() {
         {/* Workspace */}
         <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
           {/* Left: founder list */}
-          <div className="rounded-2xl border border-black/5 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+          <div className="rounded-lg border border-black/5 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
             <div className="border-b border-black/5 p-4">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -528,7 +528,7 @@ export default function Tracking() {
           {/* Right: workspace */}
           <div className="space-y-6">
             {!selectedFounder ? (
-              <div className="rounded-2xl border border-dashed border-black/10 bg-white p-16 text-center">
+              <div className="rounded-lg border border-dashed border-black/10 bg-white p-16 text-center">
                 <Activity className="mx-auto h-6 w-6 text-muted-foreground/50" />
                 <p className="mt-3 text-sm font-medium text-[#1D1D1F]">Pick a founder to log a check-in</p>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -538,7 +538,7 @@ export default function Tracking() {
             ) : (
               <>
                 {/* Founder header */}
-                <div className="rounded-2xl border border-black/5 bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="rounded-lg border border-black/5 bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-4">
                       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1D1D1F] text-sm font-medium text-white">
@@ -567,7 +567,7 @@ export default function Tracking() {
                 </div>
 
                 {/* Check-in form */}
-                <div className="rounded-2xl border border-black/5 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="rounded-lg border border-black/5 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
                   <div className="flex items-center justify-between border-b border-black/5 p-6">
                     <div>
                       <h3 className="text-[15px] font-semibold text-[#1D1D1F]">
@@ -694,7 +694,7 @@ export default function Tracking() {
                 </div>
 
                 {/* Timeline */}
-                <div className="rounded-2xl border border-black/5 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="rounded-lg border border-black/5 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
                   <div className="flex items-center justify-between border-b border-black/5 p-6">
                     <div>
                       <h3 className="text-[15px] font-semibold text-[#1D1D1F]">

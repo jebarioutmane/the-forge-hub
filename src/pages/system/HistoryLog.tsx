@@ -202,7 +202,7 @@ export default function HistoryLog() {
       </div>
 
       {/* Filters */}
-      <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+      <div className="rounded-lg border border-border bg-card p-4 shadow-elev-sm">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
           <div className="lg:col-span-2 relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />

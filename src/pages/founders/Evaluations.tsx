@@ -501,7 +501,7 @@ export default function Evaluations() {
         {/* Workspace */}
         <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
           {/* Left: founder list */}
-          <div className="rounded-2xl border border-black/5 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+          <div className="rounded-lg border border-black/5 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
             <div className="border-b border-black/5 p-4">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -601,7 +601,7 @@ export default function Evaluations() {
           {/* Right: workspace */}
           <div className="space-y-6">
             {!selectedFounder ? (
-              <div className="rounded-2xl border border-black/5 bg-white p-10 text-center shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+              <div className="rounded-lg border border-black/5 bg-white p-10 text-center shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
                 <ClipboardCheck className="mx-auto h-6 w-6 text-muted-foreground/50" />
                 <p className="mt-3 text-sm font-medium text-[#1D1D1F]">
                   Select a founder to begin
@@ -628,7 +628,7 @@ export default function Evaluations() {
                 </div>
 
                 {/* Evidence summary */}
-                <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="rounded-lg border border-black/5 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Activity className="h-4 w-4 text-[#0071E3]" />
@@ -688,7 +688,7 @@ export default function Evaluations() {
                 </div>
 
                 {/* Scoring workspace */}
-                <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="rounded-lg border border-black/5 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
                   <div className="mb-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Sparkles className="h-4 w-4 text-[#0071E3]" />
@@ -716,7 +716,7 @@ export default function Evaluations() {
                 </div>
 
                 {/* Absolute targets */}
-                <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="rounded-lg border border-black/5 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
                   <div className="mb-3 flex items-center gap-2">
                     <Target className="h-4 w-4 text-[#0071E3]" />
                     <h3 className="text-sm font-semibold text-[#1D1D1F]">Absolute targets</h3>
@@ -784,7 +784,7 @@ export default function Evaluations() {
                 </div>
 
                 {/* Decision */}
-                <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="rounded-lg border border-black/5 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
                   <div className="mb-4 flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-[#0071E3]" />
                     <h3 className="text-sm font-semibold text-[#1D1D1F]">Decision</h3>
@@ -802,7 +802,7 @@ export default function Evaluations() {
                           className={cn(
                             "group relative rounded-xl border-2 px-4 py-4 text-left transition-all",
                             selected
-                              ? `${d.ring} ring-2 shadow-sm`
+                              ? `${d.ring} ring-2 shadow-elev-sm`
                               : "border-black/[0.08] bg-white hover:border-black/20",
                           )}
                         >
@@ -868,7 +868,7 @@ export default function Evaluations() {
                 </div>
 
                 {/* Timeline */}
-                <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="rounded-lg border border-black/5 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <ClipboardCheck className="h-4 w-4 text-[#0071E3]" />

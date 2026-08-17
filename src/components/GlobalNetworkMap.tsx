@@ -166,7 +166,7 @@ export default function GlobalNetworkMap() {
 
         <button
           onClick={() => setIsInteractive(!isInteractive)}
-          className={`absolute top-3 right-3 z-20 h-9 w-9 rounded-full shadow-sm flex items-center justify-center transition-all bg-background/90 backdrop-blur-sm border border-border/60 hover:shadow-md ${
+          className={`absolute top-3 right-3 z-20 h-9 w-9 rounded-full shadow-elev-sm flex items-center justify-center transition-all bg-background/90 backdrop-blur-sm border border-border/60 hover:shadow-elev-md ${
             isInteractive ? "ring-2 ring-primary/20" : ""
           }`}
           title={isInteractive ? "Lock map" : "Unlock map"}
@@ -287,7 +287,7 @@ export default function GlobalNetworkMap() {
 
             {tooltip && (
               <div
-                className="absolute pointer-events-none z-40 bg-popover/95 backdrop-blur border border-border/60 rounded-lg shadow-lg px-3 py-2 text-xs max-w-[240px]"
+                className="absolute pointer-events-none z-40 bg-popover/95 backdrop-blur border border-border/60 rounded-lg shadow-elev-lg px-3 py-2 text-xs max-w-[240px]"
                 style={{ left: tooltip.x + 14, top: tooltip.y - 10 }}
               >
                 <p className="font-semibold text-foreground text-[13px]">{tooltip.data.country}</p>
@@ -316,7 +316,7 @@ export default function GlobalNetworkMap() {
 
             {/* Selected country panel */}
             {selectedCountry && (
-              <div className="absolute bottom-3 left-3 z-30 w-[280px] max-h-[60%] overflow-hidden bg-popover/95 backdrop-blur border border-border/60 rounded-xl shadow-lg flex flex-col">
+              <div className="absolute bottom-3 left-3 z-30 w-[280px] max-h-[60%] overflow-hidden bg-popover/95 backdrop-blur border border-border/60 rounded-xl shadow-elev-lg flex flex-col">
                 <div className="flex items-center gap-2 px-3.5 py-2.5 border-b border-border/40">
                   <p className="text-[13px] font-semibold text-foreground flex-1 truncate">{selectedCountry.country}</p>
                   <button
