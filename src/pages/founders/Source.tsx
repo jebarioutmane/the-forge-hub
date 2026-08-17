@@ -78,6 +78,11 @@ import { formatUrl } from "@/lib/formatUrl";
 import type { Tables } from "@/integrations/supabase/types";
 import { usePermissions } from "@/hooks/usePermissions";
 import { Sensitive } from "@/components/permissions/Sensitive";
+import {
+  useFounderSensitiveOne,
+  upsertFounderSensitive,
+  useInvalidateFounderSensitive,
+} from "@/hooks/useFounderSensitive";
 
 type Founder = Tables<"founders">;
 type Cohort = Tables<"cohorts">;
@@ -228,6 +233,10 @@ export default function FoundersSource() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [viewing, setViewing] = useState<Founder | null>(null);
   const [form, setForm] = useState<FounderForm>(emptyForm);
+
+  // Sensitive identifiers live in the internal-only `founder_sensitive` table.
+  const { data: viewingSensitive } = useFounderSensitiveOne(viewing?.id, maySeeSensitive);
+  const invalidateSensitive = useInvalidateFounderSensitive();
 
   // Global cohort selection lives in shared context (header switcher drives it).
   const { selectedCohortId, cohorts } = useCohort();
@@ -390,8 +399,6 @@ export default function FoundersSource() {
         links: form.links.filter((l) => l.url) as any,
         link_title: form.links[0]?.title || null,
         link_url: form.links[0]?.url || null,
-        cin_number: form.cin_number || null,
-        passport_number: form.passport_number || null,
         birthday: form.birthday || null,
         photo_url: form.photo_url || null,
         sector: form.sector || null,
@@ -399,16 +406,23 @@ export default function FoundersSource() {
         funding_raised: form.funding_raised ? Number(form.funding_raised) : null,
         funding_currency: form.funding_currency || "MAD",
       };
+      const sensitiveValues = {
+        cin_number: form.cin_number || null,
+        passport_number: form.passport_number || null,
+      };
       if (editing) {
         const { error } = await supabase.from("founders").update(payload).eq("id", editing.id);
         if (error) throw error;
+        await upsertFounderSensitive(editing.id, sensitiveValues);
       } else {
-        const { error } = await supabase.from("founders").insert(payload);
+        const { data, error } = await supabase.from("founders").insert(payload).select("id").single();
         if (error) throw error;
+        if (data?.id) await upsertFounderSensitive(data.id, sensitiveValues);
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["founders"] });
+      invalidateSensitive();
       setDialogOpen(false);
       setEditing(null);
       setForm(emptyForm);
@@ -449,7 +463,16 @@ export default function FoundersSource() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  function openEdit(f: Founder) {
+  async function openEdit(f: Founder) {
+    let sensitive: { cin_number: string | null; passport_number: string | null } | null = null;
+    if (maySeeSensitive) {
+      const { data } = await supabase
+        .from("founder_sensitive")
+        .select("cin_number, passport_number")
+        .eq("founder_id", f.id)
+        .maybeSingle();
+      sensitive = (data as any) ?? null;
+    }
     const nats = getFounderNationalities(f);
     const links = getFounderLinks(f);
     setForm({
@@ -464,8 +487,8 @@ export default function FoundersSource() {
       description: f.description || "",
       tag_ids: (f.tag_ids as string[]) || [],
       links: links.length > 0 ? links : [],
-      cin_number: f.cin_number || "",
-      passport_number: f.passport_number || "",
+      cin_number: sensitive?.cin_number || "",
+      passport_number: sensitive?.passport_number || "",
       birthday: f.birthday || "",
       photo_url: f.photo_url || "",
       sector: (f as any).sector || "",
@@ -941,12 +964,13 @@ export default function FoundersSource() {
                 <DetailRow
                   icon={<IdCard className="h-4 w-4" />}
                   label="CIN"
-                  value={<Sensitive section="founders" value={viewing.cin_number} />}
+                  value={<Sensitive section="founders" value={viewingSensitive?.cin_number} />}
                 />
                 <DetailRow
                   icon={<BadgeCheck className="h-4 w-4" />}
                   label="Passport"
-                  value={<Sensitive section="founders" value={viewing.passport_number} />}
+                  value={<Sensitive section="founders" value={viewingSensitive?.passport_number} />}
+
                 />
                 <DetailRow
                   icon={<BookOpen className="h-4 w-4" />}

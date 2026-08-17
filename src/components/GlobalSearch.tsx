@@ -55,8 +55,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     queryFn: async () => {
       const { data } = await supabase
         .from("founders")
-        .select("id, founder_name, startup_name, nationalities, status, email, description, cohort_year, cohort, phone, cin_number, passport_number, rib_number, venture_associate")
-        .or(`founder_name.ilike.%${trimmed}%,startup_name.ilike.%${trimmed}%,email.ilike.%${trimmed}%,description.ilike.%${trimmed}%,cohort_year.ilike.%${trimmed}%,cohort.ilike.%${trimmed}%,status.ilike.%${trimmed}%,phone.ilike.%${trimmed}%,cin_number.ilike.%${trimmed}%,passport_number.ilike.%${trimmed}%,rib_number.ilike.%${trimmed}%,venture_associate.ilike.%${trimmed}%`)
+        .select("id, founder_name, startup_name, nationalities, status, email, description, cohort_year, cohort, phone, venture_associate")
+        .or(`founder_name.ilike.%${trimmed}%,startup_name.ilike.%${trimmed}%,email.ilike.%${trimmed}%,description.ilike.%${trimmed}%,cohort_year.ilike.%${trimmed}%,cohort.ilike.%${trimmed}%,status.ilike.%${trimmed}%,phone.ilike.%${trimmed}%,venture_associate.ilike.%${trimmed}%`)
         .limit(6);
       return data ?? [];
     },
