@@ -903,6 +903,17 @@ export default function FoundersSource() {
                 )}
               </div>
 
+              {/* Profile */}
+              <section className="space-y-3">
+                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                  Profile
+                </h3>
+                <DetailRow icon={<UserCircle2 className="h-4 w-4" />} label="Founder" value={viewing.founder_name} />
+                <DetailRow icon={<Building2 className="h-4 w-4" />} label="Startup" value={viewing.startup_name} />
+                <DetailRow icon={<BadgeCheck className="h-4 w-4" />} label="Status" value={viewing.status} />
+                <DetailRow icon={<Users className="h-4 w-4" />} label="Cohort" value={cohortLabel(viewing.cohort_id)} />
+              </section>
+
               {/* Contact */}
               <section className="space-y-3">
                 <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
