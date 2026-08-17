@@ -68,6 +68,7 @@ import {
   Rocket,
   TrendingUp,
   DollarSign,
+  Landmark,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
@@ -104,6 +105,7 @@ interface FounderForm {
   description: string;
   tag_ids: string[];
   links: LinkItem[];
+  rib_number: string;
   cin_number: string;
   passport_number: string;
   birthday: string;
@@ -126,6 +128,7 @@ const emptyForm: FounderForm = {
   description: "",
   tag_ids: [],
   links: [],
+  rib_number: "",
   cin_number: "",
   passport_number: "",
   birthday: "",
@@ -407,6 +410,7 @@ export default function FoundersSource() {
         funding_currency: form.funding_currency || "MAD",
       };
       const sensitiveValues = {
+        rib_number: form.rib_number || null,
         cin_number: form.cin_number || null,
         passport_number: form.passport_number || null,
       };
@@ -464,11 +468,11 @@ export default function FoundersSource() {
   });
 
   async function openEdit(f: Founder) {
-    let sensitive: { cin_number: string | null; passport_number: string | null } | null = null;
+    let sensitive: { rib_number: string | null; cin_number: string | null; passport_number: string | null } | null = null;
     if (maySeeSensitive) {
       const { data } = await supabase
         .from("founder_sensitive")
-        .select("cin_number, passport_number")
+        .select("rib_number, cin_number, passport_number")
         .eq("founder_id", f.id)
         .maybeSingle();
       sensitive = (data as any) ?? null;
@@ -487,6 +491,7 @@ export default function FoundersSource() {
       description: f.description || "",
       tag_ids: (f.tag_ids as string[]) || [],
       links: links.length > 0 ? links : [],
+      rib_number: sensitive?.rib_number || "",
       cin_number: sensitive?.cin_number || "",
       passport_number: sensitive?.passport_number || "",
       birthday: f.birthday || "",
