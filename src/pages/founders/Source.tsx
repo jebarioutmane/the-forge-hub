@@ -941,12 +941,13 @@ export default function FoundersSource() {
                 <DetailRow
                   icon={<IdCard className="h-4 w-4" />}
                   label="CIN"
-                  value={<Sensitive section="founders" value={viewing.cin_number} />}
+                  value={<Sensitive section="founders" value={viewingSensitive?.cin_number} />}
                 />
                 <DetailRow
                   icon={<BadgeCheck className="h-4 w-4" />}
                   label="Passport"
-                  value={<Sensitive section="founders" value={viewing.passport_number} />}
+                  value={<Sensitive section="founders" value={viewingSensitive?.passport_number} />}
+
                 />
                 <DetailRow
                   icon={<BookOpen className="h-4 w-4" />}
