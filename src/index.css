@@ -177,6 +177,46 @@
     color: hsl(var(--ink));
     letter-spacing: -0.02em;
   }
+
+  /* Consistent hover treatment for clickable rows in tables & lists */
+  .interactive-row {
+    transition: background-color var(--duration-fast) var(--ease-standard),
+                border-color var(--duration-fast) var(--ease-standard);
+  }
+  .interactive-row:hover {
+    background-color: hsl(var(--secondary) / 0.6);
+  }
+
+  /* Cards that are clickable / hoverable */
+  .card-hover {
+    transition: box-shadow var(--duration-base) var(--ease-standard),
+                border-color var(--duration-base) var(--ease-standard),
+                transform var(--duration-base) var(--ease-standard);
+  }
+  .card-hover:hover {
+    box-shadow: var(--shadow-md);
+    border-color: hsl(var(--border));
+    transform: translateY(-1px);
+  }
+
+  /* Intentional, consistent empty states */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 3rem 1.5rem;
+    text-align: center;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.875rem;
+    line-height: 1.55;
+  }
+  .empty-state svg {
+    height: 1.5rem;
+    width: 1.5rem;
+    opacity: 0.5;
+  }
 }
 
 @layer utilities {
