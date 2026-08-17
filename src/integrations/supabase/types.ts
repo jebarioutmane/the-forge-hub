@@ -1072,6 +1072,45 @@ export type Database = {
           },
         ]
       }
+      founder_sensitive: {
+        Row: {
+          cin_number: string | null
+          founder_id: string
+          passport_number: string | null
+          rib_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          cin_number?: string | null
+          founder_id: string
+          passport_number?: string | null
+          rib_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cin_number?: string | null
+          founder_id?: string
+          passport_number?: string | null
+          rib_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "founder_sensitive_founder_id_fkey"
+            columns: ["founder_id"]
+            isOneToOne: true
+            referencedRelation: "founder_engagement"
+            referencedColumns: ["founder_id"]
+          },
+          {
+            foreignKeyName: "founder_sensitive_founder_id_fkey"
+            columns: ["founder_id"]
+            isOneToOne: true
+            referencedRelation: "founders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       founders: {
         Row: {
           archived_at: string | null
