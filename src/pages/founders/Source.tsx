@@ -68,6 +68,7 @@ import {
   Rocket,
   TrendingUp,
   DollarSign,
+  Landmark,
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
@@ -104,6 +105,7 @@ interface FounderForm {
   description: string;
   tag_ids: string[];
   links: LinkItem[];
+  rib_number: string;
   cin_number: string;
   passport_number: string;
   birthday: string;
@@ -126,6 +128,7 @@ const emptyForm: FounderForm = {
   description: "",
   tag_ids: [],
   links: [],
+  rib_number: "",
   cin_number: "",
   passport_number: "",
   birthday: "",
@@ -407,6 +410,7 @@ export default function FoundersSource() {
         funding_currency: form.funding_currency || "MAD",
       };
       const sensitiveValues = {
+        rib_number: form.rib_number || null,
         cin_number: form.cin_number || null,
         passport_number: form.passport_number || null,
       };
@@ -464,11 +468,11 @@ export default function FoundersSource() {
   });
 
   async function openEdit(f: Founder) {
-    let sensitive: { cin_number: string | null; passport_number: string | null } | null = null;
+    let sensitive: { rib_number: string | null; cin_number: string | null; passport_number: string | null } | null = null;
     if (maySeeSensitive) {
       const { data } = await supabase
         .from("founder_sensitive")
-        .select("cin_number, passport_number")
+        .select("rib_number, cin_number, passport_number")
         .eq("founder_id", f.id)
         .maybeSingle();
       sensitive = (data as any) ?? null;
@@ -487,6 +491,7 @@ export default function FoundersSource() {
       description: f.description || "",
       tag_ids: (f.tag_ids as string[]) || [],
       links: links.length > 0 ? links : [],
+      rib_number: sensitive?.rib_number || "",
       cin_number: sensitive?.cin_number || "",
       passport_number: sensitive?.passport_number || "",
       birthday: f.birthday || "",
@@ -898,6 +903,17 @@ export default function FoundersSource() {
                 )}
               </div>
 
+              {/* Profile */}
+              <section className="space-y-3">
+                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                  Profile
+                </h3>
+                <DetailRow icon={<UserCircle2 className="h-4 w-4" />} label="Founder" value={viewing.founder_name} />
+                <DetailRow icon={<Building2 className="h-4 w-4" />} label="Startup" value={viewing.startup_name} />
+                <DetailRow icon={<BadgeCheck className="h-4 w-4" />} label="Status" value={viewing.status} />
+                <DetailRow icon={<Users className="h-4 w-4" />} label="Cohort" value={cohortLabel(viewing.cohort_id)} />
+              </section>
+
               {/* Contact */}
               <section className="space-y-3">
                 <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
@@ -962,6 +978,11 @@ export default function FoundersSource() {
                   Identity
                 </h3>
                 <DetailRow
+                  icon={<Landmark className="h-4 w-4" />}
+                  label="RIB"
+                  value={<Sensitive section="founders" value={viewingSensitive?.rib_number} />}
+                />
+                <DetailRow
                   icon={<IdCard className="h-4 w-4" />}
                   label="CIN"
                   value={<Sensitive section="founders" value={viewingSensitive?.cin_number} />}
@@ -984,11 +1005,11 @@ export default function FoundersSource() {
               </section>
 
               {/* Links */}
-              {getFounderLinks(viewing).length > 0 && (
-                <section className="space-y-3">
-                  <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-                    Links
-                  </h3>
+              <section className="space-y-3">
+                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                  Links
+                </h3>
+                {getFounderLinks(viewing).length > 0 ? (
                   <div className="flex flex-col gap-1.5">
                     {getFounderLinks(viewing).map((l, i) => (
                       <a
@@ -1004,30 +1025,32 @@ export default function FoundersSource() {
                       </a>
                     ))}
                   </div>
-                </section>
-              )}
+                ) : (
+                  <p className="text-sm text-muted-foreground">—</p>
+                )}
+              </section>
 
               {/* Description */}
-              {viewing.description && (
-                <section className="space-y-2">
-                  <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-                    About
-                  </h3>
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">
-                    {viewing.description}
-                  </p>
-                </section>
-              )}
+              <section className="space-y-2">
+                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                  About
+                </h3>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">
+                  {viewing.description || "—"}
+                </p>
+              </section>
 
               {/* Tags */}
-              {viewing.tag_ids && (viewing.tag_ids as string[]).length > 0 && (
-                <section className="space-y-2">
-                  <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-                    Tags
-                  </h3>
+              <section className="space-y-2">
+                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                  Tags
+                </h3>
+                {viewing.tag_ids && (viewing.tag_ids as string[]).length > 0 ? (
                   <TagBadges tagIds={viewing.tag_ids as string[] | null} />
-                </section>
-              )}
+                ) : (
+                  <p className="text-sm text-muted-foreground">—</p>
+                )}
+              </section>
             </div>
           )}
         </SheetContent>
@@ -1238,6 +1261,17 @@ export default function FoundersSource() {
 
             {/* Section: Identity */}
             <FormSection title="Identity" hint="Legal documents & date of birth.">
+              {maySeeSensitive && (
+                <Field label="Bank RIB" htmlFor="rib-number">
+                  <Input
+                    id="rib-number"
+                    name="rib_number"
+                    value={form.rib_number}
+                    onChange={(e) => set("rib_number", e.target.value)}
+                    placeholder="24 digits"
+                  />
+                </Field>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <Field label="CIN" htmlFor="cin-number">
                   <Input
