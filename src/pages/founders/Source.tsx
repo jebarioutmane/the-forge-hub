@@ -967,6 +967,11 @@ export default function FoundersSource() {
                   Identity
                 </h3>
                 <DetailRow
+                  icon={<Landmark className="h-4 w-4" />}
+                  label="RIB"
+                  value={<Sensitive section="founders" value={viewingSensitive?.rib_number} />}
+                />
+                <DetailRow
                   icon={<IdCard className="h-4 w-4" />}
                   label="CIN"
                   value={<Sensitive section="founders" value={viewingSensitive?.cin_number} />}
@@ -1243,6 +1248,17 @@ export default function FoundersSource() {
 
             {/* Section: Identity */}
             <FormSection title="Identity" hint="Legal documents & date of birth.">
+              {maySeeSensitive && (
+                <Field label="Bank RIB" htmlFor="rib-number">
+                  <Input
+                    id="rib-number"
+                    name="rib_number"
+                    value={form.rib_number}
+                    onChange={(e) => set("rib_number", e.target.value)}
+                    placeholder="24 digits"
+                  />
+                </Field>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <Field label="CIN" htmlFor="cin-number">
                   <Input
