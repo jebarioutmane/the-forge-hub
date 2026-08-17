@@ -80,7 +80,7 @@ export function EdgeQuickPanel() {
         className={cn(
           "fixed right-0 top-1/2 -translate-y-1/2 z-[60]",
           "h-8 w-6 rounded-l-full",
-          "bg-signal/90 hover:bg-signal text-white shadow-md",
+          "bg-signal/90 hover:bg-signal text-white shadow-elev-md",
           "flex items-center justify-center transition-all",
           open && "opacity-0 pointer-events-none"
         )}

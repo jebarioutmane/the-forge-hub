@@ -231,7 +231,7 @@ export default function Reports() {
           <Loader2 className="h-5 w-5 animate-spin" />
         </div>
       ) : instances.length === 0 ? (
-        <div className="border border-dashed rounded-2xl py-20 text-center">
+        <div className="border border-dashed rounded-lg py-20 text-center">
           <FileSpreadsheet className="h-8 w-8 text-muted-foreground/50 mx-auto mb-3" />
           <p className="text-sm font-medium">{showArchived ? "No archived reports" : "No reports yet"}</p>
           <p className="text-xs text-muted-foreground mt-1">
@@ -241,7 +241,7 @@ export default function Reports() {
       ) : (
         <div className="grid gap-3">
           {instances.map((r) => (
-            <div key={r.id} className="group border rounded-xl p-5 bg-card hover:shadow-sm transition-all flex items-start justify-between gap-4">
+            <div key={r.id} className="group border rounded-xl p-5 bg-card hover:shadow-elev-sm transition-all flex items-start justify-between gap-4">
               <Link to={`/reporting/reports/${r.id}`} className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="font-medium truncate">{r.title}</h3>

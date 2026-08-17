@@ -9,11 +9,11 @@ interface ViewToggleProps {
 
 export function ViewToggle({ viewMode, onChange }: ViewToggleProps) {
   return (
-    <div className="inline-flex items-center rounded-md border bg-muted p-0.5 gap-0.5">
+    <div className="inline-flex items-center rounded-lg border border-border/70 bg-secondary p-0.5 gap-0.5">
       <Button
         size="sm"
         variant="ghost"
-        className={cn("h-7 px-2.5 gap-1.5", viewMode === "grid" && "bg-background shadow-sm")}
+        className={cn("h-7 px-2.5 gap-1.5", viewMode === "grid" && "bg-card shadow-elev-xs")}
         onClick={() => onChange("grid")}
       >
         <LayoutGrid className="h-3.5 w-3.5" />
@@ -22,7 +22,7 @@ export function ViewToggle({ viewMode, onChange }: ViewToggleProps) {
       <Button
         size="sm"
         variant="ghost"
-        className={cn("h-7 px-2.5 gap-1.5", viewMode === "table" && "bg-background shadow-sm")}
+        className={cn("h-7 px-2.5 gap-1.5", viewMode === "table" && "bg-card shadow-elev-xs")}
         onClick={() => onChange("table")}
       >
         <Table2 className="h-3.5 w-3.5" />

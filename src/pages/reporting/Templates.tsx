@@ -119,7 +119,7 @@ export default function ReportTemplates() {
           <Loader2 className="h-5 w-5 animate-spin" />
         </div>
       ) : templates.length === 0 ? (
-        <div className="border border-dashed rounded-2xl py-20 text-center">
+        <div className="border border-dashed rounded-lg py-20 text-center">
           <FileBarChart className="h-8 w-8 text-muted-foreground/50 mx-auto mb-3" />
           <p className="text-sm font-medium">{showArchived ? "No archived templates" : "No templates yet"}</p>
           <p className="text-xs text-muted-foreground mt-1">
@@ -131,7 +131,7 @@ export default function ReportTemplates() {
           {templates.map((t) => (
             <div
               key={t.id}
-              className="group border rounded-xl p-5 bg-card hover:shadow-sm transition-all flex items-start justify-between gap-4"
+              className="group border rounded-xl p-5 bg-card hover:shadow-elev-sm transition-all flex items-start justify-between gap-4"
             >
               <Link to={`/reporting/templates/${t.id}`} className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">

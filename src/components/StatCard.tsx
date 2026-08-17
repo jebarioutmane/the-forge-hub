@@ -12,8 +12,8 @@ interface StatCardProps {
 
 export function StatCard({ title, value, icon: Icon, warning }: StatCardProps) {
   return (
-    <Card className={warning ? "border-destructive/40" : ""}>
-      <CardContent className="p-5">
+    <Card className={cn("hover:shadow-elev-sm hover:border-border", warning && "border-destructive/40")}>
+      <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1.5">
             <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-[0.12em]">{title}</p>

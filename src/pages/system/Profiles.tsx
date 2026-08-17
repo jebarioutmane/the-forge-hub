@@ -307,13 +307,13 @@ export default function SystemProfiles() {
             const tags = (profile.tags as string[]) || [];
 
             return (
-              <Card key={profile.id} className={cn("group relative flex flex-col overflow-hidden border-border/60 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300", highlightId === profile.id && "animate-target-flash")}>
+              <Card key={profile.id} className={cn("group relative flex flex-col overflow-hidden border-border/60 shadow-elev-sm hover:shadow-elev-md hover:-translate-y-0.5 transition-all duration-300", highlightId === profile.id && "animate-target-flash")}>
                 {/* Header gradient area */}
                 <div className="relative h-24 bg-gradient-to-br from-secondary to-muted flex items-end justify-center">
                   <div className="absolute top-3 right-3 h-14 w-14 rounded-full bg-primary/[0.04]" />
                   {/* Avatar overlapping */}
                   <div className="absolute -bottom-7 left-1/2 -translate-x-1/2">
-                    <Avatar className="h-14 w-14 border-[3px] border-card shadow-md">
+                    <Avatar className="h-14 w-14 border-[3px] border-card shadow-elev-md">
                       <AvatarImage src={profile.avatar_url || undefined} />
                       <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
                         {initials(profile.full_name)}
@@ -683,7 +683,7 @@ function ViewProfileContent({ profile, initials }: { profile: Profile; initials:
     <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Avatar className="h-16 w-16 border-2 border-border shadow-sm">
+        <Avatar className="h-16 w-16 border-2 border-border shadow-elev-sm">
           <AvatarImage src={profile.avatar_url || undefined} />
           <AvatarFallback className="bg-primary/10 text-primary text-lg font-semibold">
             {initials(profile.full_name)}

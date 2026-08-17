@@ -32,7 +32,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <div className="px-5 py-5">
-          <img src={appIcon} alt="The Forge" className="h-8 w-8 object-contain rounded-md shadow-sm" />
+          <img src={appIcon} alt="The Forge" className="h-8 w-8 object-contain rounded-md shadow-elev-sm" />
         </div>
         {allSections.map((section) => (
           <Collapsible key={section.label} defaultOpen>

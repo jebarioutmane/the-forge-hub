@@ -104,7 +104,7 @@ export function TagPicker({ value, onChange, className }: TagPickerProps) {
         <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
       </Button>
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-md max-h-48 overflow-auto">
+        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover text-popover-foreground shadow-elev-md max-h-48 overflow-auto">
           {tags.length === 0 && (
             <p className="text-sm text-muted-foreground p-3">No tags yet — create one below.</p>
           )}

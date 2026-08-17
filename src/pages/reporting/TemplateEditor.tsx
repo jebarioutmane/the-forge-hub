@@ -254,7 +254,7 @@ export default function TemplateEditor() {
           <ArrowLeft className="h-4 w-4 mr-1" /> All templates
         </Button>
 
-        <div className="border rounded-2xl p-6 bg-card space-y-4">
+        <div className="border rounded-lg p-6 bg-card space-y-4">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
               <FileBarChart className="h-5 w-5" />
@@ -305,7 +305,7 @@ export default function TemplateEditor() {
             <Loader2 className="h-5 w-5 animate-spin" />
           </div>
         ) : questions.length === 0 ? (
-          <div className="border border-dashed rounded-2xl py-16 text-center">
+          <div className="border border-dashed rounded-lg py-16 text-center">
             <p className="text-sm font-medium">No questions yet</p>
             <p className="text-xs text-muted-foreground mt-1 mb-4">Add the first question to shape this report.</p>
             <Button size="sm" variant="outline" onClick={openCreate}>
@@ -317,7 +317,7 @@ export default function TemplateEditor() {
             {questions.map((q, i) => {
               const metric = AUTO_METRICS.find((m) => m.value === q.auto_metric);
               return (
-                <div key={q.id} className="group border rounded-xl bg-card p-4 flex items-start gap-3 hover:shadow-sm transition-all">
+                <div key={q.id} className="group border rounded-xl bg-card p-4 flex items-start gap-3 hover:shadow-elev-sm transition-all">
                   <div className="flex flex-col items-center gap-0.5 pt-1">
                     <button
                       onClick={() => reorder.mutate({ index: i, dir: -1 })}

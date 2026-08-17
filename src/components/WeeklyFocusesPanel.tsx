@@ -147,7 +147,7 @@ export default function WeeklyFocusesPanel() {
   today.setHours(0, 0, 0, 0);
 
   return (
-    <div className="rounded-2xl border border-border/40 bg-card shadow-sm overflow-hidden">
+    <div className="rounded-lg border border-border/40 bg-card shadow-elev-sm overflow-hidden">
       <div className="px-5 py-4 border-b border-border/40 flex items-center gap-2.5">
         <div className="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center">
           <Target className="h-4 w-4 text-indigo-600" />

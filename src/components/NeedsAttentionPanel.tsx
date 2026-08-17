@@ -44,7 +44,7 @@ export default function NeedsAttentionPanel() {
   });
 
   return (
-    <Card className="border border-border/40 shadow-sm">
+    <Card className="border border-border/40 shadow-elev-sm">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
           <AlertTriangle className="h-4 w-4 text-amber-600" />

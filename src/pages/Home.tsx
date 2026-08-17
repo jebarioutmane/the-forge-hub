@@ -76,7 +76,7 @@ export default function Home() {
         </div>
         <button
           onClick={() => setSearchOpen(true)}
-          className="w-full max-w-xl h-12 bg-secondary rounded-full flex items-center px-5 text-muted-foreground cursor-text hover:bg-accent transition-colors gap-3 shadow-sm border border-border/40"
+          className="w-full max-w-xl h-12 bg-secondary rounded-full flex items-center px-5 text-muted-foreground cursor-text hover:bg-accent transition-colors gap-3 shadow-elev-sm border border-border/40"
         >
           <Search className="h-4 w-4 shrink-0" />
           <span className="text-sm">Search anything...</span>
@@ -91,7 +91,7 @@ export default function Home() {
           <Button
             key={s.title}
             variant="outline"
-            className={`w-full h-14 rounded-xl bg-card border border-border/40 text-foreground hover:bg-secondary shadow-sm transition-all flex items-center justify-center gap-3 whitespace-nowrap text-base font-semibold`}
+            className={`w-full h-14 rounded-xl bg-card border border-border/40 text-foreground hover:bg-secondary shadow-elev-sm transition-all flex items-center justify-center gap-3 whitespace-nowrap text-base font-semibold`}
             onClick={() => navigate(s.route)}
           >
             <s.icon className="h-5 w-5 shrink-0" />
@@ -105,7 +105,7 @@ export default function Home() {
 
       {/* Two KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card className="border border-border/40 shadow-sm">
+        <Card className="border border-border/40 shadow-elev-sm">
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-lg flex items-center justify-center bg-module-founders/10 text-module-founders">
@@ -126,7 +126,7 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card className="border border-border/40 shadow-sm">
+        <Card className="border border-border/40 shadow-elev-sm">
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-lg flex items-center justify-center bg-module-events/10 text-module-events">
@@ -150,10 +150,10 @@ export default function Home() {
 
       {/* Split Layout: Leaderboard + Map */}
       <div className="flex flex-col gap-8 w-full">
-        <div className="w-full bg-card rounded-2xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-[500px]">
+        <div className="w-full bg-card rounded-lg border border-border/40 shadow-elev-sm overflow-hidden flex flex-col h-[500px]">
           <FoundersLeaderboard />
         </div>
-        <div className="w-full bg-card rounded-2xl border border-border/40 shadow-sm overflow-hidden flex flex-col h-[500px]">
+        <div className="w-full bg-card rounded-lg border border-border/40 shadow-elev-sm overflow-hidden flex flex-col h-[500px]">
           <GlobalNetworkMap />
         </div>
       </div>

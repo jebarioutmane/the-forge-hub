@@ -197,11 +197,11 @@ export default function Calendar() {
         </Button>
       </div>
 
-      <Card className="p-3 flex flex-wrap items-center gap-2 bg-white/70 backdrop-blur-xl border-border/60 shadow-sm">
+      <Card className="p-3 flex flex-wrap items-center gap-2 bg-white/70 backdrop-blur-xl border-border/60 shadow-elev-sm">
         <div className="inline-flex items-center rounded-full border bg-muted/50 p-0.5 gap-0.5">
           {(["month", "week"] as View[]).map(v => (
             <Button key={v} size="sm" variant="ghost"
-              className={cn("h-7 rounded-full px-3 text-xs capitalize", view === v && "bg-background shadow-sm")}
+              className={cn("h-7 rounded-full px-3 text-xs capitalize", view === v && "bg-background shadow-elev-sm")}
               onClick={() => setView(v)}>{v}</Button>
           ))}
         </div>
@@ -265,7 +265,7 @@ export default function Calendar() {
       {isLoading ? (
         <Card className="p-12 text-center text-sm text-muted-foreground">Loading…</Card>
       ) : !showArchived && view === "month" ? (
-        <Card className="p-4 bg-white/70 backdrop-blur-xl border-border/60 shadow-sm">
+        <Card className="p-4 bg-white/70 backdrop-blur-xl border-border/60 shadow-elev-sm">
           <div className="grid grid-cols-7 gap-1 mb-1">
             {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => (
               <div key={d} className="text-[10px] font-medium tracking-wider text-muted-foreground text-center py-1 uppercase">{d}</div>
@@ -296,7 +296,7 @@ export default function Calendar() {
           </div>
         </Card>
       ) : !showArchived ? (
-        <Card className="p-4 bg-white/70 backdrop-blur-xl border-border/60 shadow-sm">
+        <Card className="p-4 bg-white/70 backdrop-blur-xl border-border/60 shadow-elev-sm">
           <div className="grid grid-cols-7 gap-2">
             {weekDays.map(day => {
               const dayEvents = eventsOnDay(day);
