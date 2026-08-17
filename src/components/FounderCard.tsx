@@ -42,7 +42,7 @@ export function FounderCard({ founder, nationalities, getFlag, onView, onEdit, o
     .slice(0, 2);
 
   return (
-    <div className={`group relative flex flex-col overflow-hidden rounded-2xl bg-card border border-border shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out ${highlightId === founder.id ? "animate-target-flash" : ""}`}>
+    <div className={`group relative flex flex-col overflow-hidden rounded-lg bg-card border border-border/70 shadow-elev-xs hover:shadow-elev-md hover:border-border hover:-translate-y-0.5 transition-[box-shadow,border-color,transform] duration-[180ms] ease-[cubic-bezier(0.2,0,0,1)] ${highlightId === founder.id ? "animate-target-flash" : ""}`}>
       {/* Visual header area */}
       <div className="relative h-28 bg-gradient-to-br from-secondary to-muted flex items-end justify-center">
         {/* Subtle decorative circle */}

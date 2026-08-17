@@ -26,11 +26,11 @@ export default function ViewDetailDialog({ open, onClose, title, fields }: ViewD
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription className="sr-only">Detailed view of {title}.</DialogDescription>
         </DialogHeader>
-        <div className="space-y-3 py-2">
+        <div className="space-y-3.5 py-2">
           {fields.map((f, i) => (
-            <div key={i} className="grid grid-cols-3 gap-2">
-              <span className="text-sm font-medium text-muted-foreground col-span-1">{f.label}</span>
-              <span className="text-sm col-span-2">{f.value || "—"}</span>
+            <div key={i} className="grid grid-cols-3 items-start gap-3">
+              <span className="col-span-1 text-[13px] font-medium leading-[1.55] text-muted-foreground">{f.label}</span>
+              <span className="col-span-2 text-sm leading-[1.55]">{f.value || "—"}</span>
             </div>
           ))}
         </div>
