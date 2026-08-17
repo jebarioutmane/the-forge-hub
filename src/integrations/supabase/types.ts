@@ -100,6 +100,7 @@ export type Database = {
           label: string
           name: string
           start_date: string | null
+          status: string
           total_budget: number | null
           year: number
         }
@@ -113,6 +114,7 @@ export type Database = {
           label: string
           name: string
           start_date?: string | null
+          status?: string
           total_budget?: number | null
           year: number
         }
@@ -126,6 +128,7 @@ export type Database = {
           label?: string
           name?: string
           start_date?: string | null
+          status?: string
           total_budget?: number | null
           year?: number
         }
@@ -601,6 +604,7 @@ export type Database = {
           all_founders: boolean | null
           archived_at: string | null
           checklist: Json | null
+          cohort_id: string | null
           cohort_year: string | null
           created_at: string
           created_by: string | null
@@ -626,6 +630,7 @@ export type Database = {
           all_founders?: boolean | null
           archived_at?: string | null
           checklist?: Json | null
+          cohort_id?: string | null
           cohort_year?: string | null
           created_at?: string
           created_by?: string | null
@@ -651,6 +656,7 @@ export type Database = {
           all_founders?: boolean | null
           archived_at?: string | null
           checklist?: Json | null
+          cohort_id?: string | null
           cohort_year?: string | null
           created_at?: string
           created_by?: string | null
@@ -673,6 +679,13 @@ export type Database = {
           tag_ids?: string[] | null
         }
         Relationships: [
+          {
+            foreignKeyName: "events_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "events_created_by_fkey"
             columns: ["created_by"]
@@ -1116,7 +1129,6 @@ export type Database = {
           archived_at: string | null
           associate_id: string | null
           birthday: string | null
-          cin_number: string | null
           cohort: string | null
           cohort_id: string | null
           cohort_year: string | null
@@ -1133,10 +1145,8 @@ export type Database = {
           links: Json | null
           nationalities: string[] | null
           nationality: string | null
-          passport_number: string | null
           phone: string | null
           photo_url: string | null
-          rib_number: string | null
           sector: string | null
           stage: string | null
           startup_name: string
@@ -1148,7 +1158,6 @@ export type Database = {
           archived_at?: string | null
           associate_id?: string | null
           birthday?: string | null
-          cin_number?: string | null
           cohort?: string | null
           cohort_id?: string | null
           cohort_year?: string | null
@@ -1165,10 +1174,8 @@ export type Database = {
           links?: Json | null
           nationalities?: string[] | null
           nationality?: string | null
-          passport_number?: string | null
           phone?: string | null
           photo_url?: string | null
-          rib_number?: string | null
           sector?: string | null
           stage?: string | null
           startup_name: string
@@ -1180,7 +1187,6 @@ export type Database = {
           archived_at?: string | null
           associate_id?: string | null
           birthday?: string | null
-          cin_number?: string | null
           cohort?: string | null
           cohort_id?: string | null
           cohort_year?: string | null
@@ -1197,10 +1203,8 @@ export type Database = {
           links?: Json | null
           nationalities?: string[] | null
           nationality?: string | null
-          passport_number?: string | null
           phone?: string | null
           photo_url?: string | null
-          rib_number?: string | null
           sector?: string | null
           stage?: string | null
           startup_name?: string
@@ -2212,7 +2216,6 @@ export type Database = {
         Args: { curlopt: string; value: string }
         Returns: boolean
       }
-      is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_internal: { Args: { uid: string }; Returns: boolean }
       is_super_admin: { Args: { uid: string }; Returns: boolean }
       text_to_bytea: { Args: { data: string }; Returns: string }
