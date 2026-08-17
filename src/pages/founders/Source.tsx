@@ -994,11 +994,11 @@ export default function FoundersSource() {
               </section>
 
               {/* Links */}
-              {getFounderLinks(viewing).length > 0 && (
-                <section className="space-y-3">
-                  <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-                    Links
-                  </h3>
+              <section className="space-y-3">
+                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                  Links
+                </h3>
+                {getFounderLinks(viewing).length > 0 ? (
                   <div className="flex flex-col gap-1.5">
                     {getFounderLinks(viewing).map((l, i) => (
                       <a
@@ -1014,30 +1014,32 @@ export default function FoundersSource() {
                       </a>
                     ))}
                   </div>
-                </section>
-              )}
+                ) : (
+                  <p className="text-sm text-muted-foreground">—</p>
+                )}
+              </section>
 
               {/* Description */}
-              {viewing.description && (
-                <section className="space-y-2">
-                  <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-                    About
-                  </h3>
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">
-                    {viewing.description}
-                  </p>
-                </section>
-              )}
+              <section className="space-y-2">
+                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                  About
+                </h3>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">
+                  {viewing.description || "—"}
+                </p>
+              </section>
 
               {/* Tags */}
-              {viewing.tag_ids && (viewing.tag_ids as string[]).length > 0 && (
-                <section className="space-y-2">
-                  <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
-                    Tags
-                  </h3>
+              <section className="space-y-2">
+                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                  Tags
+                </h3>
+                {viewing.tag_ids && (viewing.tag_ids as string[]).length > 0 ? (
                   <TagBadges tagIds={viewing.tag_ids as string[] | null} />
-                </section>
-              )}
+                ) : (
+                  <p className="text-sm text-muted-foreground">—</p>
+                )}
+              </section>
             </div>
           )}
         </SheetContent>
