@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useFounderSensitiveMap } from "@/hooks/useFounderSensitive";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -62,12 +63,15 @@ export default function Stipends() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("founders")
-        .select("id, founder_name, startup_name, cohort_year, rib_number")
+        .select("id, founder_name, startup_name, cohort_year")
         .order("founder_name");
       if (error) throw error;
       return data;
     },
   });
+
+  // RIBs live in the internal-only `founder_sensitive` table.
+  const { data: sensitiveMap } = useFounderSensitiveMap(maySeeRib);
 
   const { selectedCohortId, selectedCohortLabel, isLoading: cohortLoading } = useCohort();
   const isAllCohorts = selectedCohortId === ALL_COHORTS;
@@ -231,10 +235,9 @@ export default function Stipends() {
   const getRib = useCallback(
     (id: string | null) => {
       if (!id) return "";
-      const f = founders.find((x) => x.id === id);
-      return f ? f.rib_number || "" : "";
+      return sensitiveMap?.get(id)?.rib_number || "";
     },
-    [founders]
+    [sensitiveMap]
   );
 
   const initMutation = useMutation({
@@ -841,7 +844,7 @@ export default function Stipends() {
                 ) : (
                   cohortFounders.map((founder) => {
                     const rec = recordsByFounder.get(founder.id);
-                    const rib = founder.rib_number || "";
+                    const rib = sensitiveMap?.get(founder.id)?.rib_number || "";
                     if (!rec) {
                       return (
                         <TableRow key={founder.id} className="bg-muted/30">
