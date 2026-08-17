@@ -95,6 +95,34 @@
     @apply border-border;
   }
 
+  /* Baseline micro-interaction: every interactive element eases consistently */
+  a,
+  button,
+  [role="button"],
+  [role="menuitem"],
+  [role="option"],
+  [role="tab"],
+  summary,
+  label[for],
+  input,
+  select,
+  textarea {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow, opacity, transform;
+    transition-duration: var(--duration-base);
+    transition-timing-function: var(--ease-standard);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition-duration: 1ms !important;
+      animation-duration: 1ms !important;
+    }
+  }
+
+  /* Subtle, uniform row hover for all data tables */
+  tbody tr {
+    transition: background-color var(--duration-fast) var(--ease-standard);
+  }
+
   /* Hide scrollbars globally while keeping scroll functional */
   html {
     -webkit-font-smoothing: antialiased;
