@@ -1,4 +1,4 @@
-# The Forge Hub
+# The Forge Hub (Personal Initiative for coding experience)
 
 An internal program-management platform for **The Forge**, a venture accelerator at **UM6P** (Mohammed VI Polytechnic University, Morocco). The Forge Hub runs the entire acceleration program from a single, cohort-aware workspace — founders, events, operations, reporting, and secure external access.
 
