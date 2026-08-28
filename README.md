@@ -1,3 +1,45 @@
+# The Forge Hub
+
+An internal program-management platform for **The Forge**, a venture accelerator at **UM6P** (Mohammed VI Polytechnic University, Morocco). The Forge Hub runs the entire acceleration program from a single, cohort-aware workspace — founders, events, operations, reporting, and secure external access.
+
+Built as a personal initiative to replace scattered spreadsheets with one connected source of truth.
+
+## What it does
+
+- **Founders** — A filterable directory, weekly progress tracking, formal evaluations, and a live portfolio dashboard. Founders are assessed on trajectory and stage-relative momentum, not a flat scorecard.
+- **Events** — A calendar with a unified per-event workspace (attendance, logistics, stakeholders, checklist), support for multi-part events with per-session attendance, and a stakeholder CRM.
+- **Operations** — One connected money flow: a trader-view budget (allocated / committed / spent / remaining) fed by expenses, stipends, and contract payments, plus a team task board.
+- **Reporting** — Reusable report templates mixing auto-computed metrics with manual questions; launch for any period and export to PDF or Excel.
+- **Command Center** — A daily overview with weekly focuses, a founder leaderboard, upcoming events, birthdays, and a global network map.
+
+## Key characteristics
+
+- **Cohort-aware throughout** — a cohort switcher scopes the whole platform, with a full lifecycle (Upcoming → Active → Closed).
+- **Automatic audit history** — every change on every table is logged.
+- **Role-based access control** — custom roles with per-page, per-action permissions, enforced at the database level. External parties (e.g. sponsors) can be given cohort-scoped, read-only access with sensitive data protected server-side.
+- **Automations** — attendance flows into engagement and risk scoring, which can generate follow-up tasks.
+
+## Tech stack
+
+- **Frontend:** React, TypeScript, Vite, Tailwind CSS, shadcn/ui
+- **Backend:** Supabase (PostgreSQL, Auth, Row-Level Security)
+- **Built with:** Lovable
+
+## Security
+
+Access control and data isolation are enforced at the database layer via PostgreSQL Row-Level Security, not just in the UI. Sensitive founder data is stored in an internal-only table and is never exposed to external roles.
+
+## Status
+
+Actively developed. Being adopted as the program's management system starting with the next cohort.
+
+---
+
+*The Forge · UM6P*
+
+
+___
+
 # Welcome to your Lovable project
 
 ## Project info
