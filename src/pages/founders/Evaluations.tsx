@@ -1014,7 +1014,7 @@ export default function Evaluations() {
             )}
           </div>
         </div>
-      </div>
+
 
       {/* View dialog */}
       <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
