@@ -835,7 +835,7 @@ export default function Tracking() {
             )}
           </div>
         </div>
-      </div>
+
 
       {/* View dialog */}
       <Dialog open={!!viewingCheckin} onOpenChange={(o) => !o && setViewingCheckin(null)}>
