@@ -144,7 +144,7 @@ export default function GlobalNetworkMap() {
   const hasAnyData = allMarkerCountries.length > 0 || moroccoData.founders.length > 0 || moroccoData.stakeholders.length > 0;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-96 flex-col overflow-hidden rounded-lg border border-border bg-card">
       <div className="px-5 py-4 border-b border-border flex items-center gap-2.5">
         <div className="h-8 w-8 rounded-md border border-border bg-secondary flex items-center justify-center">
           <Globe2 className="h-4 w-4 text-ink" />
