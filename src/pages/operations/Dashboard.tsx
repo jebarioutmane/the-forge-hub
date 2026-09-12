@@ -12,6 +12,8 @@ import {
 import {
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
 } from "recharts";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type BudgetLine = {
   id: string;
@@ -232,27 +234,25 @@ export default function OperationsDashboard() {
   }, [lines, rollup, totals.allocated]);
 
   return (
-    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Budget Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Committed-vs-spent view for {selectedCohortLabel || "the selected cohort"}.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {overcommitted && (
-            <Badge variant="destructive" className="gap-1">
-              <AlertTriangle className="h-3 w-3" /> Overcommitted
-            </Badge>
-          )}
-          {depleted && !overcommitted && (
-            <Badge variant="destructive" className="gap-1">
-              <AlertTriangle className="h-3 w-3" /> Actuals exceed allocation
-            </Badge>
-          )}
-        </div>
-      </header>
+    <PageContainer className="space-y-6">
+      <PageHeader
+        title="Budget dashboard"
+        description={`Committed-vs-spent view for ${selectedCohortLabel || "the selected cohort"}.`}
+        actions={
+          <>
+            {overcommitted && (
+              <Badge variant="destructive" className="gap-1">
+                <AlertTriangle className="h-3 w-3" /> Overcommitted
+              </Badge>
+            )}
+            {depleted && !overcommitted && (
+              <Badge variant="destructive" className="gap-1">
+                <AlertTriangle className="h-3 w-3" /> Actuals exceed allocation
+              </Badge>
+            )}
+          </>
+        }
+      />
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
@@ -450,7 +450,7 @@ export default function OperationsDashboard() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 

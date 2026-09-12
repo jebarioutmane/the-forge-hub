@@ -84,6 +84,8 @@ import {
   upsertFounderSensitive,
   useInvalidateFounderSensitive,
 } from "@/hooks/useFounderSensitive";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type Founder = Tables<"founders">;
 type Cohort = Tables<"cohorts">;
@@ -525,17 +527,12 @@ export default function FoundersSource() {
 
   /* ─────────── Render ─────────── */
   return (
-    <div className="p-6 lg:p-10 space-y-6 max-w-[1400px] mx-auto">
-      {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Founders</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Directory of founders and their startups.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          {mayEdit && (
+    <PageContainer className="space-y-6">
+      <PageHeader
+        title="Founders"
+        description="Directory of founders and their startups."
+        actions={
+          mayEdit && (
             <Button
               onClick={() => {
                 setForm({
@@ -549,9 +546,9 @@ export default function FoundersSource() {
             >
               <Plus className="mr-2 h-4 w-4" /> Add founder
             </Button>
-          )}
-        </div>
-      </div>
+          )
+        }
+      />
 
       {/* Filter bar */}
       <Card>
@@ -1369,7 +1366,7 @@ export default function FoundersSource() {
         onConfirm={() => deleteId && archiveMutation.mutate(deleteId)}
         onCancel={() => setDeleteId(null)}
       />
-    </div>
+    </PageContainer>
   );
 }
 

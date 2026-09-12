@@ -1,7 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
 import { TopNav } from "@/components/TopNav";
-import { CursorSpotlight } from "@/components/CursorSpotlight";
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -9,7 +8,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-primary text-lg font-semibold">Loading...</div>
+        <div className="text-sm text-muted-foreground">Loading…</div>
       </div>
     );
   }
@@ -21,10 +20,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <TopNav />
-      <main className="pt-12">
-        {children}
-      </main>
-      <CursorSpotlight />
+      <main className="pt-12">{children}</main>
     </div>
   );
 }

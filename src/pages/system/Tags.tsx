@@ -14,6 +14,8 @@ import {
 import { Tag as TagIcon, Plus, Pencil, Trash2, Search, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 const PRESET_COLORS = [
   "#f97316", "#ef4444", "#22c55e", "#3b82f6", "#8b5cf6",
@@ -131,21 +133,16 @@ export default function Tags() {
   const dialogOpen = creating || !!editing;
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-            <TagIcon className="h-5 w-5 text-muted-foreground" />
-            Tags & Labels
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Central manager for every tag used across the platform. Changes here reflect everywhere.
-          </p>
-        </div>
-        <Button onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-1.5" /> New tag
-        </Button>
-      </div>
+    <PageContainer className="space-y-6">
+      <PageHeader
+        title="Tags and labels"
+        description="Every tag used across the platform. Changes here apply everywhere."
+        actions={
+          <Button onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-1.5" /> New tag
+          </Button>
+        }
+      />
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -306,6 +303,6 @@ export default function Tags() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageContainer>
   );
 }

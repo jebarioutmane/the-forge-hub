@@ -21,17 +21,19 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { formatCohortLabel, formatCohortWindow, parseCohort } from "@/lib/cohortYears";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function Settings() {
   return (
-    <div className="p-6 lg:p-10 space-y-8 max-w-3xl">
-      <div>
-        <h1 className="font-serif text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground">System preferences and cohort lifecycle</p>
-      </div>
+    <PageContainer className="space-y-6">
+      <PageHeader
+        title="Settings"
+        description="System preferences and cohort lifecycle"
+      />
 
       <CohortSettingsCard />
-    </div>
+    </PageContainer>
   );
 }
 

@@ -78,6 +78,8 @@ import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { format } from "date-fns";
 import { formatUrl } from "@/lib/formatUrl";
 import type { Tables } from "@/integrations/supabase/types";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type Stakeholder = Tables<"stakeholders">;
 
@@ -465,27 +467,24 @@ export default function StakeholdersDirectory() {
   }, [involvement]);
 
   return (
-    <div className="p-6 lg:p-10 space-y-6 max-w-[1400px] mx-auto">
-      {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Stakeholders</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Network CRM — mentors, investors, partners & speakers.
-          </p>
-        </div>
-        {mayEdit && (
-          <Button
-            onClick={() => {
-              setForm(emptyForm);
-              setEditing(null);
-              setDialogOpen(true);
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" /> Add stakeholder
-          </Button>
-        )}
-      </div>
+    <PageContainer className="space-y-6">
+      <PageHeader
+        title="Stakeholders"
+        description="Mentors, investors, partners and speakers."
+        actions={
+          mayEdit && (
+            <Button
+              onClick={() => {
+                setForm(emptyForm);
+                setEditing(null);
+                setDialogOpen(true);
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4" /> Add stakeholder
+            </Button>
+          )
+        }
+      />
 
       {/* Filter bar */}
       <Card>
@@ -1190,7 +1189,7 @@ export default function StakeholdersDirectory() {
         title="Archive stakeholder?"
         description="They'll be hidden from the directory but can be restored from the Archived view."
       />
-    </div>
+    </PageContainer>
   );
 }
 

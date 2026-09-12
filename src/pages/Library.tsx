@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { TagPicker } from "@/components/TagPicker";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 interface LibraryProps {
   moduleName?: string;
@@ -225,26 +227,24 @@ export default function Library({ moduleName = "All" }: LibraryProps) {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Resource Library</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Central hub for links, templates, guides, and reference documents.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-sm">
-            <Switch id="archived-toggle" checked={showArchived} onCheckedChange={setShowArchived} />
-            <Label htmlFor="archived-toggle" className="cursor-pointer">
-              {showArchived ? "Viewing archived" : "Show archived"}
-            </Label>
-          </div>
-          <Button size="sm" onClick={openAdd}>
-            <Plus className="mr-2 h-4 w-4" />Add Resource
-          </Button>
-        </div>
-      </div>
+    <PageContainer className="space-y-6">
+      <PageHeader
+        title="Resource library"
+        description="Links, templates, guides and reference documents."
+        actions={
+          <>
+            <div className="flex items-center gap-2">
+              <Switch id="archived-toggle" checked={showArchived} onCheckedChange={setShowArchived} />
+              <Label htmlFor="archived-toggle" className="cursor-pointer text-xs">
+                {showArchived ? "Viewing archived" : "Show archived"}
+              </Label>
+            </div>
+            <Button size="sm" onClick={openAdd}>
+              <Plus className="mr-2 h-4 w-4" />Add resource
+            </Button>
+          </>
+        }
+      />
 
       {/* Search + category chips */}
       <div className="space-y-3">
@@ -423,7 +423,7 @@ export default function Library({ moduleName = "All" }: LibraryProps) {
         title="Permanently delete resource?"
         description="This cannot be undone. To keep it recoverable, archive instead."
       />
-    </div>
+    </PageContainer>
   );
 }
 

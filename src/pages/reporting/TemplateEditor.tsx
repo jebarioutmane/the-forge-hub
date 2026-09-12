@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -19,6 +20,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 const DEFAULT_CATEGORIES = ["Program Health", "Founder Achievements", "Financial", "Network"];
 
@@ -238,29 +241,32 @@ export default function TemplateEditor() {
 
   if (!template) {
     return (
-      <div className="max-w-3xl mx-auto p-8 text-center">
+      <PageContainer className="text-center">
         <p className="text-sm text-muted-foreground">Template not found.</p>
         <Button asChild variant="link"><Link to="/reporting/templates">Back to templates</Link></Button>
-      </div>
+      </PageContainer>
     );
   }
 
   const dialogOpen = creatingQuestion || !!editingQuestion;
 
   return (
-    <div className="max-w-4xl mx-auto p-8 space-y-8">
-      <div>
-        <Button variant="ghost" size="sm" onClick={() => navigate("/reporting/templates")} className="mb-4 -ml-2">
-          <ArrowLeft className="h-4 w-4 mr-1" /> All templates
-        </Button>
+    <PageContainer className="space-y-6">
+      <PageHeader
+        title="Report template"
+        description="Name, describe and order the questions this template asks."
+        actions={
+          <Button variant="ghost" size="sm" onClick={() => navigate("/reporting/templates")}>
+            <ArrowLeft className="h-4 w-4 mr-1" /> All templates
+          </Button>
+        }
+      />
 
-        <div className="border rounded-lg p-6 bg-card space-y-4">
+      <div>
+        <div className="border border-border rounded-lg p-4 bg-card space-y-4">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <FileBarChart className="h-5 w-5" />
-            </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Template</p>
+              <Label htmlFor="tpl-editor-name" className="text-xs text-muted-foreground">Template name</Label>
               <Input
                 value={meta.name}
                 onChange={(e) => { setMeta({ ...meta, name: e.target.value }); setMetaDirty(true); }}
@@ -488,6 +494,6 @@ export default function TemplateEditor() {
         title="Remove question?"
         description="This permanently removes the question from the template."
       />
-    </div>
+    </PageContainer>
   );
 }

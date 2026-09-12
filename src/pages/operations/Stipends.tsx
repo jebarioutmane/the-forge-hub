@@ -34,6 +34,8 @@ const MONTHS = [
 const currentYear = new Date().getFullYear();
 const currentMonthIndex = new Date().getMonth();
 import { useCohort, ALL_COHORTS } from "@/contexts/CohortContext";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 function calcNet(base: number, dedPct: number, dedFixed: number, addPct: number, addFixed: number, reimb: number) {
   return (base * (1 - dedPct / 100) - dedFixed) + (base * (addPct / 100) + addFixed) + reimb;
@@ -638,13 +640,12 @@ export default function Stipends() {
   };
 
   return (
-    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Stipends Tracker</h1>
-          <p className="text-sm text-muted-foreground">Monthly financial distributions for founders</p>
-        </div>
+    <PageContainer className="space-y-6">
+      <PageHeader
+        title="Stipends tracker"
+        description="Monthly financial distributions for founders"
+      />
+      <div className="flex items-center justify-end">
         <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={() => applyLinksToAllMutation.mutate()} disabled={records.length < 2 || applyLinksToAllMutation.isPending}>
             <LinkIcon className="mr-1 h-3.5 w-3.5" /> Apply Links to All
@@ -1136,7 +1137,7 @@ export default function Stipends() {
           })() },
         ] : []}
       />
-    </div>
+    </PageContainer>
   );
 }
 

@@ -18,6 +18,8 @@ import {
   ShieldAlert, ShieldCheck, Shield, Plus, Users, Sliders, Lock, Trash2, Check, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type Role = {
   id: string;
@@ -254,37 +256,35 @@ export default function RolesPermissions() {
   }
   if (!isSuperAdmin) {
     return (
-      <div className="p-6 lg:p-10 max-w-3xl mx-auto">
+      <PageContainer>
         <Card>
           <CardContent className="py-16 text-center">
-            <Lock className="h-8 w-8 text-muted-foreground mx-auto mb-4" />
-            <h1 className="font-serif text-2xl text-ink mb-2">Access restricted</h1>
+            <Lock className="h-6 w-6 text-muted-foreground mx-auto mb-4" />
+            <h1 className="mb-2">Access restricted</h1>
             <p className="text-sm text-muted-foreground">
-              Roles & Permissions is available to Super Admins only.
+              Roles and permissions is available to Super Admins only.
             </p>
           </CardContent>
         </Card>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="p-6 lg:p-10 space-y-8 max-w-6xl mx-auto">
-      <div className="flex items-end justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="font-serif text-3xl text-ink">Roles &amp; Permissions</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Define roles and control access section by section. This stage stores the configuration; enforcement across the app comes next.
-          </p>
-        </div>
-        <Button onClick={() => {
-          setActiveRole(null);
-          setRoleForm({ name: "", description: "", is_external: false, cohort_scoped: false });
-          setCreateOpen(true);
-        }}>
-          <Plus className="h-4 w-4 mr-2" /> New Role
-        </Button>
-      </div>
+    <PageContainer className="space-y-6">
+      <PageHeader
+        title="Roles and permissions"
+        description="Define roles and control access section by section."
+        actions={
+          <Button onClick={() => {
+            setActiveRole(null);
+            setRoleForm({ name: "", description: "", is_external: false, cohort_scoped: false });
+            setCreateOpen(true);
+          }}>
+            <Plus className="h-4 w-4 mr-2" /> New role
+          </Button>
+        }
+      />
 
       {loadingRoles ? (
         <div className="text-sm text-muted-foreground">Loading roles…</div>
@@ -429,7 +429,7 @@ export default function RolesPermissions() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer>
   );
 }
 

@@ -59,6 +59,8 @@ import { format, parseISO } from "date-fns";
 import { useCohort, ALL_COHORTS } from "@/contexts/CohortContext";
 import type { Tables } from "@/integrations/supabase/types";
 import { cn } from "@/lib/utils";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type Founder = Tables<"founders">;
 type Evaluation = Tables<"founder_evaluations">;
@@ -462,41 +464,29 @@ export default function Evaluations() {
   // === Render ===
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB]">
-      <div className="mx-auto max-w-[1400px] px-6 py-8">
-        {/* Header */}
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-              <ClipboardCheck className="h-3.5 w-3.5" />
-              Founders · Evaluations
-            </div>
-            <h1 className="mt-1 text-[26px] font-semibold text-[#1D1D1F] tracking-tight">
-              End-of-Block Evaluations
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Formal decision reviews for {selectedCohortLabel}. Backed by check-in evidence.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Label className="text-[11px] uppercase tracking-widest text-muted-foreground">
-              Block
-            </Label>
-            <Select value={String(blockNumber)} onValueChange={(v) => setBlockNumber(Number(v))}>
-              <SelectTrigger className="h-9 w-[220px] bg-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {BLOCKS.map((b) => (
-                  <SelectItem key={b.number} value={String(b.number)}>
-                    {b.name} · {b.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+    <PageContainer className="space-y-6">
+      <PageHeader
+          title="End-of-block evaluations"
+          description={`Formal decision reviews for ${selectedCohortLabel}. Backed by check-in evidence.`}
+          className="mb-6"
+          actions={
+            <>
+              <Label className="text-xs text-muted-foreground">Block</Label>
+              <Select value={String(blockNumber)} onValueChange={(v) => setBlockNumber(Number(v))}>
+                <SelectTrigger className="h-9 w-[220px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {BLOCKS.map((b) => (
+                    <SelectItem key={b.number} value={String(b.number)}>
+                      {b.name} — {b.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          }
+        />
 
         {/* Workspace */}
         <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
@@ -1024,7 +1014,7 @@ export default function Evaluations() {
             )}
           </div>
         </div>
-      </div>
+
 
       {/* View dialog */}
       <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
@@ -1104,7 +1094,7 @@ export default function Evaluations() {
         title="Archive evaluation?"
         description="This evaluation will be moved to the archived list. You can restore it later."
       />
-    </div>
+    </PageContainer>
   );
 }
 

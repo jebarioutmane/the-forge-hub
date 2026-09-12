@@ -25,6 +25,8 @@ import {
   Building2, Tag as TagIcon, Loader2, FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 const STATUS_OPTIONS = ["Draft", "Active", "Completed", "Terminated"] as const;
 const TYPE_OPTIONS = ["mentor", "expert", "consultant", "service provider"] as const;
@@ -191,27 +193,24 @@ export default function OperationsContracts() {
   const vendorOptions = vendors.map((v) => ({ id: v.id, label: v.name }));
 
   return (
-    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex items-start justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Contracts</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Full lifecycle contract manager — milestones, payments, and budget commitments · {selectedCohortLabel}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 pr-3 border-r">
-            <Switch id="archived" checked={showArchived} onCheckedChange={setShowArchived} />
-            <Label htmlFor="archived" className="text-xs cursor-pointer flex items-center gap-1">
-              <Archive className="h-3 w-3" /> Archived
-            </Label>
-          </div>
-          <Button onClick={() => { setEditingContract(null); setFormOpen(true); }}>
-            <Plus className="mr-2 h-4 w-4" /> New Contract
-          </Button>
-        </div>
-      </div>
+    <PageContainer className="space-y-6">
+      <PageHeader
+        title="Contracts"
+        description={`Milestones, payments and budget commitments for ${selectedCohortLabel}`}
+        actions={
+          <>
+            <div className="flex items-center gap-2 pr-3 border-r border-border">
+              <Switch id="archived" checked={showArchived} onCheckedChange={setShowArchived} />
+              <Label htmlFor="archived" className="text-xs cursor-pointer flex items-center gap-1">
+                <Archive className="h-3 w-3" /> Archived
+              </Label>
+            </div>
+            <Button onClick={() => { setEditingContract(null); setFormOpen(true); }}>
+              <Plus className="mr-2 h-4 w-4" /> New contract
+            </Button>
+          </>
+        }
+      />
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -351,7 +350,7 @@ export default function OperationsContracts() {
         onConfirm={() => { if (archiveTarget) { archiveContract.mutate(archiveTarget.id); setArchiveTarget(null); } }}
         onCancel={() => setArchiveTarget(null)}
       />
-    </div>
+    </PageContainer>
   );
 }
 

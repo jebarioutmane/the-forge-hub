@@ -11,8 +11,10 @@ import EventCountdowns from "@/components/EventCountdowns";
 import FoundersLeaderboard from "@/components/FoundersLeaderboard";
 import WeeklyFocusesPanel from "@/components/WeeklyFocusesPanel";
 import BirthdaysPanel from "@/components/BirthdaysPanel";
-import ForgeDoodle from "@/components/ForgeDoodle";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
+
 
 const shortcuts = [
   {
@@ -67,34 +69,28 @@ export default function Home() {
   const founderLabel = showAllFounders ? "All-Time Founders" : "Active Founders";
 
   return (
-    <div className="px-6 lg:px-10 py-8 space-y-8 max-w-7xl mx-auto">
+    <PageContainer className="space-y-6">
+      <PageHeader
+        title="Command Center"
+        description="Programme status across founders, events and operations."
+        actions={
+          <Button variant="outline" size="sm" onClick={() => setSearchOpen(true)}>
+            <Search className="h-4 w-4" />
+            Search
+          </Button>
+        }
+      />
 
-      {/* Hero: doodle + centered search */}
-      <div className="flex flex-col items-center gap-6 pt-2 pb-2">
-        <div className="w-full max-w-[520px] md:max-w-[600px]">
-          <ForgeDoodle />
-        </div>
-        <button
-          onClick={() => setSearchOpen(true)}
-          className="w-full max-w-xl h-12 bg-secondary rounded-full flex items-center px-5 text-muted-foreground cursor-text hover:bg-accent transition-colors gap-3 shadow-elev-sm border border-border/40"
-        >
-          <Search className="h-4 w-4 shrink-0" />
-          <span className="text-sm">Search anything...</span>
-        </button>
-      </div>
-
-
-
-      {/* Shortcut Buttons */}
+      {/* Section shortcuts */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
         {shortcuts.map((s) => (
           <Button
             key={s.title}
             variant="outline"
-            className={`w-full h-14 rounded-xl bg-card border border-border/40 text-foreground hover:bg-secondary shadow-elev-sm transition-all flex items-center justify-center gap-3 whitespace-nowrap text-base font-semibold`}
+            className="w-full h-12 justify-start gap-3 text-sm font-medium"
             onClick={() => navigate(s.route)}
           >
-            <s.icon className="h-5 w-5 shrink-0" />
+            <s.icon className="h-4 w-4 shrink-0" />
             {s.title}
           </Button>
         ))}
@@ -103,21 +99,21 @@ export default function Home() {
       {/* Weekly Focuses */}
       <WeeklyFocusesPanel />
 
-      {/* Two KPI Cards */}
+      {/* KPI figures */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card className="border border-border/40 shadow-elev-sm">
-          <CardContent className="p-6">
+        <Card>
+          <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-lg flex items-center justify-center bg-module-founders/10 text-module-founders">
+              <div className="h-8 w-8 rounded flex items-center justify-center bg-secondary text-primary">
                 <Users className="h-4 w-4" />
               </div>
               <div className="flex-1">
-                <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{founderLabel}</p>
-                <p className="text-xl font-bold" style={{ fontFamily: "var(--font-display)" }}>{founderCount}</p>
+                <p className="text-xs font-medium text-muted-foreground">{founderLabel}</p>
+                <p className="stat-figure text-3xl">{founderCount}</p>
               </div>
               <button
                 onClick={() => setShowAllFounders(!showAllFounders)}
-                className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground"
+                className="h-7 w-7 rounded flex items-center justify-center hover:bg-secondary text-muted-foreground"
                 title={showAllFounders ? "Show active only" : "Show all founders"}
               >
                 {showAllFounders ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -126,39 +122,35 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card className="border border-border/40 shadow-elev-sm">
-          <CardContent className="p-6">
+        <Card>
+          <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-lg flex items-center justify-center bg-module-events/10 text-module-events">
+              <div className="h-8 w-8 rounded flex items-center justify-center bg-secondary text-primary">
                 <CalendarDays className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Active Events</p>
-                <p className="text-xl font-bold" style={{ fontFamily: "var(--font-display)" }}>{activeEvents.length}</p>
+                <p className="text-xs font-medium text-muted-foreground">Active events</p>
+                <p className="stat-figure text-3xl">{activeEvents.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Event Countdowns */}
       <EventCountdowns />
 
-      {/* Upcoming Birthdays */}
       <BirthdaysPanel />
 
-
-      {/* Split Layout: Leaderboard + Map */}
-      <div className="flex flex-col gap-8 w-full">
-        <div className="w-full bg-card rounded-lg border border-border/40 shadow-elev-sm overflow-hidden flex flex-col h-[500px]">
+      <div className="flex flex-col gap-6 w-full">
+        <div className="w-full bg-card rounded-lg border border-border overflow-hidden flex flex-col h-[500px]">
           <FoundersLeaderboard />
         </div>
-        <div className="w-full bg-card rounded-lg border border-border/40 shadow-elev-sm overflow-hidden flex flex-col h-[500px]">
+        <div className="w-full bg-card rounded-lg border border-border overflow-hidden flex flex-col h-[500px]">
           <GlobalNetworkMap />
         </div>
       </div>
 
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
-    </div>
+    </PageContainer>
   );
 }

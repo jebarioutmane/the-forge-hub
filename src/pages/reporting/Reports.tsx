@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { computeMetric, type MetricContext } from "@/lib/reportMetrics";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type Instance = {
   id: string;
@@ -204,27 +206,22 @@ export default function Reports() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-8 space-y-8">
-      <header className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-            <FileSpreadsheet className="h-5 w-5" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
-            <p className="text-sm text-muted-foreground">Launch, fill, review, and export reports from your templates.</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Switch checked={showArchived} onCheckedChange={setShowArchived} />
-            Archived
-          </label>
-          <Button onClick={() => setLaunching(true)}>
-            <Plus className="h-4 w-4 mr-1.5" /> New Report
-          </Button>
-        </div>
-      </header>
+    <PageContainer className="space-y-6">
+      <PageHeader
+        title="Reports"
+        description="Launch, fill, review and export reports from your templates."
+        actions={
+          <>
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Switch checked={showArchived} onCheckedChange={setShowArchived} />
+              Archived
+            </label>
+            <Button onClick={() => setLaunching(true)}>
+              <Plus className="h-4 w-4 mr-1.5" /> New report
+            </Button>
+          </>
+        }
+      />
 
       {isLoading ? (
         <div className="flex items-center justify-center py-24 text-muted-foreground">
@@ -354,6 +351,6 @@ export default function Reports() {
         title="Archive report?"
         description="You can restore it later from the Archived toggle."
       />
-    </div>
+    </PageContainer>
   );
 }
