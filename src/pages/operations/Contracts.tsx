@@ -25,6 +25,8 @@ import {
   Building2, Tag as TagIcon, Loader2, FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 const STATUS_OPTIONS = ["Draft", "Active", "Completed", "Terminated"] as const;
 const TYPE_OPTIONS = ["mentor", "expert", "consultant", "service provider"] as const;
@@ -191,7 +193,7 @@ export default function OperationsContracts() {
   const vendorOptions = vendors.map((v) => ({ id: v.id, label: v.name }));
 
   return (
-    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
+    <PageContainer className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
@@ -351,7 +353,7 @@ export default function OperationsContracts() {
         onConfirm={() => { if (archiveTarget) { archiveContract.mutate(archiveTarget.id); setArchiveTarget(null); } }}
         onCancel={() => setArchiveTarget(null)}
       />
-    </div>
+    </PageContainer>
   );
 }
 

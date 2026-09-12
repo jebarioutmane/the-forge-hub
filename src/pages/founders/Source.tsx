@@ -80,6 +80,8 @@ import type { Tables } from "@/integrations/supabase/types";
 import { usePermissions } from "@/hooks/usePermissions";
 import { Sensitive } from "@/components/permissions/Sensitive";
 import {
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
   useFounderSensitiveOne,
   upsertFounderSensitive,
   useInvalidateFounderSensitive,
@@ -525,7 +527,7 @@ export default function FoundersSource() {
 
   /* ─────────── Render ─────────── */
   return (
-    <div className="p-6 lg:p-10 space-y-6 max-w-[1400px] mx-auto">
+    <PageContainer className="space-y-6">
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -1369,7 +1371,7 @@ export default function FoundersSource() {
         onConfirm={() => deleteId && archiveMutation.mutate(deleteId)}
         onCancel={() => setDeleteId(null)}
       />
-    </div>
+    </PageContainer>
   );
 }
 

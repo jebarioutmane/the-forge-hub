@@ -21,6 +21,8 @@ import {
 import { EventWorkspace } from "@/components/calendar/EventWorkspace";
 import { cn } from "@/lib/utils";
 import type { Tables } from "@/integrations/supabase/types";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 export type CalendarEvent = Tables<"events"> & { _start: string; _end: string };
 
@@ -184,7 +186,7 @@ export default function Calendar() {
   };
 
   return (
-    <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-6">
+    <PageContainer className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Program Calendar</h1>
@@ -331,7 +333,7 @@ export default function Calendar() {
       <EventWorkspace open={wsOpen} onOpenChange={setWsOpen} eventId={wsEventId} initialIsMultipart={wsInitialMultipart} />
 
       <EventTypeChooser open={typeChooserOpen} onOpenChange={setTypeChooserOpen} onPick={openNewEvent} />
-    </div>
+    </PageContainer>
   );
 }
 

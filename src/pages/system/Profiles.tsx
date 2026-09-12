@@ -25,6 +25,8 @@ import { COUNTRIES, getFlag } from "@/lib/countries";
 import { formatUrl } from "@/lib/formatUrl";
 import { useCohort } from "@/contexts/CohortContext";
 import type { Tables } from "@/integrations/supabase/types";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type Profile = Tables<"profiles">;
 type LinkItem = { title: string; url: string };
@@ -282,7 +284,7 @@ export default function SystemProfiles() {
   };
 
   return (
-    <div className="p-6 lg:p-10 space-y-6 max-w-6xl mx-auto">
+    <PageContainer className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Team Profiles</h1>
@@ -659,7 +661,7 @@ export default function SystemProfiles() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer>
   );
 }
 

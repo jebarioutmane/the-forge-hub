@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 const DEFAULT_CATEGORIES = ["Program Health", "Founder Achievements", "Financial", "Network"];
 
@@ -248,7 +250,7 @@ export default function TemplateEditor() {
   const dialogOpen = creatingQuestion || !!editingQuestion;
 
   return (
-    <div className="max-w-4xl mx-auto p-8 space-y-8">
+    <PageContainer className="space-y-6">
       <div>
         <Button variant="ghost" size="sm" onClick={() => navigate("/reporting/templates")} className="mb-4 -ml-2">
           <ArrowLeft className="h-4 w-4 mr-1" /> All templates
@@ -488,6 +490,6 @@ export default function TemplateEditor() {
         title="Remove question?"
         description="This permanently removes the question from the template."
       />
-    </div>
+    </PageContainer>
   );
 }

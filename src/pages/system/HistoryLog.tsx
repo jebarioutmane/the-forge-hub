@@ -22,6 +22,8 @@ import {
 import { Eye, History as HistoryIcon, Search, X } from "lucide-react";
 import { format } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type HistoryLog = Tables<"history_logs">;
 
@@ -186,7 +188,7 @@ export default function HistoryLog() {
   ];
 
   return (
-    <div className="p-6 lg:p-10 space-y-6 max-w-6xl mx-auto">
+    <PageContainer className="space-y-6">
       <div>
         <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
           <HistoryIcon className="h-3.5 w-3.5" />
@@ -389,6 +391,6 @@ export default function HistoryLog() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer>
   );
 }

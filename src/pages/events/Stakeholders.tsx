@@ -78,6 +78,8 @@ import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { format } from "date-fns";
 import { formatUrl } from "@/lib/formatUrl";
 import type { Tables } from "@/integrations/supabase/types";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type Stakeholder = Tables<"stakeholders">;
 
@@ -465,7 +467,7 @@ export default function StakeholdersDirectory() {
   }, [involvement]);
 
   return (
-    <div className="p-6 lg:p-10 space-y-6 max-w-[1400px] mx-auto">
+    <PageContainer className="space-y-6">
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -1190,7 +1192,7 @@ export default function StakeholdersDirectory() {
         title="Archive stakeholder?"
         description="They'll be hidden from the directory but can be restored from the Archived view."
       />
-    </div>
+    </PageContainer>
   );
 }
 

@@ -10,6 +10,8 @@ import {
   Lock, Flame, Timer, Activity,
 } from "lucide-react";
 import {
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
 } from "recharts";
 
@@ -232,7 +234,7 @@ export default function OperationsDashboard() {
   }, [lines, rollup, totals.allocated]);
 
   return (
-    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
+    <PageContainer className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Budget Dashboard</h1>
@@ -450,7 +452,7 @@ export default function OperationsDashboard() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 

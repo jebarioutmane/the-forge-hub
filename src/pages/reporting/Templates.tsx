@@ -13,6 +13,8 @@ import {
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { FileBarChart, Plus, Pencil, Archive, ArchiveRestore, Eye, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type Template = {
   id: string;
@@ -90,7 +92,7 @@ export default function ReportTemplates() {
   });
 
   return (
-    <div className="max-w-6xl mx-auto p-8 space-y-8">
+    <PageContainer className="space-y-6">
       <header className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
@@ -199,6 +201,6 @@ export default function ReportTemplates() {
         title="Archive template?"
         description="You can restore it later from the Archived toggle."
       />
-    </div>
+    </PageContainer>
   );
 }

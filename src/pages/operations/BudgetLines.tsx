@@ -25,6 +25,8 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type Currency = "MAD" | "USD" | "EUR";
 
@@ -172,7 +174,7 @@ export default function BudgetLines() {
   const canWrite = cohortScoped;
 
   return (
-    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
+    <PageContainer className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2">
@@ -306,7 +308,7 @@ export default function BudgetLines() {
         title="Archive budget line?"
         description="Linked expenses, stipends and contract payments keep their reference. Toggle 'Show archived' to restore later."
       />
-    </div>
+    </PageContainer>
   );
 }
 

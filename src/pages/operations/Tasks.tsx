@@ -33,6 +33,8 @@ import {
 } from "@dnd-kit/core";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import type { Tables } from "@/integrations/supabase/types";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type Task = Tables<"tasks">;
 type Profile = { id: string; full_name: string | null; email: string | null; avatar_url: string | null };
@@ -333,7 +335,7 @@ export default function OperationsTasks() {
   const activeTask = activeDragId ? tasks.find(t => t.id === activeDragId) || null : null;
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <PageContainer className="space-y-6">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -586,7 +588,7 @@ export default function OperationsTasks() {
           ? "The task will move back into the active list."
           : "The task will be hidden from active views but preserved. You can restore it from the Archived toggle."}
       />
-    </div>
+    </PageContainer>
   );
 }
 

@@ -28,6 +28,8 @@ import {
   ExternalLink, Loader2, Receipt,
 } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type Expense = Tables<"expenses">;
 
@@ -339,7 +341,7 @@ export default function Expenses() {
   }
 
   return (
-    <div className="p-6 md:p-8 space-y-6">
+    <PageContainer className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
@@ -786,7 +788,7 @@ export default function Expenses() {
         title="Archive expense?"
         description="This expense will be hidden from the main list. You can restore it later from the Archived view."
       />
-    </div>
+    </PageContainer>
   );
 }
 

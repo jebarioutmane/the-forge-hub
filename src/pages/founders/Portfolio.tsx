@@ -17,6 +17,8 @@ import {
   TrendingUp, Globe2, Layers, Building2, DollarSign, CircleAlert,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 const RISK_COLORS: Record<string, string> = {
   on_track: "#10b981",
@@ -277,7 +279,7 @@ export default function PortfolioDashboard() {
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto p-6 md:p-8 space-y-10">
+    <PageContainer className="space-y-6">
       {/* Header */}
       <div className="flex items-baseline justify-between gap-4 flex-wrap">
         <div>
@@ -582,6 +584,6 @@ export default function PortfolioDashboard() {
           </section>
         </>
       )}
-    </div>
+    </PageContainer>
   );
 }

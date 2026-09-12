@@ -18,6 +18,8 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { computeMetric, formatMetric, type MetricContext } from "@/lib/reportMetrics";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type Instance = {
   id: string;
@@ -307,7 +309,7 @@ export default function ReportEditor() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-8 space-y-8">
+    <PageContainer className="space-y-6">
       <div>
         <Button variant="ghost" size="sm" onClick={() => navigate("/reporting/reports")} className="mb-4 -ml-2">
           <ArrowLeft className="h-4 w-4 mr-1" /> All reports
@@ -436,7 +438,7 @@ export default function ReportEditor() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer>
   );
 }
 

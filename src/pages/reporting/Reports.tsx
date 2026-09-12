@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { computeMetric, type MetricContext } from "@/lib/reportMetrics";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type Instance = {
   id: string;
@@ -204,7 +206,7 @@ export default function Reports() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-8 space-y-8">
+    <PageContainer className="space-y-6">
       <header className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
@@ -354,6 +356,6 @@ export default function Reports() {
         title="Archive report?"
         description="You can restore it later from the Archived toggle."
       />
-    </div>
+    </PageContainer>
   );
 }

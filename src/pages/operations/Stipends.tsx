@@ -34,6 +34,8 @@ const MONTHS = [
 const currentYear = new Date().getFullYear();
 const currentMonthIndex = new Date().getMonth();
 import { useCohort, ALL_COHORTS } from "@/contexts/CohortContext";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 function calcNet(base: number, dedPct: number, dedFixed: number, addPct: number, addFixed: number, reimb: number) {
   return (base * (1 - dedPct / 100) - dedFixed) + (base * (addPct / 100) + addFixed) + reimb;
@@ -638,7 +640,7 @@ export default function Stipends() {
   };
 
   return (
-    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
+    <PageContainer className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -1136,7 +1138,7 @@ export default function Stipends() {
           })() },
         ] : []}
       />
-    </div>
+    </PageContainer>
   );
 }
 

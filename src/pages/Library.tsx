@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { TagPicker } from "@/components/TagPicker";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 interface LibraryProps {
   moduleName?: string;
@@ -225,7 +227,7 @@ export default function Library({ moduleName = "All" }: LibraryProps) {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <PageContainer className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Resource Library</h1>
@@ -423,7 +425,7 @@ export default function Library({ moduleName = "All" }: LibraryProps) {
         title="Permanently delete resource?"
         description="This cannot be undone. To keep it recoverable, archive instead."
       />
-    </div>
+    </PageContainer>
   );
 }
 

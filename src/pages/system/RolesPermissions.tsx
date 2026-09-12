@@ -18,6 +18,8 @@ import {
   ShieldAlert, ShieldCheck, Shield, Plus, Users, Sliders, Lock, Trash2, Check, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type Role = {
   id: string;
@@ -269,7 +271,7 @@ export default function RolesPermissions() {
   }
 
   return (
-    <div className="p-6 lg:p-10 space-y-8 max-w-6xl mx-auto">
+    <PageContainer className="space-y-6">
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
           <h1 className="font-serif text-3xl text-ink">Roles &amp; Permissions</h1>
@@ -429,7 +431,7 @@ export default function RolesPermissions() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer>
   );
 }
 

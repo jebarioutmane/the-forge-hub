@@ -14,6 +14,8 @@ import {
 import { Tag as TagIcon, Plus, Pencil, Trash2, Search, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 const PRESET_COLORS = [
   "#f97316", "#ef4444", "#22c55e", "#3b82f6", "#8b5cf6",
@@ -131,7 +133,7 @@ export default function Tags() {
   const dialogOpen = creating || !!editing;
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
+    <PageContainer className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
@@ -306,6 +308,6 @@ export default function Tags() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageContainer>
   );
 }
