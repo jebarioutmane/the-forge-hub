@@ -285,12 +285,10 @@ export default function SystemProfiles() {
 
   return (
     <PageContainer className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Team Profiles</h1>
-          <p className="text-sm text-muted-foreground">Directory of team members with accounts</p>
-        </div>
-      </div>
+      <PageHeader
+        title="Team profiles"
+        description="Directory of team members with accounts"
+      />
 
       {profiles.length === 0 ? (
         <Card>

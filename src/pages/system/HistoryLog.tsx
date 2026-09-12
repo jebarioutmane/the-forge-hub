@@ -189,19 +189,10 @@ export default function HistoryLog() {
 
   return (
     <PageContainer className="space-y-6">
-      <div>
-        <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-          <HistoryIcon className="h-3.5 w-3.5" />
-          System · Audit Trail
-        </div>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-foreground">
-          History Log
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Read-only audit trail — every change across the workspace. Recovery is
-          handled in each section's Archived view.
-        </p>
-      </div>
+      <PageHeader
+        title="History log"
+        description="Read-only audit trail of every change across the workspace. Recovery lives in each section's archived view."
+      />
 
       {/* Filters */}
       <div className="rounded-lg border border-border bg-card p-4 shadow-elev-sm">

@@ -27,10 +27,10 @@ import { PageHeader } from "@/components/PageHeader";
 export default function Settings() {
   return (
     <PageContainer className="space-y-6">
-      <div>
-        <h1 className="font-serif text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground">System preferences and cohort lifecycle</p>
-      </div>
+      <PageHeader
+        title="Settings"
+        description="System preferences and cohort lifecycle"
+      />
 
       <CohortSettingsCard />
     </PageContainer>
