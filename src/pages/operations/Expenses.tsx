@@ -342,25 +342,22 @@ export default function Expenses() {
 
   return (
     <PageContainer className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Expenses</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {selectedCohortLabel ? `Cohort — ${selectedCohortLabel}` : "All cohorts"}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 rounded-md border px-3 h-9">
-            <Archive className="h-3.5 w-3.5 text-muted-foreground" />
-            <Label htmlFor="arch" className="text-sm font-normal cursor-pointer">Archived</Label>
-            <Switch id="arch" checked={showArchived} onCheckedChange={setShowArchived} />
-          </div>
-          <Button onClick={openCreate} disabled={isAllCohorts}>
-            <Plus className="mr-1.5 h-4 w-4" /> New expense
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Expenses"
+        description={selectedCohortLabel ? `Cohort — ${selectedCohortLabel}` : "All cohorts"}
+        actions={
+          <>
+            <div className="flex items-center gap-2 rounded border border-border px-3 h-9">
+              <Archive className="h-3.5 w-3.5 text-muted-foreground" />
+              <Label htmlFor="arch" className="text-xs font-medium cursor-pointer">Archived</Label>
+              <Switch id="arch" checked={showArchived} onCheckedChange={setShowArchived} />
+            </div>
+            <Button onClick={openCreate} disabled={isAllCohorts}>
+              <Plus className="mr-1.5 h-4 w-4" /> New expense
+            </Button>
+          </>
+        }
+      />
 
       {/* Totals bar */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">

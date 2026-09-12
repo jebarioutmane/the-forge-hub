@@ -641,12 +641,11 @@ export default function Stipends() {
 
   return (
     <PageContainer className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Stipends Tracker</h1>
-          <p className="text-sm text-muted-foreground">Monthly financial distributions for founders</p>
-        </div>
+      <PageHeader
+        title="Stipends tracker"
+        description="Monthly financial distributions for founders"
+      />
+      <div className="flex items-center justify-end">
         <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={() => applyLinksToAllMutation.mutate()} disabled={records.length < 2 || applyLinksToAllMutation.isPending}>
             <LinkIcon className="mr-1 h-3.5 w-3.5" /> Apply Links to All

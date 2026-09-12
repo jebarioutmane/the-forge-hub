@@ -175,27 +175,23 @@ export default function BudgetLines() {
 
   return (
     <PageContainer className="space-y-6">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight flex items-center gap-2">
-            <Layers className="h-6 w-6 text-primary" /> Budget Lines
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Official sponsor budget lines for {selectedCohortLabel || "the selected cohort"}. All modules (expenses, stipends, contracts) draw against these.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" className="gap-2" disabled={!canWrite} onClick={() => setCopyOpen(true)}>
-            <Copy className="h-4 w-4" /> Copy from cohort
-          </Button>
-          <Button variant="outline" className="gap-2" disabled={!canWrite} onClick={() => setBulkOpen(true)}>
-            <ListTree className="h-4 w-4" /> Bulk add
-          </Button>
-          <Button className="gap-2" disabled={!canWrite} onClick={() => { setEditing(null); setParentForNew(null); setFormOpen(true); }}>
-            <Plus className="h-4 w-4" /> Add line
-          </Button>
-        </div>
-      </header>
+      <PageHeader
+        title="Budget lines"
+        description={`Sponsor budget lines for ${selectedCohortLabel || "the selected cohort"}. Expenses, stipends and contracts all draw against these.`}
+        actions={
+          <>
+            <Button variant="outline" className="gap-2" disabled={!canWrite} onClick={() => setCopyOpen(true)}>
+              <Copy className="h-4 w-4" /> Copy from cohort
+            </Button>
+            <Button variant="outline" className="gap-2" disabled={!canWrite} onClick={() => setBulkOpen(true)}>
+              <ListTree className="h-4 w-4" /> Bulk add
+            </Button>
+            <Button className="gap-2" disabled={!canWrite} onClick={() => { setEditing(null); setParentForNew(null); setFormOpen(true); }}>
+              <Plus className="h-4 w-4" /> Add line
+            </Button>
+          </>
+        }
+      />
 
       {cohortLoading && (
         <Card className="border-dashed">

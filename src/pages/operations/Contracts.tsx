@@ -194,26 +194,23 @@ export default function OperationsContracts() {
 
   return (
     <PageContainer className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Contracts</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Full lifecycle contract manager — milestones, payments, and budget commitments · {selectedCohortLabel}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 pr-3 border-r">
-            <Switch id="archived" checked={showArchived} onCheckedChange={setShowArchived} />
-            <Label htmlFor="archived" className="text-xs cursor-pointer flex items-center gap-1">
-              <Archive className="h-3 w-3" /> Archived
-            </Label>
-          </div>
-          <Button onClick={() => { setEditingContract(null); setFormOpen(true); }}>
-            <Plus className="mr-2 h-4 w-4" /> New Contract
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Contracts"
+        description={`Milestones, payments and budget commitments for ${selectedCohortLabel}`}
+        actions={
+          <>
+            <div className="flex items-center gap-2 pr-3 border-r border-border">
+              <Switch id="archived" checked={showArchived} onCheckedChange={setShowArchived} />
+              <Label htmlFor="archived" className="text-xs cursor-pointer flex items-center gap-1">
+                <Archive className="h-3 w-3" /> Archived
+              </Label>
+            </div>
+            <Button onClick={() => { setEditingContract(null); setFormOpen(true); }}>
+              <Plus className="mr-2 h-4 w-4" /> New contract
+            </Button>
+          </>
+        }
+      />
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
