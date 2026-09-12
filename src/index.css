@@ -234,6 +234,8 @@
     font-weight: 700;
     color: hsl(var(--ink));
     letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
   }
 
   /* Consistent hover treatment for clickable rows in tables & lists */
