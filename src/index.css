@@ -186,6 +186,14 @@
   small, .text-xs { letter-spacing: 0.005em; }
   label { font-family: var(--font-body); }
   button, input, select, textarea, table { font-family: var(--font-body); }
+
+  /* Figures must never shift width on re-render: tables and numeric inputs
+     always render on the tabular figure set. */
+  table, td, th, input[type="number"] {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+  td, th { font-size: 0.8125rem; }  /* 13px table cell */
 }
 
 @layer components {
