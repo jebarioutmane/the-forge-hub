@@ -116,7 +116,7 @@ export default function FoundersLeaderboard() {
   const isMobile = useIsMobile();
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-96 flex-col overflow-hidden rounded-lg border border-border bg-card">
       <div className="px-5 py-4 border-b border-border/40 flex items-center gap-2.5">
         <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center">
           <Trophy className="h-4 w-4 text-amber-600" />
