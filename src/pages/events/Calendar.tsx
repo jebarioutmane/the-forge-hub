@@ -187,17 +187,15 @@ export default function Calendar() {
 
   return (
     <PageContainer className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Program Calendar</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            One workspace per event · attendance, stakeholders, logistics & checklist
-          </p>
-        </div>
-        <Button onClick={() => setTypeChooserOpen(true)} className="rounded-full">
-          <Plus className="h-4 w-4 mr-1.5" /> New Event
-        </Button>
-      </div>
+      <PageHeader
+        title="Programme calendar"
+        description="One workspace per event — attendance, stakeholders, logistics and checklist"
+        actions={
+          <Button onClick={() => setTypeChooserOpen(true)}>
+            <Plus className="h-4 w-4 mr-1.5" /> New event
+          </Button>
+        }
+      />
 
       <Card className="p-3 flex flex-wrap items-center gap-2 bg-white/70 backdrop-blur-xl border-border/60 shadow-elev-sm">
         <div className="inline-flex items-center rounded-full border bg-muted/50 p-0.5 gap-0.5">

@@ -336,28 +336,28 @@ export default function OperationsTasks() {
 
   return (
     <PageContainer className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Tasks</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Team task hub — manual work and automated follow-ups in one place.
-            {cohortScoped && <> Scoped to <span className="font-medium text-foreground">{selectedCohortLabel}</span> for founder-linked tasks.</>}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <ViewToggle view={view} onChange={setView} />
-          <div className="flex items-center gap-2 text-sm border rounded-md px-3 h-9">
-            <Switch id="arch" checked={showArchived} onCheckedChange={setShowArchived} />
-            <Label htmlFor="arch" className="cursor-pointer text-xs">
-              {showArchived ? "Archived" : "Active"}
-            </Label>
-          </div>
-          <Button size="sm" onClick={openAdd}>
-            <Plus className="h-4 w-4 mr-2" />New Task
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Tasks"
+        description={
+          cohortScoped
+            ? `Manual work and automated follow-ups. Founder-linked tasks scoped to ${selectedCohortLabel}.`
+            : "Manual work and automated follow-ups in one place."
+        }
+        actions={
+          <>
+            <ViewToggle view={view} onChange={setView} />
+            <div className="flex items-center gap-2 border border-border rounded px-3 h-9">
+              <Switch id="arch" checked={showArchived} onCheckedChange={setShowArchived} />
+              <Label htmlFor="arch" className="cursor-pointer text-xs">
+                {showArchived ? "Archived" : "Active"}
+              </Label>
+            </div>
+            <Button size="sm" onClick={openAdd}>
+              <Plus className="h-4 w-4 mr-2" />Add task
+            </Button>
+          </>
+        }
+      />
 
       {/* Filters */}
       <div className="grid gap-3 md:grid-cols-[1fr_auto_auto_auto_auto_auto_auto]">

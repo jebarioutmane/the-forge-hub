@@ -468,26 +468,23 @@ export default function StakeholdersDirectory() {
 
   return (
     <PageContainer className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Stakeholders</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Network CRM — mentors, investors, partners & speakers.
-          </p>
-        </div>
-        {mayEdit && (
-          <Button
-            onClick={() => {
-              setForm(emptyForm);
-              setEditing(null);
-              setDialogOpen(true);
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" /> Add stakeholder
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title="Stakeholders"
+        description="Mentors, investors, partners and speakers."
+        actions={
+          mayEdit && (
+            <Button
+              onClick={() => {
+                setForm(emptyForm);
+                setEditing(null);
+                setDialogOpen(true);
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4" /> Add stakeholder
+            </Button>
+          )
+        }
+      />
 
       {/* Filter bar */}
       <Card>

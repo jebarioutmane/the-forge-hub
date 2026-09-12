@@ -280,16 +280,13 @@ export default function PortfolioDashboard() {
 
   return (
     <PageContainer className="space-y-6">
-      {/* Header */}
-      <div className="flex items-baseline justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Portfolio Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Program health across <span className="text-foreground font-medium">{selectedCohortLabel || "…"}</span>
-          </p>
-        </div>
-        <Badge variant="outline" className="text-xs">{founders.length} active founders</Badge>
-      </div>
+      <PageHeader
+        title="Portfolio dashboard"
+        description={`Programme health across ${selectedCohortLabel || "the selected cohort"}`}
+        actions={
+          <Badge variant="outline" className="text-xs tabular">{founders.length} active founders</Badge>
+        }
+      />
 
       {loading && founders.length === 0 ? (
         <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">Loading portfolio…</div>

@@ -528,16 +528,11 @@ export default function FoundersSource() {
   /* ─────────── Render ─────────── */
   return (
     <PageContainer className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Founders</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Directory of founders and their startups.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          {mayEdit && (
+      <PageHeader
+        title="Founders"
+        description="Directory of founders and their startups."
+        actions={
+          mayEdit && (
             <Button
               onClick={() => {
                 setForm({
@@ -551,9 +546,9 @@ export default function FoundersSource() {
             >
               <Plus className="mr-2 h-4 w-4" /> Add founder
             </Button>
-          )}
-        </div>
-      </div>
+          )
+        }
+      />
 
       {/* Filter bar */}
       <Card>
