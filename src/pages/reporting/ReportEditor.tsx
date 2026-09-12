@@ -301,57 +301,43 @@ export default function ReportEditor() {
   }
   if (!instance) {
     return (
-      <div className="max-w-3xl mx-auto p-8 text-center">
+      <PageContainer className="text-center">
         <p className="text-sm text-muted-foreground">Report not found.</p>
         <Button asChild variant="link"><Link to="/reporting/reports">Back to reports</Link></Button>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
     <PageContainer className="space-y-6">
-      <div>
-        <Button variant="ghost" size="sm" onClick={() => navigate("/reporting/reports")} className="mb-4 -ml-2">
-          <ArrowLeft className="h-4 w-4 mr-1" /> All reports
-        </Button>
-
-        <div className="border rounded-lg p-6 bg-card">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3 min-w-0">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <FileSpreadsheet className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Report</p>
-                <h1 className="text-xl font-semibold tracking-tight truncate">{instance.title}</h1>
-                <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1 flex-wrap">
-                  <span>{cohort?.label ?? "All cohorts"}</span><span>·</span>
-                  <span>{instance.period_start} → {instance.period_end}</span>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Select value={instance.status} onValueChange={(v) => setStatus.mutate(v)}>
-                <SelectTrigger className="w-28 h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="final">Final</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline" size="sm" onClick={refreshAll} disabled={refreshing}>
-                {refreshing ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5 mr-1.5" />}
-                Refresh auto
-              </Button>
-              <Button variant="outline" size="sm" onClick={exportExcel}>
-                <FileDown className="h-3.5 w-3.5 mr-1.5" /> Excel
-              </Button>
-              <Button size="sm" onClick={exportPDF}>
-                <Download className="h-3.5 w-3.5 mr-1.5" /> PDF
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title={instance.title}
+        description={`${cohort?.label ?? "All cohorts"} — ${instance.period_start} to ${instance.period_end}`}
+        actions={
+          <>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/reporting/reports")}>
+              <ArrowLeft className="h-4 w-4 mr-1" /> All reports
+            </Button>
+            <Select value={instance.status} onValueChange={(v) => setStatus.mutate(v)}>
+              <SelectTrigger className="w-28 h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="final">Final</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" size="sm" onClick={refreshAll} disabled={refreshing}>
+              {refreshing ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5 mr-1.5" />}
+              Refresh auto
+            </Button>
+            <Button variant="outline" size="sm" onClick={exportExcel}>
+              <FileDown className="h-3.5 w-3.5 mr-1.5" /> Excel
+            </Button>
+            <Button size="sm" onClick={exportPDF}>
+              <Download className="h-3.5 w-3.5 mr-1.5" /> PDF
+            </Button>
+          </>
+        }
+      />
 
       {answers.length === 0 ? (
         <div className="border border-dashed rounded-lg py-16 text-center">

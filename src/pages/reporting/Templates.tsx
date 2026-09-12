@@ -93,28 +93,21 @@ export default function ReportTemplates() {
 
   return (
     <PageContainer className="space-y-6">
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <FileBarChart className="h-5 w-5" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Report Templates</h1>
-              <p className="text-sm text-muted-foreground">Reusable templates that structure the reports you generate.</p>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Switch checked={showArchived} onCheckedChange={setShowArchived} />
-            Archived
-          </label>
-          <Button onClick={() => setCreating(true)}>
-            <Plus className="h-4 w-4 mr-1.5" /> New Template
-          </Button>
-        </div>
-      </header>
+      <PageHeader
+        title="Report templates"
+        description="Reusable templates that structure the reports you generate."
+        actions={
+          <>
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Switch checked={showArchived} onCheckedChange={setShowArchived} />
+              Archived
+            </label>
+            <Button onClick={() => setCreating(true)}>
+              <Plus className="h-4 w-4 mr-1.5" /> New template
+            </Button>
+          </>
+        }
+      />
 
       {isLoading ? (
         <div className="flex items-center justify-center py-24 text-muted-foreground">
