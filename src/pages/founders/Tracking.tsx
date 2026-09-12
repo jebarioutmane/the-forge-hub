@@ -641,8 +641,8 @@ export default function Tracking() {
                               onChange={(e) => setForm({ ...form, [noteKey]: e.target.value } as any)}
                               className="min-h-[60px] text-sm"
                             />
-      </div>
-    </PageContainer>
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
@@ -910,6 +910,7 @@ export default function Tracking() {
         title="Remove this check-in?"
         description="It will be archived and hidden from history."
       />
-    </div>
+      </div>
+    </PageContainer>
   );
 }
