@@ -465,8 +465,7 @@ export default function Evaluations() {
 
   return (
     <PageContainer className="space-y-6">
-      <div>
-        <PageHeader
+      <PageHeader
           title="End-of-block evaluations"
           description={`Formal decision reviews for ${selectedCohortLabel}. Backed by check-in evidence.`}
           className="mb-6"
@@ -1095,7 +1094,7 @@ export default function Evaluations() {
         title="Archive evaluation?"
         description="This evaluation will be moved to the archived list. You can restore it later."
       />
-    </div>
+    </PageContainer>
   );
 }
 
@@ -1134,6 +1133,6 @@ function DimensionGroup({
           );
         })}
       </div>
-    </PageContainer>
+    </div>
   );
 }

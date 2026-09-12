@@ -428,8 +428,7 @@ export default function Tracking() {
 
   return (
     <PageContainer className="space-y-6">
-      <div>
-        <PageHeader
+      <PageHeader
           title="Progress tracker"
           description={`Weekly and 1:1 check-ins for ${selectedCohortLabel}. Track movement, not absolutes.`}
           className="mb-6"
@@ -910,7 +909,6 @@ export default function Tracking() {
         title="Remove this check-in?"
         description="It will be archived and hidden from history."
       />
-      </div>
     </PageContainer>
   );
 }
