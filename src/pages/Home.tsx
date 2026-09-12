@@ -99,21 +99,21 @@ export default function Home() {
       {/* Weekly Focuses */}
       <WeeklyFocusesPanel />
 
-      {/* Two KPI Cards */}
+      {/* KPI figures */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card className="border border-border/40 shadow-elev-sm">
-          <CardContent className="p-6">
+        <Card>
+          <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-lg flex items-center justify-center bg-module-founders/10 text-module-founders">
+              <div className="h-8 w-8 rounded flex items-center justify-center bg-secondary text-primary">
                 <Users className="h-4 w-4" />
               </div>
               <div className="flex-1">
-                <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{founderLabel}</p>
-                <p className="text-xl font-bold" style={{ fontFamily: "var(--font-display)" }}>{founderCount}</p>
+                <p className="text-xs font-medium text-muted-foreground">{founderLabel}</p>
+                <p className="stat-figure text-3xl">{founderCount}</p>
               </div>
               <button
                 onClick={() => setShowAllFounders(!showAllFounders)}
-                className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground"
+                className="h-7 w-7 rounded flex items-center justify-center hover:bg-secondary text-muted-foreground"
                 title={showAllFounders ? "Show active only" : "Show all founders"}
               >
                 {showAllFounders ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -122,39 +122,35 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card className="border border-border/40 shadow-elev-sm">
-          <CardContent className="p-6">
+        <Card>
+          <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-lg flex items-center justify-center bg-module-events/10 text-module-events">
+              <div className="h-8 w-8 rounded flex items-center justify-center bg-secondary text-primary">
                 <CalendarDays className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Active Events</p>
-                <p className="text-xl font-bold" style={{ fontFamily: "var(--font-display)" }}>{activeEvents.length}</p>
+                <p className="text-xs font-medium text-muted-foreground">Active events</p>
+                <p className="stat-figure text-3xl">{activeEvents.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Event Countdowns */}
       <EventCountdowns />
 
-      {/* Upcoming Birthdays */}
       <BirthdaysPanel />
 
-
-      {/* Split Layout: Leaderboard + Map */}
-      <div className="flex flex-col gap-8 w-full">
-        <div className="w-full bg-card rounded-lg border border-border/40 shadow-elev-sm overflow-hidden flex flex-col h-[500px]">
+      <div className="flex flex-col gap-6 w-full">
+        <div className="w-full bg-card rounded-lg border border-border overflow-hidden flex flex-col h-[500px]">
           <FoundersLeaderboard />
         </div>
-        <div className="w-full bg-card rounded-lg border border-border/40 shadow-elev-sm overflow-hidden flex flex-col h-[500px]">
+        <div className="w-full bg-card rounded-lg border border-border overflow-hidden flex flex-col h-[500px]">
           <GlobalNetworkMap />
         </div>
       </div>
 
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
-    </div>
+    </PageContainer>
   );
 }
