@@ -58,6 +58,8 @@ import { formatUrl } from "@/lib/formatUrl";
 import { useCohort, ALL_COHORTS } from "@/contexts/CohortContext";
 import type { Tables } from "@/integrations/supabase/types";
 import { cn } from "@/lib/utils";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type Founder = Tables<"founders">;
 type Checkin = Tables<"founder_checkins">;
@@ -425,23 +427,13 @@ export default function Tracking() {
   // === Render ===
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB]">
-      <div className="mx-auto max-w-[1400px] px-6 py-8">
-        {/* Header */}
-        <div className="mb-6 flex items-end justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-              <Activity className="h-3.5 w-3.5" />
-              Founders · Progress Tracker
-            </div>
-            <h1 className="mt-1 text-[26px] font-semibold text-[#1D1D1F] tracking-tight">
-              Progress Tracker
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Weekly and 1:1 check-ins for {selectedCohortLabel}. Track movement, not absolutes.
-            </p>
-          </div>
-        </div>
+    <PageContainer className="space-y-6">
+      <div>
+        <PageHeader
+          title="Progress tracker"
+          description={`Weekly and 1:1 check-ins for ${selectedCohortLabel}. Track movement, not absolutes.`}
+          className="mb-6"
+        />
 
         {/* Workspace */}
         <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
@@ -649,8 +641,8 @@ export default function Tracking() {
                               onChange={(e) => setForm({ ...form, [noteKey]: e.target.value } as any)}
                               className="min-h-[60px] text-sm"
                             />
-                          </div>
-                        </div>
+      </div>
+    </PageContainer>
                       );
                     })}
                   </div>
