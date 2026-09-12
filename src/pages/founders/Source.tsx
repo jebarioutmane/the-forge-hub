@@ -80,12 +80,12 @@ import type { Tables } from "@/integrations/supabase/types";
 import { usePermissions } from "@/hooks/usePermissions";
 import { Sensitive } from "@/components/permissions/Sensitive";
 import {
-import { PageContainer } from "@/components/PageContainer";
-import { PageHeader } from "@/components/PageHeader";
   useFounderSensitiveOne,
   upsertFounderSensitive,
   useInvalidateFounderSensitive,
 } from "@/hooks/useFounderSensitive";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type Founder = Tables<"founders">;
 type Cohort = Tables<"cohorts">;

@@ -10,10 +10,10 @@ import {
   Lock, Flame, Timer, Activity,
 } from "lucide-react";
 import {
-import { PageContainer } from "@/components/PageContainer";
-import { PageHeader } from "@/components/PageHeader";
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
 } from "recharts";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
 
 type BudgetLine = {
   id: string;
