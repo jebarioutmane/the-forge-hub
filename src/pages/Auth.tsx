@@ -54,11 +54,8 @@ export default function Auth() {
     "mailto:theforge@um6p.ma?subject=Password%20Reset%20Request%20-%20The%20Forge%20Hub&body=Hello%2C%0D%0A%0D%0AI%20forgot%20my%20password%20for%20The%20Forge%20Hub.%20Could%20you%20please%20reset%20my%20account%3F%0D%0A%0D%0AThank%20you!";
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4"
-      style={{ cursor: "url('/forge-cursor.svg') 12 12, auto" }}
-    >
-      <Card className="w-full max-w-md shadow-2xl border-0">
+    <div className="min-h-screen flex items-center justify-center bg-secondary p-4">
+      <Card className="w-full max-w-md shadow-elev-lg">
         <CardHeader className="text-center pb-2">
           <img src={appIcon} alt="The Forge" className="h-16 w-16 object-contain rounded-xl shadow-elev-sm mx-auto mb-3" />
           <h1 className="sr-only">Sign in to The Forge Hub</h1>

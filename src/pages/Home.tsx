@@ -11,8 +11,10 @@ import EventCountdowns from "@/components/EventCountdowns";
 import FoundersLeaderboard from "@/components/FoundersLeaderboard";
 import WeeklyFocusesPanel from "@/components/WeeklyFocusesPanel";
 import BirthdaysPanel from "@/components/BirthdaysPanel";
-import ForgeDoodle from "@/components/ForgeDoodle";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { PageContainer } from "@/components/PageContainer";
+import { PageHeader } from "@/components/PageHeader";
+
 
 const shortcuts = [
   {
