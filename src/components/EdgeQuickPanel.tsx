@@ -99,7 +99,7 @@ export function EdgeQuickPanel() {
         style={{ willChange: "transform" }}
         className={cn(
           "fixed right-0 top-0 z-[70] h-[100dvh] w-72",
-          "material-glass border-l border-border shadow-2xl",
+          "bg-card border-l border-border shadow-elev-lg",
           "flex flex-col"
         )}
         role="dialog"
