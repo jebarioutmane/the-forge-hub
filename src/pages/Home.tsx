@@ -69,34 +69,28 @@ export default function Home() {
   const founderLabel = showAllFounders ? "All-Time Founders" : "Active Founders";
 
   return (
-    <div className="px-6 lg:px-10 py-8 space-y-8 max-w-7xl mx-auto">
+    <PageContainer className="space-y-6">
+      <PageHeader
+        title="Command Center"
+        description="Programme status across founders, events and operations."
+        actions={
+          <Button variant="outline" size="sm" onClick={() => setSearchOpen(true)}>
+            <Search className="h-4 w-4" />
+            Search
+          </Button>
+        }
+      />
 
-      {/* Hero: doodle + centered search */}
-      <div className="flex flex-col items-center gap-6 pt-2 pb-2">
-        <div className="w-full max-w-[520px] md:max-w-[600px]">
-          <ForgeDoodle />
-        </div>
-        <button
-          onClick={() => setSearchOpen(true)}
-          className="w-full max-w-xl h-12 bg-secondary rounded-full flex items-center px-5 text-muted-foreground cursor-text hover:bg-accent transition-colors gap-3 shadow-elev-sm border border-border/40"
-        >
-          <Search className="h-4 w-4 shrink-0" />
-          <span className="text-sm">Search anything...</span>
-        </button>
-      </div>
-
-
-
-      {/* Shortcut Buttons */}
+      {/* Section shortcuts */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
         {shortcuts.map((s) => (
           <Button
             key={s.title}
             variant="outline"
-            className={`w-full h-14 rounded-xl bg-card border border-border/40 text-foreground hover:bg-secondary shadow-elev-sm transition-all flex items-center justify-center gap-3 whitespace-nowrap text-base font-semibold`}
+            className="w-full h-12 justify-start gap-3 text-sm font-medium"
             onClick={() => navigate(s.route)}
           >
-            <s.icon className="h-5 w-5 shrink-0" />
+            <s.icon className="h-4 w-4 shrink-0" />
             {s.title}
           </Button>
         ))}
