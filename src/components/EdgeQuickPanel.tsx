@@ -9,6 +9,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { MyProfileDialog } from "@/components/MyProfileDialog";
 import TeamPresence from "@/components/TeamPresence";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 /**
  * Slim quick-access panel that reveals when the cursor approaches the right
@@ -89,15 +90,17 @@ export function EdgeQuickPanel() {
       </button>
 
       {/* Panel */}
-      <div
+      <motion.div
         onMouseEnter={cancelClose}
         onMouseLeave={scheduleClose}
+        initial={false}
+        animate={{ x: open ? "0%" : "100%" }}
+        transition={{ type: "spring", bounce: 0, duration: 0.35 }}
+        style={{ willChange: "transform" }}
         className={cn(
           "fixed right-0 top-0 z-[70] h-[100dvh] w-72",
-          "bg-card/95 backdrop-blur-xl border-l border-border shadow-2xl",
-          "transition-transform duration-300 ease-out",
-          "flex flex-col",
-          open ? "translate-x-0" : "translate-x-full"
+          "material-glass border-l border-border shadow-2xl",
+          "flex flex-col"
         )}
         role="dialog"
         aria-label="Quick account panel"
@@ -163,7 +166,7 @@ export function EdgeQuickPanel() {
             <LogOut className="h-4 w-4" /> Log out
           </button>
         </div>
-      </div>
+      </motion.div>
 
       <MyProfileDialog open={profileOpen} onOpenChange={setProfileOpen} hideTrigger />
     </>
