@@ -19,6 +19,8 @@ export function UserMenu() {
   const { user, signOut } = useAuth();
   const { roleName } = usePermissions();
   const navigate = useNavigate();
+  const [profileOpen, setProfileOpen] = useState(false);
+
 
   const { data: profile } = useQuery({
     queryKey: ["my-profile", user?.id],
