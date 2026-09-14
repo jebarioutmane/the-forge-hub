@@ -51,34 +51,44 @@ export function ForgeDoodle() {
         </g>
         <polygon className="fdWL" points="34,78 58,78 58,130 22,130" fill="#0A2540" />
         <polygon className="fdWR" points="62,78 86,78 98,130 62,130" fill="#0A2540" />
-        <g className="fdB1" transform="translate(60,45)">
-          <g stroke="#F2A93B" strokeWidth="3" strokeLinecap="round">
-            <line x1="0" y1="-14" x2="0" y2="-22" />
-            <line x1="12" y1="-8" x2="18" y2="-13" />
-            <line x1="14" y1="6" x2="21" y2="9" />
-            <line x1="-12" y1="-8" x2="-18" y2="-13" />
-            <line x1="-14" y1="6" x2="-21" y2="9" />
+        {/* Outer <g> positions, inner <g> animates — a CSS transform would otherwise
+            override the translate attribute and pile these at the parent origin. */}
+        <g transform="translate(60,45)">
+          <g className="fdB1">
+            <g stroke="#F2A93B" strokeWidth="3" strokeLinecap="round">
+              <line x1="0" y1="-14" x2="0" y2="-22" />
+              <line x1="12" y1="-8" x2="18" y2="-13" />
+              <line x1="14" y1="6" x2="21" y2="9" />
+              <line x1="-12" y1="-8" x2="-18" y2="-13" />
+              <line x1="-14" y1="6" x2="-21" y2="9" />
+            </g>
           </g>
         </g>
-        <g className="fdB2" transform="translate(42,100)">
-          <g stroke="#12B886" strokeWidth="3" strokeLinecap="round">
-            <line x1="0" y1="-12" x2="0" y2="-20" />
-            <line x1="11" y1="-7" x2="17" y2="-12" />
-            <line x1="-11" y1="-7" x2="-17" y2="-12" />
-            <line x1="13" y1="5" x2="19" y2="8" />
+        <g transform="translate(42,100)">
+          <g className="fdB2">
+            <g stroke="#12B886" strokeWidth="3" strokeLinecap="round">
+              <line x1="0" y1="-12" x2="0" y2="-20" />
+              <line x1="11" y1="-7" x2="17" y2="-12" />
+              <line x1="-11" y1="-7" x2="-17" y2="-12" />
+              <line x1="13" y1="5" x2="19" y2="8" />
+            </g>
           </g>
         </g>
-        <g className="fdB3" transform="translate(80,100)">
-          <g stroke="#E8506E" strokeWidth="3" strokeLinecap="round">
-            <line x1="0" y1="-12" x2="0" y2="-20" />
-            <line x1="11" y1="-7" x2="17" y2="-12" />
-            <line x1="-11" y1="-7" x2="-17" y2="-12" />
-            <line x1="-13" y1="5" x2="-19" y2="8" />
+        <g transform="translate(80,100)">
+          <g className="fdB3">
+            <g stroke="#E8506E" strokeWidth="3" strokeLinecap="round">
+              <line x1="0" y1="-12" x2="0" y2="-20" />
+              <line x1="11" y1="-7" x2="17" y2="-12" />
+              <line x1="-11" y1="-7" x2="-17" y2="-12" />
+              <line x1="-13" y1="5" x2="-19" y2="8" />
+            </g>
           </g>
         </g>
-        <g className="fdHammer" transform="translate(128,8)">
-          <line x1="0" y1="0" x2="-26" y2="42" stroke="#5A6B82" strokeWidth="6" strokeLinecap="round" />
-          <rect x="-44" y="34" width="30" height="16" rx="3" fill="#0A2540" transform="rotate(-32 -29 42)" />
+        <g transform="translate(128,8)">
+          <g className="fdHammer">
+            <line x1="0" y1="0" x2="-26" y2="42" stroke="#5A6B82" strokeWidth="6" strokeLinecap="round" />
+            <rect x="-44" y="34" width="30" height="16" rx="3" fill="#0A2540" transform="rotate(-32 -29 42)" />
+          </g>
         </g>
       </g>
       <text className="fdThe" x="274" y="82">THE</text>
