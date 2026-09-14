@@ -18,9 +18,9 @@ const css = `
 .fdWL{animation:fdStamp .38s ease-out 1.65s both;transform-origin:60px 74px}
 .fdWR{animation:fdStamp .38s ease-out 2.55s both;transform-origin:60px 74px}
 .fdHammer{animation:fdSwing 3.6s ease-in-out forwards;transform-origin:0 0}
-.fdB1{animation:fdBurst .5s ease-out .78s both;transform-origin:center}
-.fdB2{animation:fdBurst .5s ease-out 1.68s both;transform-origin:center}
-.fdB3{animation:fdBurst .5s ease-out 2.58s both;transform-origin:center}
+.fdB1{animation:fdBurst .5s ease-out .78s both;transform-origin:0 0}
+.fdB2{animation:fdBurst .5s ease-out 1.68s both;transform-origin:0 0}
+.fdB3{animation:fdBurst .5s ease-out 2.58s both;transform-origin:0 0}
 .fdLtr{font-family:'Arial Black','Helvetica Neue',Arial,sans-serif;font-weight:900;font-size:58px;opacity:0;animation:fdHeat .9s ease-out forwards}
 .fdThe{font-family:'Arial Black',Arial,sans-serif;font-weight:900;font-size:21px;letter-spacing:7px;fill:#0A2540;opacity:0;animation:fdHeat .8s ease-out 2.45s forwards}
 .fdSpark{animation:fdTwinkle 2.8s ease-in-out infinite;transform-origin:center}
