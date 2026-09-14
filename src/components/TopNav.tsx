@@ -4,9 +4,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 import { useIsMobile } from "@/hooks/use-mobile";
-import TeamPresence from "@/components/TeamPresence";
+import { UserMenu } from "@/components/UserMenu";
 const appIcon = "/pwa-512x512.png";
-import { usePresence } from "@/hooks/usePresence";
 import { cn } from "@/lib/utils";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { CohortSwitcher } from "@/components/CohortSwitcher";
