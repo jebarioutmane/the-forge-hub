@@ -48,6 +48,7 @@ export function UserMenu() {
   };
 
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
