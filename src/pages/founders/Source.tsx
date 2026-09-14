@@ -419,7 +419,12 @@ export default function FoundersSource() {
       if (editing) {
         const { error } = await supabase.from("founders").update(payload).eq("id", editing.id);
         if (error) throw error;
-        await upsertFounderSensitive(editing.id, sensitiveValues);
+        // Never touch founder_sensitive unless the user is allowed to see those
+        // fields AND they were actually loaded into the form — otherwise a save
+        // would blank out stored identifiers the form never held.
+        if (maySeeSensitive && sensitiveLoaded) {
+          await upsertFounderSensitive(editing.id, sensitiveValues);
+        }
       } else {
         const { data, error } = await supabase.from("founders").insert(payload).select("id").single();
         if (error) throw error;
