@@ -4,9 +4,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 import { useIsMobile } from "@/hooks/use-mobile";
-import TeamPresence from "@/components/TeamPresence";
+import { UserMenu } from "@/components/UserMenu";
 const appIcon = "/pwa-512x512.png";
-import { usePresence } from "@/hooks/usePresence";
 import { cn } from "@/lib/utils";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { CohortSwitcher } from "@/components/CohortSwitcher";
@@ -82,7 +81,7 @@ export function TopNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
-  const { onlineUserIds } = usePresence();
+  
   const { canView } = usePermissions();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -140,6 +139,10 @@ export function TopNav() {
           {/* Global cohort selector — shared context across every page */}
           <CohortSwitcher compact={isMobile} />
           {/* Search icon removed — search lives on the home hero and via ⌘K */}
+
+          <UserMenu />
+
+
 
           
 
@@ -209,9 +212,6 @@ export function TopNav() {
                     ))}
                   </Accordion>
 
-                  <div className="mt-6 pt-5 border-t border-border flex flex-col gap-3">
-                    <TeamPresence onlineUserIds={onlineUserIds} />
-                  </div>
                 </div>
               </SheetContent>
             </Sheet>
