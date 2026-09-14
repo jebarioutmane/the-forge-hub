@@ -238,6 +238,8 @@ export default function FoundersSource() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [viewing, setViewing] = useState<Founder | null>(null);
   const [form, setForm] = useState<FounderForm>(emptyForm);
+  /** True only when the sensitive row for the founder being edited was fetched successfully. */
+  const [sensitiveLoaded, setSensitiveLoaded] = useState(false);
 
   // Sensitive identifiers live in the internal-only `founder_sensitive` table.
   const { data: viewingSensitive } = useFounderSensitiveOne(viewing?.id, maySeeSensitive);
