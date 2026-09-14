@@ -23,8 +23,7 @@ const css = `
 .fdB3{animation:fdBurst .5s ease-out 2.58s both;transform-origin:center}
 .fdLtr{font-family:'Arial Black','Helvetica Neue',Arial,sans-serif;font-weight:900;font-size:58px;opacity:0;animation:fdHeat .9s ease-out forwards}
 .fdThe{font-family:'Arial Black',Arial,sans-serif;font-weight:900;font-size:21px;letter-spacing:7px;fill:#0A2540;opacity:0;animation:fdHeat .8s ease-out 2.45s forwards}
-/* Finite: sparks play three cycles then rest fully faded out. */
-.fdSpark{opacity:0;animation:fdTwinkle 2.8s ease-in-out 3;transform-origin:center}
+.fdSpark{animation:fdTwinkle 2.8s ease-in-out infinite;transform-origin:center}
 
 @media (prefers-reduced-motion: reduce){
   .fdOutl{stroke-dashoffset:0;animation:none}
@@ -40,7 +39,7 @@ export function ForgeDoodle() {
       viewBox="0 0 680 200"
       role="img"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ width: "100%", maxWidth: 400, height: "auto" }}
+      style={{ width: "100%", maxWidth: 680, height: "auto", marginLeft: "auto", marginRight: "auto" }}
     >
       <title>The Forge</title>
       <style dangerouslySetInnerHTML={{ __html: css }} />

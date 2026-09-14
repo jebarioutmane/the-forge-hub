@@ -50,7 +50,9 @@ export default function Home() {
 
   return (
     <PageContainer className="space-y-6">
-      <ForgeDoodle />
+      <div className="flex justify-center">
+        <ForgeDoodle />
+      </div>
       <PageHeader
         title="Command Center"
         description="Programme status across founders, events and operations."
