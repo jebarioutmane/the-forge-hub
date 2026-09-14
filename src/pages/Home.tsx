@@ -13,6 +13,7 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 import { PageContainer } from "@/components/PageContainer";
 import { PageHeader } from "@/components/PageHeader";
 import { ALL_COHORTS, useCohort } from "@/contexts/CohortContext";
+import ForgeDoodle from "@/components/ForgeDoodle";
 
 export default function Home() {
   const [showAllFounders, setShowAllFounders] = useState(false);
@@ -49,6 +50,7 @@ export default function Home() {
 
   return (
     <PageContainer className="space-y-6">
+      <ForgeDoodle />
       <PageHeader
         title="Command Center"
         description="Programme status across founders, events and operations."
