@@ -478,12 +478,15 @@ export default function FoundersSource() {
 
   async function openEdit(f: Founder) {
     let sensitive: { rib_number: string | null; cin_number: string | null; passport_number: string | null } | null = null;
+    setSensitiveLoaded(false);
     if (maySeeSensitive) {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("founder_sensitive")
         .select("rib_number, cin_number, passport_number")
         .eq("founder_id", f.id)
         .maybeSingle();
+      // Only a clean fetch authorises writing these fields back on save.
+      if (!error) setSensitiveLoaded(true);
       sensitive = (data as any) ?? null;
     }
     const nats = getFounderNationalities(f);
