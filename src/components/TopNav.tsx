@@ -81,7 +81,7 @@ export function TopNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
-  const { onlineUserIds } = usePresence();
+  
   const { canView } = usePermissions();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
