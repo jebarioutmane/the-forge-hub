@@ -208,9 +208,6 @@ export function TopNav() {
                     ))}
                   </Accordion>
 
-                  <div className="mt-6 pt-5 border-t border-border flex flex-col gap-3">
-                    <TeamPresence onlineUserIds={onlineUserIds} />
-                  </div>
                 </div>
               </SheetContent>
             </Sheet>
