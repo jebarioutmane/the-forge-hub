@@ -238,6 +238,8 @@ export default function FoundersSource() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [viewing, setViewing] = useState<Founder | null>(null);
   const [form, setForm] = useState<FounderForm>(emptyForm);
+  /** True only when the sensitive row for the founder being edited was fetched successfully. */
+  const [sensitiveLoaded, setSensitiveLoaded] = useState(false);
 
   // Sensitive identifiers live in the internal-only `founder_sensitive` table.
   const { data: viewingSensitive } = useFounderSensitiveOne(viewing?.id, maySeeSensitive);
@@ -419,7 +421,12 @@ export default function FoundersSource() {
       if (editing) {
         const { error } = await supabase.from("founders").update(payload).eq("id", editing.id);
         if (error) throw error;
-        await upsertFounderSensitive(editing.id, sensitiveValues);
+        // Never touch founder_sensitive unless the user is allowed to see those
+        // fields AND they were actually loaded into the form — otherwise a save
+        // would blank out stored identifiers the form never held.
+        if (maySeeSensitive && sensitiveLoaded) {
+          await upsertFounderSensitive(editing.id, sensitiveValues);
+        }
       } else {
         const { data, error } = await supabase.from("founders").insert(payload).select("id").single();
         if (error) throw error;
@@ -471,12 +478,15 @@ export default function FoundersSource() {
 
   async function openEdit(f: Founder) {
     let sensitive: { rib_number: string | null; cin_number: string | null; passport_number: string | null } | null = null;
+    setSensitiveLoaded(false);
     if (maySeeSensitive) {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("founder_sensitive")
         .select("rib_number, cin_number, passport_number")
         .eq("founder_id", f.id)
         .maybeSingle();
+      // Only a clean fetch authorises writing these fields back on save.
+      if (!error) setSensitiveLoaded(true);
       sensitive = (data as any) ?? null;
     }
     const nats = getFounderNationalities(f);
