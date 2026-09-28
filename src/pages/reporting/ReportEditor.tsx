@@ -241,7 +241,7 @@ export default function ReportEditor() {
       cohort?.label ? `Cohort: ${cohort.label}` : "All cohorts",
       `Period: ${instance.period_start} to ${instance.period_end}`,
       `Status: ${instance.status}`,
-    ].join("   ·   ");
+    ].join("      ");
     doc.text(meta, 40, 80);
     doc.setDrawColor(220); doc.line(40, 92, pageW - 40, 92);
 
@@ -364,7 +364,7 @@ export default function ReportEditor() {
         <div className="space-y-8">
           {grouped.map(([cat, items]) => (
             <section key={cat}>
-              <h2 className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">{cat}</h2>
+              <h2 className="text-xsr text-muted-foreground mb-3">{cat}</h2>
               <div className="space-y-3">
                 {items.map((a) => (
                   <AnswerRow
@@ -484,16 +484,16 @@ function AnswerRow({
         <p className="text-sm font-medium leading-snug flex-1">{answer.question_text}</p>
         <div className="flex items-center gap-1.5 shrink-0">
           {answer.is_auto ? (
-            <Badge variant="outline" className="text-[10px] font-normal border-primary/40 text-primary gap-1">
+            <Badge variant="outline" className="text-xs font-normal border-primary/40 text-primary gap-1">
               <Zap className="h-2.5 w-2.5" /> Auto
             </Badge>
           ) : (
-            <Badge variant="outline" className="text-[10px] font-normal text-muted-foreground gap-1">
+            <Badge variant="outline" className="text-xs font-normal text-muted-foreground gap-1">
               <Hand className="h-2.5 w-2.5" /> Manual
             </Badge>
           )}
-          <button onClick={onDelete} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity">
-            <Trash2 className="h-3.5 w-3.5" />
+          <button type="button" onClick={onDelete} aria-label="Remove question" className="h-8 w-8 inline-flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-muted-foreground hover:bg-secondary hover:text-destructive transition-opacity">
+            <Trash2 className="h-4 w-4" />
           </button>
         </div>
       </div>

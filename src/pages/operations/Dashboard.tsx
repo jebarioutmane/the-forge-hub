@@ -270,9 +270,9 @@ export default function OperationsDashboard() {
       </div>
 
       {unassignedContracts.length > 0 && (
-        <Card className="border-amber-500/40 bg-amber-500/5">
+        <Card className="border-status-watch/40 bg-status-watch/10">
           <CardContent className="p-4 flex items-start gap-3">
-            <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+            <AlertTriangle className="h-4 w-4 text-status-watch mt-0.5 shrink-0" />
             <div className="text-sm">
               <p className="font-medium text-foreground">
                 {unassignedContracts.length} active contract{unassignedContracts.length === 1 ? "" : "s"} without a budget line
@@ -357,9 +357,9 @@ export default function OperationsDashboard() {
         </CardHeader>
         <CardContent>
           {trend.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-10">No paid activity yet.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">No paid activity yet.</p>
           ) : (
-            <div className="h-[240px] w-full">
+            <div className="h-60 w-full">
               <ResponsiveContainer>
                 <LineChart data={trend} margin={{ top: 8, right: 16, left: 8, bottom: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
@@ -386,12 +386,12 @@ export default function OperationsDashboard() {
           ) : linesError ? (
             <QueryErrorState message="Budget lines for this cohort could not be loaded. Check your connection, then try again." onRetry={() => refetchLines()} />
           ) : lines.length === 0 ? (
-            <div className="p-10 text-center text-sm text-muted-foreground">
+            <div className="p-4 text-center text-sm text-muted-foreground">
               No budget lines for this cohort yet. Add them from the Budget Lines manager (System).
             </div>
           ) : (
             <div className="divide-y">
-              <div className="grid grid-cols-12 gap-2 px-4 py-2 text-xs uppercase tracking-wider text-muted-foreground bg-muted/30">
+              <div className="grid grid-cols-12 gap-2 px-4 py-2 text-xsr text-muted-foreground bg-muted/30">
                 <div className="col-span-4">Code / Title</div>
                 <div className="col-span-2 text-right">Allocated</div>
                 <div className="col-span-2 text-right">Committed</div>
@@ -412,7 +412,7 @@ export default function OperationsDashboard() {
                     <div className="col-span-4 min-w-0">
                       <div className="flex items-center gap-2 min-w-0">
                         {l.code && (
-                          <Badge variant="outline" className="font-mono text-[11px] shrink-0">{l.code}</Badge>
+                          <Badge variant="outline" className="font-mono text-xs shrink-0">{l.code}</Badge>
                         )}
                         <span className="text-sm font-medium truncate">{l.name}</span>
                       </div>
@@ -476,14 +476,14 @@ function Kpi({
     <Card className={border}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
+          <p className="text-xsr text-muted-foreground">{label}</p>
           <Icon className={`h-4 w-4 ${tone === "danger" ? "text-destructive" : emphasized ? "text-primary" : "text-muted-foreground"}`} />
         </div>
         <p className={`mt-1 text-xl font-semibold tabular-nums ${valueColor}`}
            style={{ fontFamily: "var(--font-display)" }}>
           {value}
         </p>
-        {hint && <p className="text-[11px] text-muted-foreground mt-1">{hint}</p>}
+        {hint && <p className="text-xs text-muted-foreground mt-1">{hint}</p>}
       </CardContent>
     </Card>
   );

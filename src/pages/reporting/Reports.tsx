@@ -239,20 +239,18 @@ export default function Reports() {
       ) : (
         <div className="grid gap-3">
           {instances.map((r) => (
-            <div key={r.id} className="group border rounded-xl p-5 bg-card hover:shadow-elev-sm transition-all flex items-start justify-between gap-4">
+            <div key={r.id} className="group border rounded-xl p-4 bg-card hover:shadow-elev-sm transition-all flex items-start justify-between gap-4">
               <Link to={`/reporting/reports/${r.id}`} className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="font-medium truncate">{r.title}</h3>
                   <Badge
                     variant={r.status === "final" ? "default" : "secondary"}
-                    className="text-[10px] font-normal capitalize"
+                    className="text-xs font-normal capitalize"
                   >{r.status}</Badge>
                 </div>
                 <div className="text-xs text-muted-foreground flex items-center gap-3 flex-wrap">
                   <span>{r.template_id ? (templateName[r.template_id] ?? "Template") : "Ad-hoc"}</span>
-                  <span>·</span>
                   <span>{r.cohort_id ? (cohortLabel[r.cohort_id] ?? "Cohort") : "All cohorts"}</span>
-                  <span>·</span>
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
                     {r.period_start} → {r.period_end}

@@ -252,7 +252,7 @@ export default function RolesPermissions() {
 
   // ---- Access gate ----
   if (loadingMe) {
-    return <div className="p-10 text-sm text-muted-foreground">Loading…</div>;
+    return <div className="p-4 text-sm text-muted-foreground">Loading…</div>;
   }
   if (!isSuperAdmin) {
     return (
@@ -323,7 +323,7 @@ export default function RolesPermissions() {
       <Dialog open={createOpen || editRoleOpen} onOpenChange={(o) => { if (!o) { setCreateOpen(false); setEditRoleOpen(false); } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-serif">
+            <DialogTitle>
               {editRoleOpen ? "Edit role" : "New role"}
             </DialogTitle>
             <DialogDescription>
@@ -365,7 +365,7 @@ export default function RolesPermissions() {
       <Dialog open={matrixOpen} onOpenChange={setMatrixOpen}>
         <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-serif">
+            <DialogTitle>
               Permissions — {activeRole?.name}
             </DialogTitle>
             <DialogDescription>
@@ -449,7 +449,7 @@ function RoleCard({
               <Icon className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <CardTitle className="font-serif text-lg truncate">{role.name}</CardTitle>
+              <CardTitle className="text-card-title truncate">{role.name}</CardTitle>
               {role.description && (
                 <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{role.description}</p>
               )}
