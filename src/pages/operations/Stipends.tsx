@@ -1,3 +1,4 @@
+import { QueryErrorState, QueryErrorRow, SkeletonTableRows, SkeletonBlocks } from "@/components/QueryStates";
 import { useState, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -165,7 +166,7 @@ export default function Stipends() {
     return m;
   }, [engagement]);
 
-  const { data: records = [], isLoading } = useQuery({
+  const { data: records = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["stipend_records", cohortYear, paymentMonth, showArchived],
     queryFn: async () => {
       let q = supabase
@@ -833,9 +834,9 @@ export default function Stipends() {
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                   <TableRow>
-                    <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">Loading...</TableCell>
-                  </TableRow>
+                  <SkeletonTableRows columns={12} rows={10} />
+                ) : isError ? (
+                  <QueryErrorRow colSpan={12} message="Stipend records for this month could not be loaded. Check your connection, then try again." onRetry={() => refetch()} />
                 ) : cohortFounders.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
