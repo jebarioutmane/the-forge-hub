@@ -1,3 +1,4 @@
+import { QueryErrorState, SkeletonBlocks } from "@/components/QueryStates";
 import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -80,7 +81,7 @@ export default function SystemProfiles() {
   const [natSearch, setNatSearch] = useState("");
   const [natDropdownOpen, setNatDropdownOpen] = useState(false);
 
-  const { data: profiles = [] } = useQuery({
+  const { data: profiles = [], isLoading: profilesLoading, isError: profilesError, refetch: refetchProfiles } = useQuery({
     queryKey: ["profiles"],
     queryFn: async () => {
       const { data, error } = await supabase.from("profiles").select("*").order("full_name");
@@ -290,12 +291,15 @@ export default function SystemProfiles() {
         description="Directory of team members with accounts"
       />
 
-      {profiles.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            No team members found. Profiles are created automatically when users sign up.
-          </CardContent>
-        </Card>
+      {profilesLoading ? (
+        <SkeletonBlocks count={6} className="h-48" wrapperClassName="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" />
+      ) : profilesError ? (
+        <QueryErrorState className="border-y" message="Team profiles could not be loaded. Check your connection, then try again." onRetry={() => refetchProfiles()} />
+      ) : profiles.length === 0 ? (
+        <div className="empty-state border-y">
+          <User aria-hidden="true" />
+          <p className="text-sm text-muted-foreground">No team members yet. Profiles are created automatically when users sign up.</p>
+        </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {profiles.map((profile) => {
