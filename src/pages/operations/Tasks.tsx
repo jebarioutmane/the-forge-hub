@@ -624,7 +624,7 @@ function FilterSelect({
 }) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="h-9 min-w-[130px] text-xs"><SelectValue placeholder={placeholder} /></SelectTrigger>
+      <SelectTrigger className="h-9 min-w-32 text-xs"><SelectValue placeholder={placeholder} /></SelectTrigger>
       <SelectContent>
         {options.map(o => <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>)}
       </SelectContent>
@@ -665,15 +665,15 @@ function KanbanColumn({
     <div
       ref={setNodeRef}
       className={cn(
-        "rounded-lg border bg-muted/20 p-3 min-h-[300px] space-y-2 transition-colors",
+        "rounded-lg border bg-muted/20 p-3 min-h-72 space-y-2 transition-colors",
         isOver && "bg-primary/5 border-primary/40"
       )}
     >
       <div className="flex items-center justify-between px-1 pb-1">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <h3 className="text-xs font-medium text-muted-foreground">
           {status}
         </h3>
-        <span className="text-[10px] text-muted-foreground bg-background px-1.5 py-0.5 rounded">
+        <span className="text-xs text-muted-foreground bg-background px-1.5 py-0.5 rounded">
           {tasks.length}
         </span>
       </div>
@@ -713,12 +713,12 @@ function TaskCardItem({
         <div className="flex items-start justify-between gap-2">
           <p className="text-sm font-medium leading-snug flex-1">{task.title}</p>
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button variant="ghost" size="icon" className="h-6 w-6"
+            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Edit ${task.title}`}
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onEdit(); }}>
               <Pencil className="h-3 w-3" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-6 w-6"
+            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Archive ${task.title}`}
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onArchive(); }}>
               {task.is_archived ? <ArchiveRestore className="h-3 w-3" /> : <Archive className="h-3 w-3" />}
@@ -729,16 +729,16 @@ function TaskCardItem({
           <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>
         )}
         <div className="flex flex-wrap gap-1.5 items-center">
-          <Badge variant={priorityBadge(task.priority)} className="text-[10px] px-1.5 py-0 h-5">
+          <Badge variant={priorityBadge(task.priority)} className="text-xs px-1.5 py-0 h-5">
             {task.priority || "Medium"}
           </Badge>
           {src && (
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 border-amber-400/50 text-amber-700 bg-amber-50">
+            <Badge variant="outline" className="text-xs px-1.5 py-0 h-5 border-transparent text-status-watch bg-status-watch/10">
               <Sparkles className="h-2.5 w-2.5 mr-1" />{src}
             </Badge>
           )}
           {task.due_date && (
-            <span className="text-[10px] text-muted-foreground inline-flex items-center gap-1">
+            <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
               <CalendarIcon className="h-3 w-3" />{format(new Date(task.due_date), "MMM d")}
             </span>
           )}
@@ -760,7 +760,7 @@ function TaskCardItem({
           )}
         </div>
         {profile && (
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground pt-1 border-t">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1 border-t">
             <UserIcon className="h-3 w-3" />
             {profile.full_name || profile.email || "Assigned"}
           </div>
@@ -777,10 +777,10 @@ function ChipButton({
     <button
       onClick={onClick}
       onPointerDown={(e) => e.stopPropagation()}
-      className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border bg-background hover:bg-accent hover:border-primary/40 transition-colors"
+      className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded border bg-background hover:bg-accent hover:border-primary/40 transition-colors"
     >
       <Icon className="h-3 w-3" />
-      <span className="max-w-[120px] truncate">{label}</span>
+      <span className="max-w-32 truncate">{label}</span>
       <ChevronRight className="h-2.5 w-2.5 opacity-50" />
     </button>
   );
@@ -844,7 +844,7 @@ function TaskListView({
                     </td>
                     <td className="p-3 text-xs">{t.status}</td>
                     <td className="p-3">
-                      <Badge variant={priorityBadge(t.priority)} className="text-[10px]">
+                      <Badge variant={priorityBadge(t.priority)} className="text-xs">
                         {t.priority || "Medium"}
                       </Badge>
                     </td>
@@ -871,17 +871,17 @@ function TaskListView({
                     </td>
                     <td className="p-3">
                       {src ? (
-                        <Badge variant="outline" className="text-[10px] border-amber-400/50 text-amber-700 bg-amber-50">
+                        <Badge variant="outline" className="text-xs border-transparent text-status-watch bg-status-watch/10">
                           <Sparkles className="h-2.5 w-2.5 mr-1" />{src}
                         </Badge>
                       ) : <span className="text-xs text-muted-foreground">Manual</span>}
                     </td>
                     <td className="p-3">
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(t)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Edit ${t.title}`} onClick={() => onEdit(t)}>
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onArchive(t)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={t.is_archived ? `Restore ${t.title}` : `Archive ${t.title}`} onClick={() => onArchive(t)}>
                           {t.is_archived ? <ArchiveRestore className="h-3.5 w-3.5" /> : <Archive className="h-3.5 w-3.5" />}
                         </Button>
                       </div>

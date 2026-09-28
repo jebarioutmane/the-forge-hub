@@ -127,12 +127,12 @@ export default function ReportTemplates() {
           {templates.map((t) => (
             <div
               key={t.id}
-              className="group border rounded-xl p-5 bg-card hover:shadow-elev-sm transition-all flex items-start justify-between gap-4"
+              className="group border rounded-xl p-4 bg-card hover:shadow-elev-sm transition-all flex items-start justify-between gap-4"
             >
               <Link to={`/reporting/templates/${t.id}`} className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="font-medium truncate">{t.name}</h3>
-                  <Badge variant="secondary" className="text-[10px] font-normal">
+                  <Badge variant="secondary" className="text-xs font-normal">
                     {counts[t.id] ?? 0} {(counts[t.id] ?? 0) === 1 ? "question" : "questions"}
                   </Badge>
                 </div>

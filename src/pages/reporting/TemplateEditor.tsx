@@ -310,7 +310,7 @@ export default function TemplateEditor() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-sm font-semibold">Questions</h2>
-            <p className="text-xs text-muted-foreground">{questions.length} total · drag order with arrows</p>
+            <p className="text-xs text-muted-foreground">{questions.length} total, reorder with the arrows</p>
           </div>
           <Button size="sm" onClick={openCreate}>
             <Plus className="h-4 w-4 mr-1" /> Add question
@@ -339,26 +339,26 @@ export default function TemplateEditor() {
                     <button
                       onClick={() => reorder.mutate({ index: i, dir: -1 })}
                       disabled={i === 0}
-                      className="text-muted-foreground/60 hover:text-foreground disabled:opacity-30"
+                      className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
                       aria-label="Move up"
                     ><ArrowUp className="h-3.5 w-3.5" /></button>
                     <GripVertical className="h-3.5 w-3.5 text-muted-foreground/30" />
                     <button
                       onClick={() => reorder.mutate({ index: i, dir: 1 })}
                       disabled={i === questions.length - 1}
-                      className="text-muted-foreground/60 hover:text-foreground disabled:opacity-30"
+                      className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground disabled:opacity-30 disabled:pointer-events-none"
                       aria-label="Move down"
                     ><ArrowDown className="h-3.5 w-3.5" /></button>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium leading-snug">{q.question_text}</p>
                     <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                      {q.category && <Badge variant="secondary" className="text-[10px] font-normal">{q.category}</Badge>}
-                      <Badge variant="outline" className="text-[10px] font-normal capitalize">{q.answer_type}</Badge>
+                      {q.category && <Badge variant="secondary" className="text-xs font-normal">{q.category}</Badge>}
+                      <Badge variant="outline" className="text-xs font-normal capitalize">{q.answer_type}</Badge>
                       <Badge
                         variant="outline"
                         className={cn(
-                          "text-[10px] font-normal gap-1",
+                          "text-xs font-normal gap-1",
                           q.source_type === "auto" ? "border-primary/40 text-primary" : "text-muted-foreground",
                         )}
                       >
@@ -470,7 +470,7 @@ export default function TemplateEditor() {
                   <SelectContent>
                     {Array.from(new Set(AUTO_METRICS.map((m) => m.group))).map((group) => (
                       <div key={group}>
-                        <div className="px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground">{group}</div>
+                        <div className="px-2 py-1 text-xsr text-muted-foreground">{group}</div>
                         {AUTO_METRICS.filter((m) => m.group === group).map((m) => (
                           <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
                         ))}

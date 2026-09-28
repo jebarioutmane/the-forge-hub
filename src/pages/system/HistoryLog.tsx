@@ -30,8 +30,8 @@ import { PageHeader } from "@/components/PageHeader";
 type HistoryLog = Tables<"history_logs">;
 
 const actionColor: Record<string, string> = {
-  INSERT: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
-  UPDATE: "bg-amber-500/15 text-amber-700 border-amber-500/30",
+  INSERT: "bg-status-ontrack/10 text-status-ontrack border-transparent",
+  UPDATE: "bg-status-watch/10 text-status-watch border-transparent",
   DELETE: "bg-destructive/15 text-destructive border-destructive/30",
 };
 
@@ -42,7 +42,7 @@ function JsonView({ data }: { data: any }) {
     <div className="space-y-1 text-sm">
       {Object.entries(data).map(([key, value]) => (
         <div key={key} className="flex gap-2">
-          <span className="font-medium text-muted-foreground min-w-[140px]">
+          <span className="font-medium text-muted-foreground min-w-36">
             {key}:
           </span>
           <span className="text-foreground break-all">
@@ -264,7 +264,7 @@ export default function HistoryLog() {
             />
           </div>
         </div>
-        <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+        <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
           <span>
             {isLoading
               ? <Skeleton className="inline-block h-3 w-24 align-middle" />
@@ -275,7 +275,7 @@ export default function HistoryLog() {
               variant="ghost"
               size="sm"
               onClick={clearFilters}
-              className="h-7 text-xs"
+              className="h-8 text-xs"
             >
               <X className="h-3 w-3 mr-1" /> Clear filters
             </Button>
@@ -332,7 +332,7 @@ export default function HistoryLog() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                  <div className="text-xsr text-muted-foreground">
                     Action
                   </div>
                   <Badge
@@ -343,25 +343,25 @@ export default function HistoryLog() {
                   </Badge>
                 </div>
                 <div>
-                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                  <div className="text-xsr text-muted-foreground">
                     Section
                   </div>
                   <div>{viewLog.section_name}</div>
                 </div>
                 <div>
-                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                  <div className="text-xsr text-muted-foreground">
                     Who
                   </div>
                   <div>{viewLog.changed_by_name || "System"}</div>
                 </div>
                 <div>
-                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                  <div className="text-xsr text-muted-foreground">
                     When
                   </div>
                   <div>{format(new Date(viewLog.created_at), "PPpp")}</div>
                 </div>
                 <div className="col-span-2">
-                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                  <div className="text-xsr text-muted-foreground">
                     Record ID
                   </div>
                   <div className="font-mono text-xs break-all">
@@ -383,10 +383,10 @@ export default function HistoryLog() {
 
               {viewLog.action !== "DELETE" && viewLog.new_data && (
                 <div>
-                  <p className="text-sm font-semibold mb-2 text-emerald-600">
+                  <p className="text-sm font-semibold mb-2 text-status-ontrack">
                     New values
                   </p>
-                  <div className="bg-emerald-500/5 rounded-md p-3 border border-emerald-500/10">
+                  <div className="bg-status-ontrack/10 rounded-md p-3 border border-border">
                     <JsonView data={viewLog.new_data} />
                   </div>
                 </div>
