@@ -114,7 +114,7 @@ function effortBadge(value: string | null | undefined) {
   const opt = EFFORT_OPTIONS.find((o) => o.value === value);
   if (!opt) return <span className="text-xs text-muted-foreground">—</span>;
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 text-xs font-medium", opt.badge)}>
+    <span className={cn("inline-flex items-center gap-2 rounded-sm border px-2 py-0.5 text-xs font-medium", opt.badge)}>
       <span className={cn("h-1.5 w-1.5 rounded-full", opt.dot)} />
       {opt.label}
     </span>
@@ -185,7 +185,7 @@ function LinksEditor({ links, onChange }: { links: LinkItem[]; onChange: (v: Lin
         onClick={() => onChange([...(links ?? []), { title: "", url: "" }])}
         className="h-8 text-xs text-muted-foreground"
       >
-        <LinkIcon className="h-3.5 w-3.5 mr-1.5" /> Add link
+        <LinkIcon className="h-3.5 w-3.5 mr-2" /> Add link
       </Button>
     </div>
   );
@@ -711,7 +711,7 @@ export default function Tracking() {
                       disabled={saveMutation.isPending || !form.checkin_date}
                       
                     >
-                      <Plus className="h-3.5 w-3.5 mr-1.5" />
+                      <Plus className="h-3.5 w-3.5 mr-2" />
                       {editingId ? "Save changes" : "Log check-in"}
                     </Button>
                   </div>
@@ -736,7 +736,7 @@ export default function Tracking() {
                       onClick={() => setShowArchived((v) => !v)}
                       className="h-8 text-xs"
                     >
-                      <Archive className="h-3.5 w-3.5 mr-1.5" />
+                      <Archive className="h-3.5 w-3.5 mr-2" />
                       {showArchived ? "Viewing archived" : "Show archived"}
                     </Button>
                   </div>
@@ -834,7 +834,7 @@ export default function Tracking() {
                                     return (
                                       <div key={a.key} className="rounded-lg bg-card p-3 border border-border">
                                         <div className="text-xs font-medium text-muted-foreground">{a.label}</div>
-                                        <div className="mt-0.5 text-sm font-medium tabular-nums text-foreground">
+                                        <div className="mt-1 text-sm font-medium tabular-nums text-foreground">
                                           {r ? `${r}/5` : "—"}
                                         </div>
                                         {n && <div className="mt-1 text-xs text-muted-foreground leading-relaxed line-clamp-3">{n}</div>}
@@ -855,7 +855,7 @@ export default function Tracking() {
                                         href={formatUrl(l.url)}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-xs text-primary hover:bg-secondary"
+                                        className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2 py-1 text-xs text-primary hover:bg-secondary"
                                       >
                                         <ExternalLink className="h-3 w-3" />
                                         {l.title || l.url}
@@ -898,7 +898,7 @@ export default function Tracking() {
                   return (
                     <div key={a.key} className="rounded-lg border border-border p-3">
                       <div className="text-xs font-medium text-muted-foreground">{a.label}</div>
-                      <div className="mt-0.5 text-sm font-medium tabular-nums">{r ? `${r}/5` : "—"}</div>
+                      <div className="mt-1 text-sm font-medium tabular-nums">{r ? `${r}/5` : "—"}</div>
                     </div>
                   );
                 })}
@@ -927,7 +927,7 @@ export default function Tracking() {
                       href={formatUrl(l.url)}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs text-primary hover:bg-secondary"
+                      className="inline-flex items-center gap-2 rounded-md border border-border px-2 py-1 text-xs text-primary hover:bg-secondary"
                     >
                       <ArrowUpRight className="h-3 w-3" /> {l.title || l.url}
                     </a>
