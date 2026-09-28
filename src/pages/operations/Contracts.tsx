@@ -34,9 +34,9 @@ const TYPE_OPTIONS = ["mentor", "expert", "consultant", "service provider"] as c
 
 function statusTone(s: string | null) {
   switch (s) {
-    case "Active": return "bg-emerald-50 text-emerald-700 border-emerald-200";
-    case "Completed": return "bg-blue-50 text-blue-700 border-blue-200";
-    case "Terminated": return "bg-red-50 text-red-700 border-red-200";
+    case "Active": return "bg-status-ontrack/10 text-status-ontrack border-transparent";
+    case "Completed": return "bg-primary/10 text-primary border-transparent";
+    case "Terminated": return "bg-status-atrisk/10 text-status-atrisk border-transparent";
     case "Draft":
     default: return "bg-muted text-muted-foreground border-border";
   }
@@ -217,13 +217,13 @@ export default function OperationsContracts() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard icon={Briefcase} label="Contracts" value={String(filtered.length)} tone="text-foreground" />
         <KpiCard icon={Wallet} label="Total Value" value={formatMoney(totals.value, "MAD")} tone="text-foreground" />
-        <KpiCard icon={Clock} label="Committed" value={formatMoney(totals.committed, "MAD")} tone="text-amber-700" hint="Unpaid scheduled/committed" />
-        <KpiCard icon={CheckCircle2} label="Paid" value={formatMoney(totals.paid, "MAD")} tone="text-emerald-700" hint={`Remaining ${formatMoney(totals.remaining, "MAD")}`} />
+        <KpiCard icon={Clock} label="Committed" value={formatMoney(totals.committed, "MAD")} tone="text-status-watch" hint="Unpaid scheduled/committed" />
+        <KpiCard icon={CheckCircle2} label="Paid" value={formatMoney(totals.paid, "MAD")} tone="text-status-ontrack" hint={`Remaining ${formatMoney(totals.remaining, "MAD")}`} />
       </div>
 
       {/* Filter bar */}
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="relative flex-1 min-w-[240px] max-w-md">
+        <div className="relative flex-1 min-w-60 max-w-md">
           <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
           <Input placeholder="Search title, vendor, description..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 h-9" />
         </div>
@@ -251,7 +251,7 @@ export default function OperationsContracts() {
                 <TableHead className="text-right">Value</TableHead>
                 <TableHead>Budget line</TableHead>
                 <TableHead>Dates</TableHead>
-                <TableHead className="w-[180px]">Progress</TableHead>
+                <TableHead className="w-44">Progress</TableHead>
                 <TableHead className="w-10" />
               </TableRow>
             </TableHeader>
@@ -286,7 +286,7 @@ export default function OperationsContracts() {
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           {c.title}
-                          {c.is_archived && <Badge variant="outline" className="text-[10px]">Archived</Badge>}
+                          {c.is_archived && <Badge variant="outline" className="text-xs">Archived</Badge>}
                         </div>
                       </TableCell>
                       <TableCell className="text-sm">{vendorName || "—"}</TableCell>
@@ -295,26 +295,26 @@ export default function OperationsContracts() {
                         <Badge variant="outline" className={statusTone(c.status)}>{c.status || "Draft"}</Badge>
                       </TableCell>
                       <TableCell className="text-right font-mono text-sm">{formatMoney(val, c.currency)}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground truncate max-w-[160px]">
-                        {bl ? `${bl.code || "—"} · ${bl.name}` : "—"}
+                      <TableCell className="text-xs text-muted-foreground truncate max-w-40">
+                        {bl ? `${bl.code || "—"}  ${bl.name}` : "—"}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{dateRange}</TableCell>
                       <TableCell>
                         <div className="space-y-1">
                           <div className="relative h-1.5 rounded-full bg-muted overflow-hidden">
-                            <div className="absolute inset-y-0 left-0 bg-amber-400/60" style={{ width: `${Math.min(pctPaid + pctCommitted, 100)}%` }} />
-                            <div className="absolute inset-y-0 left-0 bg-emerald-500" style={{ width: `${Math.min(pctPaid, 100)}%` }} />
+                            <div className="absolute inset-y-0 left-0 bg-status-watch/40" style={{ width: `${Math.min(pctPaid + pctCommitted, 100)}%` }} />
+                            <div className="absolute inset-y-0 left-0 bg-status-ontrack" style={{ width: `${Math.min(pctPaid, 100)}%` }} />
                           </div>
-                          <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
-                            <span className="text-emerald-700">{pctPaid}% paid</span>
-                            <span className="text-amber-700">{pctCommitted}% comm.</span>
+                          <div className="flex justify-between text-xs text-muted-foreground tabular-nums">
+                            <span className="text-status-ontrack">{pctPaid}% paid</span>
+                            <span className="text-status-watch">{pctCommitted}% comm.</span>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button size="icon" variant="ghost" className="h-7 w-7"><MoreHorizontal className="h-4 w-4" /></Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8" aria-label={`Actions for ${c.title}`}><MoreHorizontal className="h-4 w-4" /></Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => setViewingContract(c)}><Eye className="mr-2 h-3.5 w-3.5" /> View</DropdownMenuItem>
@@ -366,11 +366,11 @@ function KpiCard({
   return (
     <Card>
       <CardContent className="p-4">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-wide">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Icon className="h-3.5 w-3.5" /> {label}
         </div>
         <p className={cn("text-2xl font-semibold mt-1", tone)}>{value}</p>
-        {hint && <p className="text-[11px] text-muted-foreground mt-0.5">{hint}</p>}
+        {hint && <p className="text-xs text-muted-foreground mt-0.5">{hint}</p>}
       </CardContent>
     </Card>
   );

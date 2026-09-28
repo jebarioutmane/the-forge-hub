@@ -307,7 +307,7 @@ export default function Library({ moduleName = "All" }: LibraryProps) {
               <section key={cat} className="space-y-3">
                 <div className="flex items-center gap-2">
                   <FolderOpen className="h-4 w-4 text-muted-foreground" />
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  <h2 className="text-xs font-medium text-muted-foreground">
                     {cat}
                   </h2>
                   <span className="text-xs text-muted-foreground">({items.length})</span>
@@ -452,7 +452,7 @@ function CategoryChip({
           : "bg-background text-foreground border-border hover:bg-muted"
       }`}
     >
-      {label} <span className={active ? "opacity-80" : "text-muted-foreground"}>· {count}</span>
+      {label} <span className={active ? "opacity-80" : "text-muted-foreground"}>{count}</span>
     </button>
   );
 }
@@ -496,7 +496,7 @@ function ResourceCard({
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground mb-1">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
               <TypeIcon className="h-3 w-3" />
               {resource.resource_type === "document" ? "Document" : "Link"}
             </div>
@@ -525,7 +525,7 @@ function ResourceCard({
                 <Badge
                   key={id}
                   variant="outline"
-                  className="text-[10px] py-0 px-1.5 h-5 border-transparent"
+                  className="text-xs py-0 px-1.5 h-5 border-transparent"
                   style={{ backgroundColor: `${t.color}20`, color: t.color }}
                 >
                   <TagIcon className="h-2.5 w-2.5 mr-1" />

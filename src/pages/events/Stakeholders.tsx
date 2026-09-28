@@ -198,10 +198,10 @@ function MultiSelect({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[320px] p-0 z-50" align="start">
+      <PopoverContent className="w-80 p-0 z-50" align="start">
         <Command>
           <CommandInput placeholder="Search..." />
-          <CommandList className="max-h-[280px] overflow-y-auto">
+          <CommandList className="max-h-72 overflow-y-auto">
             <CommandEmpty>No results.</CommandEmpty>
             <CommandGroup>
               {options.map((o) => (
@@ -524,7 +524,7 @@ export default function StakeholdersDirectory() {
             />
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <div className="min-w-[220px] flex-1">
+            <div className="min-w-56 flex-1">
               <MultiSelect
                 value={filterStatuses}
                 onChange={setFilterStatuses}
@@ -596,7 +596,7 @@ export default function StakeholdersDirectory() {
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>
           {filtered.length} stakeholder{filtered.length !== 1 ? "s" : ""}
-          {showArchived ? " · archived" : ""}
+          {showArchived ? " (archived)" : ""}
         </span>
         <span className="flex items-center gap-1.5">
           <Filter className="h-3 w-3" />
@@ -637,7 +637,7 @@ export default function StakeholdersDirectory() {
       ) : (
         <div className="rounded-xl border bg-card overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
+            <thead className="bg-muted/40 text-xs text-muted-foreground">
               <tr>
                 <th className="text-left font-medium px-4 py-3">Name</th>
                 <th className="text-left font-medium px-4 py-3">Type</th>
@@ -672,7 +672,7 @@ export default function StakeholdersDirectory() {
                   </td>
                   <td className="px-4 py-3">
                     {s.type ? (
-                      <Badge variant="outline" className="text-[11px] font-medium">
+                      <Badge variant="outline" className="text-xs font-medium">
                         {s.type}
                       </Badge>
                     ) : (
@@ -683,7 +683,7 @@ export default function StakeholdersDirectory() {
                     {s.institution_name ? (
                       <div className="flex items-center gap-2 text-foreground">
                         <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="truncate max-w-[200px]">{s.institution_name}</span>
+                        <span className="truncate max-w-48">{s.institution_name}</span>
                       </div>
                     ) : (
                       <span className="text-muted-foreground">—</span>
@@ -701,7 +701,7 @@ export default function StakeholdersDirectory() {
                   </td>
                   <td className="px-4 py-3">
                     {s.status ? (
-                      <Badge variant="secondary" className="text-[11px] font-medium">
+                      <Badge variant="secondary" className="text-xs font-medium">
                         {s.status}
                       </Badge>
                     ) : (
@@ -711,7 +711,7 @@ export default function StakeholdersDirectory() {
                   <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button size="icon" variant="ghost" className="h-7 w-7">
+                        <Button size="icon" variant="ghost" className="h-8 w-8" aria-label={`Actions for ${s.full_name}`}>
                           <MoreHorizontal className="h-3.5 w-3.5" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -771,17 +771,17 @@ export default function StakeholdersDirectory() {
                   )}
                   <div className="flex flex-wrap gap-1.5 mt-2">
                     {viewing.type && (
-                      <Badge variant="outline" className="text-[11px]">
+                      <Badge variant="outline" className="text-xs">
                         {viewing.type}
                       </Badge>
                     )}
                     {viewing.status && (
-                      <Badge variant="secondary" className="text-[11px]">
+                      <Badge variant="secondary" className="text-xs">
                         {viewing.status}
                       </Badge>
                     )}
                     {viewing.is_archived && (
-                      <Badge variant="outline" className="text-[11px] text-muted-foreground">
+                      <Badge variant="outline" className="text-xs text-muted-foreground">
                         Archived
                       </Badge>
                     )}
@@ -815,7 +815,7 @@ export default function StakeholdersDirectory() {
 
               {/* Involvement summary */}
               <section className="space-y-3">
-                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                <h3 className="text-xs text-muted-foreground font-medium">
                   Involvement
                 </h3>
                 <div className="grid grid-cols-3 gap-2">
@@ -856,13 +856,13 @@ export default function StakeholdersDirectory() {
                           <div className="text-sm font-medium truncate">{e.event || "—"}</div>
                           <div className="text-xs text-muted-foreground mt-0.5">
                             {e.date ? format(new Date(e.date), "MMM d, yyyy") : "—"}
-                            {e.role && <> · {e.role}</>}
+                            {e.role && <span className="ml-2">{e.role}</span>}
                           </div>
                         </div>
                         {e.status && (
                           <Badge
                             variant={e.status === "attended" ? "default" : "outline"}
-                            className="text-[10px] capitalize"
+                            className="text-xs capitalize"
                           >
                             {e.status}
                           </Badge>
@@ -877,7 +877,7 @@ export default function StakeholdersDirectory() {
 
               {/* Contact */}
               <section className="space-y-3">
-                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                <h3 className="text-xs text-muted-foreground font-medium">
                   Contact
                 </h3>
                 <DetailRow icon={<Mail className="h-4 w-4" />} label="Email" value={viewing.email} />
@@ -891,7 +891,7 @@ export default function StakeholdersDirectory() {
 
               {/* Professional */}
               <section className="space-y-3">
-                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                <h3 className="text-xs text-muted-foreground font-medium">
                   Professional
                 </h3>
                 <DetailRow
@@ -917,7 +917,7 @@ export default function StakeholdersDirectory() {
 
               {/* Nationalities */}
               <section className="space-y-3">
-                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                <h3 className="text-xs text-muted-foreground font-medium">
                   Nationality
                 </h3>
                 {getNationalities(viewing).length > 0 ? (
@@ -936,7 +936,7 @@ export default function StakeholdersDirectory() {
               {/* Links */}
               {getLinks(viewing).length > 0 && (
                 <section className="space-y-3">
-                  <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                  <h3 className="text-xs text-muted-foreground font-medium">
                     Links
                   </h3>
                   <div className="flex flex-col gap-1.5">
@@ -960,7 +960,7 @@ export default function StakeholdersDirectory() {
               {/* Description */}
               {viewing.description && (
                 <section className="space-y-2">
-                  <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                  <h3 className="text-xs text-muted-foreground font-medium">
                     About
                   </h3>
                   <p className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">
