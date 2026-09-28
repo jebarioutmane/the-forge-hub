@@ -478,8 +478,8 @@ function RoleCard({
             Edit
           </Button>
           {!role.is_system && (
-            <Button size="sm" variant="ghost" className="text-destructive ml-auto" onClick={onDelete}>
-              <Trash2 className="h-3.5 w-3.5" />
+            <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive ml-auto" aria-label={`Delete ${role.name} role`} onClick={onDelete}>
+              <Trash2 className="h-4 w-4" />
             </Button>
           )}
         </div>
