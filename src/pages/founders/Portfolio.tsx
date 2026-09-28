@@ -23,18 +23,36 @@ import { PageContainer } from "@/components/PageContainer";
 import { PageHeader } from "@/components/PageHeader";
 
 const RISK_COLORS: Record<string, string> = {
-  on_track: "#10b981",
-  watch: "#f59e0b",
-  at_risk: "#ef4444",
+  on_track: "hsl(var(--status-ontrack))",
+  watch: "hsl(var(--status-watch))",
+  at_risk: "hsl(var(--status-atrisk))",
 };
 
 const DECISION_COLORS: Record<string, string> = {
-  Stay: "#10b981",
-  "At Risk": "#f59e0b",
-  Exit: "#ef4444",
+  Stay: "hsl(var(--status-ontrack))",
+  "At Risk": "hsl(var(--status-watch))",
+  Exit: "hsl(var(--status-atrisk))",
 };
 
-const PALETTE = ["#0071E3", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899", "#84cc16"];
+const PALETTE = [
+  "hsl(var(--primary))",
+  "hsl(var(--primary) / 0.75)",
+  "hsl(var(--primary) / 0.55)",
+  "hsl(var(--primary) / 0.4)",
+  "hsl(var(--primary) / 0.25)",
+  "hsl(var(--muted-foreground))",
+  "hsl(var(--muted-foreground) / 0.6)",
+  "hsl(var(--muted-foreground) / 0.35)",
+];
+
+const RISK_BADGE: Record<string, string> = {
+  on_track: "bg-status-ontrack/10 text-status-ontrack",
+  watch: "bg-status-watch/10 text-status-watch",
+  at_risk: "bg-status-atrisk/10 text-status-atrisk",
+};
+
+const AXIS_TICK = { fontSize: 12, fill: "hsl(var(--muted-foreground))" };
+const AXIS_LINE = { stroke: "hsl(var(--border))" };
 
 function EmptyState({ icon: Icon, message }: { icon: any; message: string }) {
   return (
@@ -54,24 +72,28 @@ function StatCard({
 }) {
   const toneMap = {
     default: "text-foreground",
-    success: "text-emerald-600",
-    warning: "text-amber-600",
-    danger: "text-red-600",
+    success: "text-status-ontrack",
+    warning: "text-status-watch",
+    danger: "text-status-atrisk",
   } as const;
   return (
     <Card
       onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      aria-label={onClick ? `Show ${label.toLowerCase()} founders` : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } } : undefined}
       className={cn(
-        "border border-border/60 shadow-none transition-all",
-        onClick && "cursor-pointer hover:shadow-elev-sm hover:border-border"
+        "border border-border shadow-none",
+        onClick && "card-hover cursor-pointer hover:border-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       )}
     >
-      <CardContent className="p-5">
+      <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{label}</span>
+          <span className="text-xs font-medium text-muted-foreground">{label}</span>
           <Icon className={cn("h-4 w-4", toneMap[tone ?? "default"])} />
         </div>
-        <div className={cn("text-3xl font-semibold tracking-tight", toneMap[tone ?? "default"])}>{value}</div>
+        <div className={cn("stat-figure tabular", toneMap[tone ?? "default"])}>{value}</div>
         {sub && <div className="text-xs text-muted-foreground mt-1">{sub}</div>}
       </CardContent>
     </Card>
@@ -80,7 +102,7 @@ function StatCard({
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase mb-3">
+    <h2 className="text-lg font-semibold text-foreground mb-3">
       {children}
     </h2>
   );
@@ -286,7 +308,7 @@ export default function PortfolioDashboard() {
         title="Portfolio dashboard"
         description={`Programme health across ${selectedCohortLabel || "the selected cohort"}`}
         actions={
-          <Badge variant="outline" className="text-xs tabular">{founders.length} active founders</Badge>
+          <Badge variant="outline" className="rounded text-xs tabular">{founders.length} active founders</Badge>
         }
       />
 
@@ -341,8 +363,8 @@ export default function PortfolioDashboard() {
           <section>
             <SectionTitle>Engagement & risk</SectionTitle>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <Card className="border-border/60 shadow-none">
-                <CardHeader><CardTitle className="text-sm font-medium">Risk breakdown</CardTitle></CardHeader>
+              <Card className="border-border shadow-none">
+                <CardHeader><CardTitle className="text-card-t font-semibold">Risk breakdown</CardTitle></CardHeader>
                 <CardContent>
                   {riskPie.length === 0 ? (
                     <EmptyState icon={ShieldCheck} message="No engagement data yet." />
@@ -360,21 +382,21 @@ export default function PortfolioDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="border-border/60 shadow-none lg:col-span-2">
-                <CardHeader><CardTitle className="text-sm font-medium">Needs attention</CardTitle></CardHeader>
+              <Card className="border-border shadow-none lg:col-span-2">
+                <CardHeader><CardTitle className="text-card-t font-semibold">Needs attention</CardTitle></CardHeader>
                 <CardContent className="p-0">
                   {needsAttention.length === 0 ? (
-                    <div className="p-6"><EmptyState icon={ShieldCheck} message="Everyone's on track." /></div>
+                    <div className="p-4"><EmptyState icon={ShieldCheck} message="Everyone's on track." /></div>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
-                        <thead className="text-xs text-muted-foreground border-b border-border/60">
+                        <thead className="text-xs text-muted-foreground border-b border-border">
                           <tr>
-                            <th className="text-left font-medium px-4 py-2">Founder</th>
-                            <th className="text-left font-medium px-4 py-2">Risk</th>
-                            <th className="text-left font-medium px-4 py-2">Attendance</th>
-                            <th className="text-left font-medium px-4 py-2">Effort</th>
-                            <th className="text-left font-medium px-4 py-2">Last check-in</th>
+                            <th className="h-9 text-left font-medium px-3 py-2">Founder</th>
+                            <th className="h-9 text-left font-medium px-3 py-2">Risk</th>
+                            <th className="h-9 text-right font-medium px-3 py-2">Attendance</th>
+                            <th className="h-9 text-left font-medium px-3 py-2">Effort</th>
+                            <th className="h-9 text-left font-medium px-3 py-2">Last check-in</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -382,28 +404,27 @@ export default function PortfolioDashboard() {
                             <tr
                               key={row.founder_id}
                               onClick={() => navigate(`/founders?founder=${row.founder_id}`)}
-                              className="border-b border-border/40 last:border-0 hover:bg-accent/50 cursor-pointer"
+                              className="interactive-row border-b border-border last:border-0 cursor-pointer"
                             >
-                              <td className="px-4 py-3">
+                              <td className="px-3 py-2">
                                 <div className="font-medium">{row.founder?.founder_name ?? row.founder_name ?? "—"}</div>
                                 <div className="text-xs text-muted-foreground">{row.founder?.startup_name ?? row.startup_name}</div>
                               </td>
-                              <td className="px-4 py-3">
+                              <td className="px-3 py-2">
                                 <Badge
                                   variant="outline"
-                                  className="text-xs capitalize"
-                                  style={{ color: RISK_COLORS[row.risk_status], borderColor: RISK_COLORS[row.risk_status] + "66" }}
+                                  className={cn("rounded border-0 px-1.5 py-0 text-xs font-medium capitalize", RISK_BADGE[row.risk_status] ?? "bg-secondary text-muted-foreground")}
                                 >
                                   {row.risk_status?.replace("_", " ")}
                                 </Badge>
                               </td>
-                              <td className="px-4 py-3">
+                              <td className="px-3 py-2 text-right tabular">
                                 {row.attendance_rate != null ? `${Math.round(Number(row.attendance_rate))}%` : "—"}
                               </td>
-                              <td className="px-4 py-3 capitalize text-muted-foreground">
+                              <td className="px-3 py-2 capitalize text-muted-foreground">
                                 {row.latest_effort_signal ?? "—"}
                               </td>
-                              <td className="px-4 py-3 text-muted-foreground">
+                              <td className="px-3 py-2 text-muted-foreground tabular">
                                 {row.days_since_last_checkin != null
                                   ? `${row.days_since_last_checkin}d ago`
                                   : "Never"}
@@ -423,38 +444,38 @@ export default function PortfolioDashboard() {
           <section>
             <SectionTitle>Progress trends</SectionTitle>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <Card className="border-border/60 shadow-none">
-                <CardHeader><CardTitle className="text-sm font-medium">Average score by dimension</CardTitle></CardHeader>
+              <Card className="border-border shadow-none">
+                <CardHeader><CardTitle className="text-card-t font-semibold">Average score by dimension</CardTitle></CardHeader>
                 <CardContent>
                   {checkins.length === 0 ? (
                     <EmptyState icon={TrendingUp} message="No check-ins recorded yet." />
                   ) : (
                     <ChartContainer config={{}} className="h-64">
                       <BarChart data={dimensionAvg}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                        <XAxis dataKey="dimension" tick={{ fontSize: 12 }} />
-                        <YAxis domain={[0, 5]} tick={{ fontSize: 12 }} />
+                        <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+                        <XAxis dataKey="dimension" tick={AXIS_TICK} axisLine={AXIS_LINE} tickLine={false} />
+                        <YAxis domain={[0, 5]} tick={AXIS_TICK} axisLine={AXIS_LINE} tickLine={false} />
                         <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="score" fill="#0071E3" radius={[6, 6, 0, 0]} />
+                        <Bar dataKey="score" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
                       </BarChart>
                     </ChartContainer>
                   )}
                 </CardContent>
               </Card>
 
-              <Card className="border-border/60 shadow-none">
-                <CardHeader><CardTitle className="text-sm font-medium">Overall score trend</CardTitle></CardHeader>
+              <Card className="border-border shadow-none">
+                <CardHeader><CardTitle className="text-card-t font-semibold">Overall score trend</CardTitle></CardHeader>
                 <CardContent>
                   {scoreTrend.length === 0 ? (
                     <EmptyState icon={TrendingUp} message="Not enough check-ins for a trend." />
                   ) : (
                     <ChartContainer config={{}} className="h-64">
                       <LineChart data={scoreTrend}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                        <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                        <YAxis domain={[0, 5]} tick={{ fontSize: 12 }} />
+                        <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+                        <XAxis dataKey="month" tick={AXIS_TICK} axisLine={AXIS_LINE} tickLine={false} />
+                        <YAxis domain={[0, 5]} tick={AXIS_TICK} axisLine={AXIS_LINE} tickLine={false} />
                         <ChartTooltip content={<ChartTooltipContent />} />
-                        <Line type="monotone" dataKey="avg" stroke="#0071E3" strokeWidth={2} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="avg" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
                       </LineChart>
                     </ChartContainer>
                   )}
@@ -467,8 +488,8 @@ export default function PortfolioDashboard() {
           <section>
             <SectionTitle>Evaluation outcomes</SectionTitle>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <Card className="border-border/60 shadow-none">
-                <CardHeader><CardTitle className="text-sm font-medium">Decision distribution</CardTitle></CardHeader>
+              <Card className="border-border shadow-none">
+                <CardHeader><CardTitle className="text-card-t font-semibold">Decision distribution</CardTitle></CardHeader>
                 <CardContent>
                   {decisionDist.length === 0 ? (
                     <EmptyState icon={ClipboardCheck} message="No evaluations recorded yet." />
@@ -477,7 +498,7 @@ export default function PortfolioDashboard() {
                       <PieChart>
                         <Pie data={decisionDist} dataKey="value" nameKey="name" outerRadius={90} label>
                           {decisionDist.map(d => (
-                            <Cell key={d.name} fill={DECISION_COLORS[d.name] ?? "#94a3b8"} />
+                            <Cell key={d.name} fill={DECISION_COLORS[d.name] ?? "hsl(var(--muted-foreground))"} />
                           ))}
                         </Pie>
                         <ChartTooltip content={<ChartTooltipContent />} />
@@ -488,19 +509,19 @@ export default function PortfolioDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="border-border/60 shadow-none">
-                <CardHeader><CardTitle className="text-sm font-medium">Average score by block</CardTitle></CardHeader>
+              <Card className="border-border shadow-none">
+                <CardHeader><CardTitle className="text-card-t font-semibold">Average score by block</CardTitle></CardHeader>
                 <CardContent>
                   {scoresByBlock.length === 0 ? (
                     <EmptyState icon={ClipboardCheck} message="No evaluation scores yet." />
                   ) : (
                     <ChartContainer config={{}} className="h-64">
                       <BarChart data={scoresByBlock}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                        <XAxis dataKey="block" tick={{ fontSize: 12 }} />
-                        <YAxis tick={{ fontSize: 12 }} />
+                        <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+                        <XAxis dataKey="block" tick={AXIS_TICK} axisLine={AXIS_LINE} tickLine={false} />
+                        <YAxis tick={AXIS_TICK} axisLine={AXIS_LINE} tickLine={false} />
                         <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="avg" fill="#10b981" radius={[6, 6, 0, 0]} />
+                        <Bar dataKey="avg" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
                       </BarChart>
                     </ChartContainer>
                   )}
@@ -513,27 +534,27 @@ export default function PortfolioDashboard() {
           <section>
             <SectionTitle>Composition</SectionTitle>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <Card className="border-border/60 shadow-none">
-                <CardHeader><CardTitle className="text-sm font-medium flex items-center gap-2"><Globe2 className="h-4 w-4 text-muted-foreground" />Founders by country</CardTitle></CardHeader>
+              <Card className="border-border shadow-none">
+                <CardHeader><CardTitle className="text-card-t font-semibold flex items-center gap-2"><Globe2 className="h-4 w-4 text-muted-foreground" />Founders by country</CardTitle></CardHeader>
                 <CardContent>
                   {byCountry.length === 0 ? (
                     <EmptyState icon={Globe2} message="No nationality data yet — add it in the Directory." />
                   ) : (
                     <ChartContainer config={{}} className="h-64">
                       <BarChart data={byCountry} layout="vertical" margin={{ left: 10 }}>
-                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
-                        <XAxis type="number" tick={{ fontSize: 12 }} allowDecimals={false} />
-                        <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} width={110} />
+                        <CartesianGrid horizontal={false} stroke="hsl(var(--border))" />
+                        <XAxis type="number" tick={AXIS_TICK} axisLine={AXIS_LINE} tickLine={false} allowDecimals={false} />
+                        <YAxis type="category" dataKey="name" tick={AXIS_TICK} axisLine={AXIS_LINE} tickLine={false} width={110} />
                         <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="value" fill="#0071E3" radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="value" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
                       </BarChart>
                     </ChartContainer>
                   )}
                 </CardContent>
               </Card>
 
-              <Card className="border-border/60 shadow-none">
-                <CardHeader><CardTitle className="text-sm font-medium flex items-center gap-2"><Building2 className="h-4 w-4 text-muted-foreground" />Founders by sector</CardTitle></CardHeader>
+              <Card className="border-border shadow-none">
+                <CardHeader><CardTitle className="text-card-t font-semibold flex items-center gap-2"><Building2 className="h-4 w-4 text-muted-foreground" />Founders by sector</CardTitle></CardHeader>
                 <CardContent>
                   {bySector.length === 0 ? (
                     <EmptyState icon={Building2} message="No sector data yet — add it in the Directory." />
@@ -551,38 +572,38 @@ export default function PortfolioDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="border-border/60 shadow-none">
-                <CardHeader><CardTitle className="text-sm font-medium flex items-center gap-2"><Layers className="h-4 w-4 text-muted-foreground" />Founders by stage</CardTitle></CardHeader>
+              <Card className="border-border shadow-none">
+                <CardHeader><CardTitle className="text-card-t font-semibold flex items-center gap-2"><Layers className="h-4 w-4 text-muted-foreground" />Founders by stage</CardTitle></CardHeader>
                 <CardContent>
                   {byStage.length === 0 ? (
                     <EmptyState icon={Layers} message="No stage data yet — add it in the Directory." />
                   ) : (
                     <ChartContainer config={{}} className="h-64">
                       <BarChart data={byStage}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                        <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                        <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+                        <XAxis dataKey="name" tick={AXIS_TICK} axisLine={AXIS_LINE} tickLine={false} />
+                        <YAxis tick={AXIS_TICK} axisLine={AXIS_LINE} tickLine={false} allowDecimals={false} />
                         <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="value" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
+                        <Bar dataKey="value" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
                       </BarChart>
                     </ChartContainer>
                   )}
                 </CardContent>
               </Card>
 
-              <Card className="border-border/60 shadow-none">
-                <CardHeader><CardTitle className="text-sm font-medium flex items-center gap-2"><DollarSign className="h-4 w-4 text-muted-foreground" />Total funding by sector</CardTitle></CardHeader>
+              <Card className="border-border shadow-none">
+                <CardHeader><CardTitle className="text-card-t font-semibold flex items-center gap-2"><DollarSign className="h-4 w-4 text-muted-foreground" />Total funding by sector</CardTitle></CardHeader>
                 <CardContent>
                   {fundingBySector.length === 0 ? (
                     <EmptyState icon={DollarSign} message="No funding data yet — add it in the Directory." />
                   ) : (
                     <ChartContainer config={{}} className="h-64">
                       <BarChart data={fundingBySector}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                        <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)} />
+                        <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+                        <XAxis dataKey="name" tick={AXIS_TICK} axisLine={AXIS_LINE} tickLine={false} />
+                        <YAxis tick={AXIS_TICK} axisLine={AXIS_LINE} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)} />
                         <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="value" fill="#10b981" radius={[6, 6, 0, 0]} />
+                        <Bar dataKey="value" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
                       </BarChart>
                     </ChartContainer>
                   )}
