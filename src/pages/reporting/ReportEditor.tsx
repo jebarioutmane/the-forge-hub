@@ -1,3 +1,5 @@
+import { Skeleton } from "@/components/ui/skeleton";
+import { QueryErrorState, SkeletonBlocks } from "@/components/QueryStates";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -89,7 +91,7 @@ export default function ReportEditor() {
     question_text: "", category: "Program Health", answer_type: "qualitative", source_type: "manual", auto_metric: null,
   });
 
-  const { data: instance, isLoading: loadingInst } = useQuery({
+  const { data: instance, isLoading: loadingInst, isError: instError, refetch: refetchInst } = useQuery({
     queryKey: ["report_instance", id],
     queryFn: async () => {
       const { data, error } = await supabase.from("report_instances")
@@ -111,7 +113,7 @@ export default function ReportEditor() {
     enabled: !!instance?.cohort_id,
   });
 
-  const { data: answers = [], isLoading: loadingAns } = useQuery({
+  const { data: answers = [], isLoading: loadingAns, isError: ansError, refetch: refetchAns } = useQuery({
     queryKey: ["report_answers", id],
     queryFn: async () => {
       const { data, error } = await supabase.from("report_answers")
@@ -297,7 +299,20 @@ export default function ReportEditor() {
   }
 
   if (loadingInst || loadingAns) {
-    return <div className="flex items-center justify-center py-24 text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" /></div>;
+    return (
+      <PageContainer className="space-y-6" aria-busy="true">
+        <Skeleton className="h-8 w-1/3" />
+        <Skeleton className="h-4 w-1/2" />
+        <SkeletonBlocks count={4} className="h-24" wrapperClassName="space-y-3" />
+      </PageContainer>
+    );
+  }
+  if (instError || ansError) {
+    return (
+      <PageContainer>
+        <QueryErrorState message="This report could not be loaded. Check your connection, then try again." onRetry={() => { refetchInst(); refetchAns(); }} />
+      </PageContainer>
+    );
   }
   if (!instance) {
     return (

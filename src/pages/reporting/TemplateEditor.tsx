@@ -1,3 +1,5 @@
+import { Skeleton } from "@/components/ui/skeleton";
+import { QueryErrorState, SkeletonBlocks } from "@/components/QueryStates";
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -88,7 +90,7 @@ export default function TemplateEditor() {
   const [draft, setDraft] = useState<QuestionDraft>(EMPTY_DRAFT);
   const [deleting, setDeleting] = useState<Question | null>(null);
 
-  const { data: template, isLoading: loadingTpl } = useQuery({
+  const { data: template, isLoading: loadingTpl, isError: tplError, refetch: refetchTpl } = useQuery({
     queryKey: ["report_template", id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -109,7 +111,7 @@ export default function TemplateEditor() {
     }
   }, [template]);
 
-  const { data: questions = [], isLoading: loadingQ } = useQuery({
+  const { data: questions = [], isLoading: loadingQ, isError: qError, refetch: refetchQ } = useQuery({
     queryKey: ["report_questions", id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -233,9 +235,18 @@ export default function TemplateEditor() {
 
   if (loadingTpl) {
     return (
-      <div className="flex items-center justify-center py-24 text-muted-foreground">
-        <Loader2 className="h-5 w-5 animate-spin" />
-      </div>
+      <PageContainer className="space-y-6" aria-busy="true">
+        <Skeleton className="h-8 w-1/3" />
+        <Skeleton className="h-4 w-1/2" />
+        <SkeletonBlocks count={4} className="h-24" wrapperClassName="space-y-3" />
+      </PageContainer>
+    );
+  }
+  if (tplError) {
+    return (
+      <PageContainer>
+        <QueryErrorState message="This template could not be loaded. Check your connection, then try again." onRetry={() => refetchTpl()} />
+      </PageContainer>
     );
   }
 
@@ -307,9 +318,9 @@ export default function TemplateEditor() {
         </div>
 
         {loadingQ ? (
-          <div className="flex items-center justify-center py-16 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin" />
-          </div>
+          <SkeletonBlocks count={4} className="h-16" />
+        ) : qError ? (
+          <QueryErrorState message="This template's questions could not be loaded. Check your connection, then try again." onRetry={() => refetchQ()} />
         ) : questions.length === 0 ? (
           <div className="border border-dashed rounded-lg py-16 text-center">
             <p className="text-sm font-medium">No questions yet</p>

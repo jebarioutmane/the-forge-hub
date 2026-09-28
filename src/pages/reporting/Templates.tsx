@@ -1,3 +1,4 @@
+import { QueryErrorState, SkeletonBlocks } from "@/components/QueryStates";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
@@ -32,7 +33,7 @@ export default function ReportTemplates() {
   const [form, setForm] = useState({ name: "", description: "" });
   const [archiving, setArchiving] = useState<Template | null>(null);
 
-  const { data: templates = [], isLoading } = useQuery({
+  const { data: templates = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["report_templates", showArchived],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -110,9 +111,9 @@ export default function ReportTemplates() {
       />
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-24 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-        </div>
+        <SkeletonBlocks count={4} className="h-20" wrapperClassName="grid gap-3" />
+      ) : isError ? (
+        <QueryErrorState className="border-y" message="Report templates could not be loaded. Check your connection, then try again." onRetry={() => refetch()} />
       ) : templates.length === 0 ? (
         <div className="border border-dashed rounded-lg py-20 text-center">
           <FileBarChart className="h-8 w-8 text-muted-foreground/50 mx-auto mb-3" />
