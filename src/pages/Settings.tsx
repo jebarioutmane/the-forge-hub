@@ -365,30 +365,30 @@ function CohortSettingsCard() {
   const rolloverCheck = rollover.label.trim() ? validateDraft(rollover) : {};
 
   const statusBadge = (s: CohortStatus) => {
-    if (s === "active") return <Badge className="bg-primary text-primary-foreground text-[10px]">Active</Badge>;
-    if (s === "upcoming") return <Badge variant="secondary" className="text-[10px]">Upcoming</Badge>;
-    return <Badge variant="outline" className="text-[10px] text-muted-foreground">Closed</Badge>;
+    if (s === "active") return <Badge variant="outline" className="rounded border-0 bg-primary/10 px-1.5 py-0 text-xs font-semibold text-primary">Active</Badge>;
+    if (s === "upcoming") return <Badge variant="outline" className="rounded border-0 bg-status-watch/10 px-1.5 py-0 text-xs font-medium text-status-watch">Upcoming</Badge>;
+    return <Badge variant="outline" className="rounded border-0 bg-secondary px-1.5 py-0 text-xs font-medium text-muted-foreground">Closed</Badge>;
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-serif text-lg">Cohort Settings</CardTitle>
+        <CardTitle className="text-card-title">Cohort settings</CardTitle>
         <CardDescription>
           Manage the program year lifecycle — start, close, and archive cohorts.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Active cohort banner */}
-        <div className="rounded-lg border border-primary/30 bg-primary/5 p-5">
+        <div className="rounded-lg border border-border bg-secondary p-4">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="space-y-1">
-              <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-primary">
+              <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                 <CalendarRange className="h-3.5 w-3.5" /> Active cohort
               </p>
               {activeCohort ? (
                 <>
-                  <p className="font-serif text-2xl font-bold leading-tight">{formatCohortLabel(activeCohort.label)}</p>
+                  <p className="text-lg font-semibold leading-tight text-foreground tabular-nums">{formatCohortLabel(activeCohort.label)}</p>
                   <p className="text-xs text-muted-foreground">
                     {activeCohort.start_date && activeCohort.end_date
                       ? `${activeCohort.start_date} → ${activeCohort.end_date}`
@@ -397,7 +397,7 @@ function CohortSettingsCard() {
                 </>
               ) : (
                 <>
-                  <p className="font-serif text-xl font-bold leading-tight">No active cohort</p>
+                  <p className="text-lg font-semibold leading-tight text-foreground">No active cohort</p>
                   <p className="text-xs text-muted-foreground">Start a cohort below to activate the program year.</p>
                 </>
               )}
@@ -429,12 +429,14 @@ function CohortSettingsCard() {
               const u = usageOf(c.id);
               const open = expandedId === c.id;
               return (
-                <div key={c.id} className={s === "active" ? "bg-primary/[0.03]" : undefined}>
-                  <div className="flex flex-wrap items-center gap-3 px-4 py-3 text-sm">
+                <div key={c.id}>
+                  <div className="interactive-row flex min-h-10 flex-wrap items-center gap-3 px-3 py-2 text-sm">
                     <button
                       type="button"
                       onClick={() => setExpandedId(open ? null : c.id)}
-                      className="flex flex-1 items-center gap-2 text-left transition-colors hover:text-primary"
+                      aria-expanded={open}
+                      aria-label={`${open ? "Hide" : "Show"} linked records for ${formatCohortLabel(c.label)}`}
+                      className="flex min-h-8 flex-1 items-center gap-2 rounded text-left transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       {open ? <ChevronDown className="h-3.5 w-3.5 shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 shrink-0" />}
                       <span className="font-medium w-24">{formatCohortLabel(c.label)}</span>
@@ -442,31 +444,32 @@ function CohortSettingsCard() {
                         {formatCohortWindow(c.label, startMonth, endMonth)}
                       </span>
                     </button>
-                    <span className="text-[11px] tabular-nums text-muted-foreground">
+                    <span className="text-xs tabular-nums text-muted-foreground">
                       {total === 0 ? "No records yet" : `${total} linked record${total === 1 ? "" : "s"}`}
                     </span>
                     {statusBadge(s)}
                     {mayManage && (
                       <div className="flex items-center gap-1">
                         {s === "upcoming" && (
-                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setLifecycle({ action: "start", cohort: c })}>
+                          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setLifecycle({ action: "start", cohort: c })}>
                             <Play className="mr-1 h-3 w-3" /> Start
                           </Button>
                         )}
                         {s === "active" && (
-                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setLifecycle({ action: "close", cohort: c })}>
+                          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setLifecycle({ action: "close", cohort: c })}>
                             <Lock className="mr-1 h-3 w-3" /> Close
                           </Button>
                         )}
                         {s === "closed" && (
-                          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setLifecycle({ action: "reopen", cohort: c })}>
+                          <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => setLifecycle({ action: "reopen", cohort: c })}>
                             <RotateCcw className="mr-1 h-3 w-3" /> Reopen
                           </Button>
                         )}
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          aria-label={s === "active" ? `Close ${formatCohortLabel(c.label)} before archiving` : `Archive ${formatCohortLabel(c.label)}`}
                           disabled={s === "active"}
                           title={s === "active" ? "Close the cohort before archiving" : "Archive cohort"}
                           onClick={() => setArchiveTarget(c)}
@@ -477,7 +480,7 @@ function CohortSettingsCard() {
                     )}
                   </div>
                   {open && (
-                    <div className="border-t bg-muted/20 px-4 py-3 pl-11">
+                    <div className="border-t border-border bg-secondary px-3 py-3 pl-12">
                       {total === 0 ? (
                         <p className="text-xs text-muted-foreground">No records linked to this cohort yet.</p>
                       ) : (
@@ -506,10 +509,10 @@ function CohortSettingsCard() {
                 <Plus className="mr-1.5 h-3.5 w-3.5" /> Create new cohort
               </Button>
             ) : (
-              <div className="rounded-lg border p-4 space-y-3">
+              <div className="rounded-lg border border-border bg-secondary p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium">New cohort</p>
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setShowCreate(false)}>
+                  <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Close new cohort form" onClick={() => setShowCreate(false)}>
                     <X className="h-3.5 w-3.5" />
                   </Button>
                 </div>
@@ -547,7 +550,7 @@ function CohortSettingsCard() {
                   <p className="text-xs text-destructive">{(newDraftCheck as any).error}</p>
                 )}
                 {(newDraftCheck as any).warning && (
-                  <p className="flex items-center gap-1.5 text-xs text-amber-600">
+                  <p className="flex items-center gap-1.5 text-xs text-status-watch">
                     <AlertTriangle className="h-3.5 w-3.5" /> {(newDraftCheck as any).warning}
                   </p>
                 )}
@@ -614,7 +617,7 @@ function CohortSettingsCard() {
                     <span className="flex-1 text-xs text-muted-foreground">
                       {formatCohortWindow(c.label, startMonth, endMonth)}
                     </span>
-                    <span className="text-[11px] tabular-nums text-muted-foreground">
+                    <span className="text-xs tabular-nums text-muted-foreground">
                       {total === 0 ? "No records" : `${total} linked record${total === 1 ? "" : "s"}`}
                     </span>
                     {mayManage && (
@@ -635,7 +638,7 @@ function CohortSettingsCard() {
       <AlertDialog open={!!lifecycle} onOpenChange={(o) => !o && setLifecycle(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-serif">
+            <AlertDialogTitle className="text-card-title">
               {lifecycle?.action === "close"
                 ? `Close ${lifecycle ? formatCohortLabel(lifecycle.cohort.label) : ""}?`
                 : `Make ${lifecycle ? formatCohortLabel(lifecycle.cohort.label) : ""} the active cohort?`}
@@ -681,7 +684,7 @@ function CohortSettingsCard() {
       <Dialog open={rolloverOpen} onOpenChange={setRolloverOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-serif flex items-center gap-2">
+            <DialogTitle className="text-card-title flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" /> Start next cohort
             </DialogTitle>
             <DialogDescription>
@@ -711,7 +714,7 @@ function CohortSettingsCard() {
               <p className="text-xs text-destructive">{(rolloverCheck as any).error}</p>
             )}
             {(rolloverCheck as any).warning && (
-              <p className="flex items-center gap-1.5 text-xs text-amber-600">
+              <p className="flex items-center gap-1.5 text-xs text-status-watch">
                 <AlertTriangle className="h-3.5 w-3.5" /> {(rolloverCheck as any).warning}
               </p>
             )}
@@ -741,8 +744,8 @@ function CohortSettingsCard() {
       <AlertDialog open={!!archiveTarget} onOpenChange={(o) => !o && setArchiveTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 font-serif">
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <AlertDialogTitle className="text-card-title flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-status-watch" />
               Archive cohort {archiveTarget ? formatCohortLabel(archiveTarget.label) : ""}?
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
