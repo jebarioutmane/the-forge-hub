@@ -1,4 +1,6 @@
 import { useState, useMemo } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AlertCircle } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -249,13 +251,14 @@ export default function FoundersSource() {
   const { selectedCohortId, cohorts } = useCohort();
   const [showArchived, setShowArchived] = useState(false);
   const [search, setSearch] = useState("");
+  const [touched, setTouched] = useState<{ founder_name?: boolean; startup_name?: boolean }>({});
   const [filterCountries, setFilterCountries] = useState<string[]>([]);
   const [filterStatuses, setFilterStatuses] = useState<string[]>([]);
   const [filterAssociates, setFilterAssociates] = useState<string[]>([]);
   const [filterTags, setFilterTags] = useState<string[]>([]);
 
 
-  const { data: founders = [], isLoading } = useQuery({
+  const { data: founders = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["founders", "directory"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -536,6 +539,19 @@ export default function FoundersSource() {
       .slice(0, 2);
 
   /* ─────────── Render ─────────── */
+  const colgroup = (
+    <colgroup>
+      <col className="w-[24%]" />
+      <col className="w-[16%]" />
+      <col className="w-[11%]" />
+      <col className="w-[8%]" />
+      <col className="w-[11%]" />
+      <col className="w-[13%]" />
+      <col className="w-[13%]" />
+      <col className="w-12" />
+    </colgroup>
+  );
+
   return (
     <PageContainer className="space-y-6">
       <PageHeader
@@ -630,13 +646,13 @@ export default function FoundersSource() {
               {search && (
                 <Badge variant="secondary" className="gap-1">
                   <Search className="h-3 w-3" />"{search}"
-                  <button onClick={() => setSearch("")}><X className="h-3 w-3" /></button>
+                  <button aria-label="Remove search filter" onClick={() => setSearch("")}><X className="h-3 w-3" /></button>
                 </Badge>
               )}
               {filterCountries.map((c) => (
                 <Badge key={c} variant="secondary" className="gap-1">
                   {countryEmoji(c)} {c}
-                  <button onClick={() => setFilterCountries(filterCountries.filter((x) => x !== c))}>
+                  <button aria-label={`Remove ${c} filter`} onClick={() => setFilterCountries(filterCountries.filter((x) => x !== c))}>
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
@@ -644,7 +660,7 @@ export default function FoundersSource() {
               {filterStatuses.map((s) => (
                 <Badge key={s} variant="secondary" className="gap-1">
                   {s}
-                  <button onClick={() => setFilterStatuses(filterStatuses.filter((x) => x !== s))}>
+                  <button aria-label={`Remove ${s} filter`} onClick={() => setFilterStatuses(filterStatuses.filter((x) => x !== s))}>
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
@@ -652,7 +668,7 @@ export default function FoundersSource() {
               {filterAssociates.map((id) => (
                 <Badge key={id} variant="secondary" className="gap-1">
                   <UserCircle2 className="h-3 w-3" /> {associateName(id) || "Unassigned"}
-                  <button onClick={() => setFilterAssociates(filterAssociates.filter((x) => x !== id))}>
+                  <button aria-label="Remove associate filter" onClick={() => setFilterAssociates(filterAssociates.filter((x) => x !== id))}>
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
@@ -662,7 +678,7 @@ export default function FoundersSource() {
                 return (
                   <Badge key={id} variant="secondary" className="gap-1">
                     {t?.name || "Tag"}
-                    <button onClick={() => setFilterTags(filterTags.filter((x) => x !== id))}>
+                    <button aria-label="Remove tag filter" onClick={() => setFilterTags(filterTags.filter((x) => x !== id))}>
                       <X className="h-3 w-3" />
                     </button>
                   </Badge>
@@ -686,27 +702,65 @@ export default function FoundersSource() {
 
       {/* Table */}
       {isLoading ? (
-        <p className="text-muted-foreground text-center py-16">Loading founders…</p>
+        <div className="border-y" aria-busy="true" aria-label="Loading founders">
+          <table className="w-full table-fixed text-sm">
+            {colgroup}
+            <thead className="bg-secondary text-xs text-muted-foreground">
+              <tr>
+                {["Founder", "Startup", "Cohort", "Country", "Status", "Associate", "Contact", ""].map((h, i) => (
+                  <th key={i} className="h-9 text-left font-medium px-3 py-2 border-b">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 12 }).map((_, r) => (
+                <tr key={r} className="h-10 border-b">
+                  {Array.from({ length: 8 }).map((_, c) => (
+                    <td key={c} className="px-3 py-2">
+                      {c < 7 && <Skeleton className="h-3 w-3/4" />}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : isError ? (
+        <div className="empty-state border-y" role="alert">
+          <AlertCircle />
+          <p>The founders directory could not be loaded. Check your connection, then try again.</p>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>Try again</Button>
+        </div>
+      ) : founders.filter((f) => !!f.is_archived === showArchived).length === 0 && activeFilterCount === 0 ? (
+        <div className="empty-state border-y">
+          <Users />
+          <p>{showArchived ? "No archived founders. Archived founders appear here." : "No founders yet. Add the first founder to start the directory."}</p>
+          {!showArchived && mayEdit && (
+            <Button size="sm" onClick={() => { setForm({ ...emptyForm, cohort_id: selectedCohortId !== ALL_COHORTS ? selectedCohortId : "" }); setEditing(null); setDialogOpen(true); }}>
+              <Plus className="mr-2 h-4 w-4" /> Add founder
+            </Button>
+          )}
+        </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-20 border rounded-xl bg-card">
-          <Users className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
-          <p className="text-sm text-muted-foreground">
-            {showArchived ? "No archived founders." : "No founders match your filters."}
-          </p>
+        <div className="empty-state border-y">
+          <Filter />
+          <p>No founders match these filters.</p>
+          <Button variant="outline" size="sm" onClick={clearAllFilters}>Clear filters</Button>
         </div>
       ) : (
-        <div className="rounded-xl border bg-card overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
+        <div className="border-y">
+          <table className="w-full table-fixed text-sm">
+            {colgroup}
+            <thead className="sticky top-12 z-10 bg-secondary text-xs text-muted-foreground">
               <tr>
-                <th className="text-left font-medium px-4 py-3">Founder</th>
-                <th className="text-left font-medium px-4 py-3">Startup</th>
-                <th className="text-left font-medium px-4 py-3">Cohort</th>
-                <th className="text-left font-medium px-4 py-3">Country</th>
-                <th className="text-left font-medium px-4 py-3">Status</th>
-                <th className="text-left font-medium px-4 py-3">Associate</th>
-                <th className="text-left font-medium px-4 py-3">Contact</th>
-                <th className="w-10 px-4 py-3"></th>
+                <th className="h-9 text-left font-medium px-3 py-2 border-b">Founder</th>
+                <th className="h-9 text-left font-medium px-3 py-2 border-b">Startup</th>
+                <th className="h-9 text-left font-medium px-3 py-2 border-b">Cohort</th>
+                <th className="h-9 text-left font-medium px-3 py-2 border-b">Country</th>
+                <th className="h-9 text-left font-medium px-3 py-2 border-b">Status</th>
+                <th className="h-9 text-left font-medium px-3 py-2 border-b">Associate</th>
+                <th className="h-9 text-left font-medium px-3 py-2 border-b">Contact</th>
+                <th className="h-9 px-3 py-2 border-b"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody>
@@ -715,14 +769,14 @@ export default function FoundersSource() {
                 return (
                   <tr
                     key={f.id}
-                    className={`border-t transition-colors cursor-pointer hover:bg-muted/40 ${
+                    className={`interactive-row h-10 border-b cursor-pointer ${
                       highlightId === f.id ? "animate-target-flash" : ""
                     }`}
                     onClick={() => setViewing(f)}
                   >
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                    <td className="px-3 py-2 truncate">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
                           {f.photo_url ? (
                             <img
                               src={f.photo_url}
@@ -735,26 +789,26 @@ export default function FoundersSource() {
                             </span>
                           )}
                         </div>
-                        <div className="min-w-0">
-                          <div className="font-medium truncate">{f.founder_name}</div>
+                        <div className="min-w-0 flex items-baseline gap-2">
+                          <span className="font-medium truncate">{f.founder_name}</span>
                           {f.email && (
-                            <div className="text-xs text-muted-foreground truncate">
+                            <span className="text-xs text-muted-foreground truncate">
                               {f.email}
-                            </div>
+                            </span>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2 text-foreground">
-                        <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                        {f.startup_name}
+                    <td className="px-3 py-2 truncate">
+                      <div className="flex items-center gap-2 text-foreground min-w-0">
+                        <Building2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        <span className="truncate">{f.startup_name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    <td className="px-3 py-2 truncate text-muted-foreground">
                       {cohortLabel(f.cohort_id) || f.cohort || "—"}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2 truncate">
                       {nats.length > 0 ? (
                         <span className="text-muted-foreground">
                           {nats.slice(0, 2).map((n) => countryEmoji(n)).join(" ")}{" "}
@@ -766,7 +820,7 @@ export default function FoundersSource() {
                         <span className="text-muted-foreground">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2 truncate">
                       {f.status ? (
                         <Badge
                           variant="secondary"
@@ -778,10 +832,10 @@ export default function FoundersSource() {
                         <span className="text-muted-foreground">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    <td className="px-3 py-2 truncate text-muted-foreground">
                       {associateName(f.associate_id) || f.venture_associate || "—"}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    <td className="px-3 py-2 truncate text-muted-foreground">
                       <div className="flex items-center gap-3 text-xs">
                         {f.phone && (
                           <span className="inline-flex items-center gap-1">
@@ -797,8 +851,8 @@ export default function FoundersSource() {
                     >
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-7 w-7">
-                            <MoreHorizontal className="h-3.5 w-3.5" />
+                          <Button size="icon" variant="ghost" className="h-8 w-8" aria-label={`Actions for ${f.founder_name}`}>
+                            <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -911,8 +965,8 @@ export default function FoundersSource() {
               </div>
 
               {/* Profile */}
-              <section className="space-y-3">
-                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+              <section className="space-y-3 border-t pt-6 first:border-t-0 first:pt-0">
+                <h3 className="text-xs text-muted-foreground font-medium">
                   Profile
                 </h3>
                 <DetailRow icon={<UserCircle2 className="h-4 w-4" />} label="Founder" value={viewing.founder_name} />
@@ -923,7 +977,7 @@ export default function FoundersSource() {
 
               {/* Contact */}
               <section className="space-y-3">
-                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                <h3 className="text-xs text-muted-foreground font-medium">
                   Contact
                 </h3>
                 <DetailRow icon={<Mail className="h-4 w-4" />} label="Email" value={viewing.email} />
@@ -937,7 +991,7 @@ export default function FoundersSource() {
 
               {/* Nationalities */}
               <section className="space-y-3">
-                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                <h3 className="text-xs text-muted-foreground font-medium">
                   Nationality
                 </h3>
                 {getFounderNationalities(viewing).length > 0 ? (
@@ -955,7 +1009,7 @@ export default function FoundersSource() {
 
               {/* Startup profile */}
               <section className="space-y-3">
-                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                <h3 className="text-xs text-muted-foreground font-medium">
                   Startup profile
                 </h3>
                 <DetailRow
@@ -981,7 +1035,7 @@ export default function FoundersSource() {
 
               {/* Identity docs */}
               <section className="space-y-3">
-                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                <h3 className="text-xs text-muted-foreground font-medium">
                   Identity
                 </h3>
                 <DetailRow
@@ -1013,7 +1067,7 @@ export default function FoundersSource() {
 
               {/* Links */}
               <section className="space-y-3">
-                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                <h3 className="text-xs text-muted-foreground font-medium">
                   Links
                 </h3>
                 {getFounderLinks(viewing).length > 0 ? (
@@ -1039,7 +1093,7 @@ export default function FoundersSource() {
 
               {/* Description */}
               <section className="space-y-2">
-                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                <h3 className="text-xs text-muted-foreground font-medium">
                   About
                 </h3>
                 <p className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">
@@ -1049,7 +1103,7 @@ export default function FoundersSource() {
 
               {/* Tags */}
               <section className="space-y-2">
-                <h3 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                <h3 className="text-xs text-muted-foreground font-medium">
                   Tags
                 </h3>
                 {viewing.tag_ids && (viewing.tag_ids as string[]).length > 0 ? (
@@ -1068,6 +1122,7 @@ export default function FoundersSource() {
         open={dialogOpen}
         onOpenChange={(o) => {
           if (!o) {
+            setTouched({});
             setDialogOpen(false);
             setEditing(null);
           }
@@ -1083,27 +1138,33 @@ export default function FoundersSource() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-8 py-2">
+          <div className="space-y-6 py-2">
             {/* Section: Basics */}
             <FormSection
               title="Basics"
               hint="Who they are and which cohort they belong to."
             >
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Founder name *" htmlFor="founder-name">
+                <Field label="Founder name (required)" htmlFor="founder-name" error={touched.founder_name && !form.founder_name.trim() ? "Enter the founder's full name." : undefined}>
                   <Input
                     id="founder-name"
                     name="founder_name"
                     value={form.founder_name}
+                    onBlur={() => setTouched((t) => ({ ...t, founder_name: true }))}
+                    aria-invalid={touched.founder_name && !form.founder_name.trim()}
+                    aria-describedby="founder-name-error"
                     onChange={(e) => set("founder_name", e.target.value)}
                     placeholder="Jane Doe"
                   />
                 </Field>
-                <Field label="Startup name *" htmlFor="startup-name">
+                <Field label="Startup name (required)" htmlFor="startup-name" error={touched.startup_name && !form.startup_name.trim() ? "Enter the startup's name." : undefined}>
                   <Input
                     id="startup-name"
                     name="startup_name"
                     value={form.startup_name}
+                    onBlur={() => setTouched((t) => ({ ...t, startup_name: true }))}
+                    aria-invalid={touched.startup_name && !form.startup_name.trim()}
+                    aria-describedby="startup-name-error"
                     onChange={(e) => set("startup_name", e.target.value)}
                     placeholder="Acme Inc."
                   />
@@ -1333,6 +1394,7 @@ export default function FoundersSource() {
                         size="icon"
                         variant="ghost"
                         onClick={() => removeLink(idx)}
+                        aria-label="Remove link"
                         className="shrink-0 text-destructive hover:text-destructive"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -1404,10 +1466,12 @@ function FormSection({
 function Field({
   label,
   htmlFor,
+  error,
   children,
 }: {
   label: string;
   htmlFor?: string;
+  error?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -1416,6 +1480,11 @@ function Field({
         {label}
       </Label>
       {children}
+      {error && (
+        <p id={htmlFor ? `${htmlFor}-error` : undefined} className="text-xs text-destructive">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
