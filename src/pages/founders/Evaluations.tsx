@@ -100,7 +100,7 @@ type Decision = "stay" | "at_risk" | "exit";
 
 const DECISIONS: { value: Decision; label: string; icon: typeof ShieldCheck; tone: string; ring: string; dot: string }[] = [
   { value: "stay", label: "Stay", icon: ShieldCheck, tone: "text-status-ontrack", ring: "ring-status-ontrack/40 bg-status-ontrack/10 border-status-ontrack/40", dot: "bg-status-ontrack" },
-  { value: "at_risk", label: "At Risk", icon: AlertTriangle, tone: "text-status-watch", ring: "ring-status-watch/40 bg-status-watch/10 border-status-watch/40", dot: "bg-status-watch" },
+  { value: "at_risk", label: "At risk", icon: AlertTriangle, tone: "text-status-watch", ring: "ring-status-watch/40 bg-status-watch/10 border-status-watch/40", dot: "bg-status-watch" },
   { value: "exit", label: "Exit", icon: XCircle, tone: "text-status-atrisk", ring: "ring-status-atrisk/40 bg-status-atrisk/10 border-status-atrisk/40", dot: "bg-status-atrisk" },
 ];
 
@@ -615,7 +615,7 @@ export default function Evaluations() {
                     <div className="text-xs text-muted-foreground">
                       {activeBlock.name} · {activeBlock.label}
                     </div>
-                    <h2 className="mt-1 text-lg font-semibold text-foreground tracking-tight">
+                    <h2 className="mt-1 text-lg font-semibold text-foreground">
                       {selectedFounder.startup_name || "—"}
                     </h2>
                     <p className="text-sm text-muted-foreground">{selectedFounder.founder_name}</p>
@@ -647,7 +647,7 @@ export default function Evaluations() {
                     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                       <div className="col-span-2 lg:col-span-1">
                         <div className="text-xs text-muted-foreground">Check-ins</div>
-                        <div className="mt-1 text-2xl font-semibold text-foreground">{evidence.count}</div>
+                        <div className="stat-figure mt-1 text-foreground">{evidence.count}</div>
                         <div className="text-xs text-muted-foreground">
                           Latest {evidence.latestDate ? format(parseISO(evidence.latestDate), "MMM d, yyyy") : "—"}
                         </div>
@@ -677,7 +677,7 @@ export default function Evaluations() {
                                 style={{ width: `${((a.avg ?? 0) / 5) * 100}%` }}
                               />
                             </div>
-                            <div className="w-10 text-right text-xs font-medium text-foreground">
+                            <div className="w-10 text-right text-xs font-medium text-foreground tabular">
                               {a.avg != null ? a.avg.toFixed(1) : "—"}
                             </div>
                           </div>
@@ -841,7 +841,7 @@ export default function Evaluations() {
                         value={form.summary_note}
                         onChange={(e) => setForm((f) => ({ ...f, summary_note: e.target.value }))}
                         placeholder="Rationale for the decision, evidence, next steps…"
-                        className="mt-1 min-h-[90px] text-sm"
+                        className="mt-1 min-h-24 text-sm"
                       />
                     </div>
                   </div>
@@ -924,8 +924,9 @@ export default function Evaluations() {
                               <button
                                 type="button"
                                 onClick={() => toggleExpanded(e.id)}
-                                className="text-muted-foreground hover:text-foreground"
-                                aria-label="Toggle"
+                                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                aria-label={isOpen ? "Collapse evaluation details" : "Expand evaluation details"}
+                                aria-expanded={isOpen}
                               >
                                 {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                               </button>
@@ -947,7 +948,7 @@ export default function Evaluations() {
                               </div>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0" aria-label="Evaluation actions">
                                     <MoreHorizontal className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
