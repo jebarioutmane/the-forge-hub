@@ -292,7 +292,7 @@ export default function SystemProfiles() {
       />
 
       {profilesLoading ? (
-        <SkeletonBlocks count={6} className="h-48" wrapperClassName="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" />
+        <SkeletonBlocks count={6} className="h-48" wrapperClassName="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" />
       ) : profilesError ? (
         <QueryErrorState className="border-y" message="Team profiles could not be loaded. Check your connection, then try again." onRetry={() => refetchProfiles()} />
       ) : profiles.length === 0 ? (
@@ -301,7 +301,7 @@ export default function SystemProfiles() {
           <p className="text-sm text-muted-foreground">No team members yet. Profiles are created automatically when users sign up.</p>
         </div>
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {profiles.map((profile) => {
             const isOwn = user?.id === profile.id;
             const canEdit = isOwn || hasEditRights;
@@ -313,11 +313,11 @@ export default function SystemProfiles() {
             return (
               <Card key={profile.id} className={cn("group relative flex flex-col overflow-hidden border-border/60 shadow-elev-sm hover:shadow-elev-md hover:-translate-y-0.5 transition-all duration-300", highlightId === profile.id && "animate-target-flash")}>
                 {/* Header gradient area */}
-                <div className="relative h-24 bg-gradient-to-br from-secondary to-muted flex items-end justify-center">
+                <div className="relative h-24 bg-secondary flex items-end justify-center">
                   <div className="absolute top-3 right-3 h-14 w-14 rounded-full bg-primary/[0.04]" />
                   {/* Avatar overlapping */}
                   <div className="absolute -bottom-7 left-1/2 -translate-x-1/2">
-                    <Avatar className="h-14 w-14 border-[3px] border-card shadow-elev-md">
+                    <Avatar className="h-14 w-14 border-2 border-card">
                       <AvatarImage src={profile.avatar_url || undefined} />
                       <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
                         {initials(profile.full_name)}
@@ -327,8 +327,8 @@ export default function SystemProfiles() {
                 </div>
 
                 {/* Content */}
-                <div className="flex flex-col flex-1 px-5 pt-10 pb-4 text-center">
-                  <h3 className="text-[15px] font-semibold text-foreground leading-tight truncate">
+                <div className="flex flex-col flex-1 px-4 pt-12 pb-4 text-center">
+                  <h3 className="text-card-title font-semibold text-foreground leading-tight truncate">
                     {profile.full_name || "Unnamed"}
                   </h3>
                   {profile.title && (
@@ -344,15 +344,15 @@ export default function SystemProfiles() {
 
                   {/* Badges row */}
                   <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2.5">
-                    <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 h-5 gap-1 font-medium", roleBadge.className)}>
+                    <Badge variant="outline" className={cn("text-xs px-1.5 py-0 h-5 gap-1 font-medium", roleBadge.className)}>
                       <RoleIcon className="h-2.5 w-2.5" />
                       {roleBadge.label}
                     </Badge>
                     {isOwn && (
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5">You</Badge>
+                      <Badge variant="outline" className="text-xs px-1.5 py-0 h-5">You</Badge>
                     )}
                     {profile.status && profile.status !== "Active" && (
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 bg-accent text-accent-foreground border-border">
+                      <Badge variant="outline" className="text-xs px-1.5 py-0 h-5 bg-accent text-accent-foreground border-border">
                         {profile.status}
                       </Badge>
                     )}
@@ -362,7 +362,7 @@ export default function SystemProfiles() {
                   {tags.length > 0 && (
                     <div className="flex flex-wrap items-center justify-center gap-1 mt-2.5">
                       {tags.map((t) => (
-                        <span key={t} className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium bg-secondary text-muted-foreground">
+                        <span key={t} className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-secondary text-muted-foreground">
                           {t}
                         </span>
                       ))}
@@ -388,7 +388,7 @@ export default function SystemProfiles() {
                         value={profile.role || "user"}
                         onValueChange={(val) => roleMutation.mutate({ profileId: profile.id, role: val })}
                       >
-                        <SelectTrigger className="h-7 text-[11px]">
+                        <SelectTrigger className="h-8 text-xs">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -529,7 +529,7 @@ export default function SystemProfiles() {
                 onChange={(e) => setForm((f) => ({ ...f, status_note: e.target.value }))}
                 rows={2}
                 placeholder="Details about status..."
-                className="min-h-[60px]"
+                className="min-h-16"
               />
             </div>
 
@@ -545,7 +545,7 @@ export default function SystemProfiles() {
                       : "Select countries..."}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[320px] p-0 pointer-events-auto" align="start">
+                <PopoverContent className="w-80 p-0 pointer-events-auto" align="start">
                   <div className="p-2 border-b border-border">
                     <Input
                       value={natSearch}
@@ -554,7 +554,7 @@ export default function SystemProfiles() {
                       className="h-8 text-sm"
                     />
                   </div>
-                  <ScrollArea className="h-[250px]">
+                  <ScrollArea className="h-64">
                     <div className="p-1">
                       {filteredCountries.map((country) => {
                         const selected = form.nationalities.includes(country);
@@ -630,7 +630,7 @@ export default function SystemProfiles() {
             <div className="space-y-2 sm:col-span-2">
               <div className="flex items-center justify-between">
                 <Label className="text-xs">Links</Label>
-                <Button type="button" variant="outline" size="sm" onClick={addLink} className="h-6 text-[11px] gap-1">
+                <Button type="button" variant="outline" size="sm" onClick={addLink} className="h-8 text-xs gap-1">
                   <Plus className="h-3 w-3" /> Add Link
                 </Button>
               </div>
@@ -648,7 +648,7 @@ export default function SystemProfiles() {
                     placeholder="https://..."
                     className="flex-1"
                   />
-                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-destructive" onClick={() => removeLink(idx)}>
+                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-destructive" onClick={() => removeLink(idx)} aria-label="Remove link">
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
@@ -678,13 +678,13 @@ function ViewProfileContent({ profile, initials }: { profile: Profile; initials:
   const roleBadge = getRoleBadgeStatic(profile.role);
 
   const statusColor = profile.status === "Active"
-    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+    ? "bg-status-ontrack/10 text-status-ontrack border-status-ontrack/20"
     : profile.status === "Inactive"
     ? "bg-muted text-muted-foreground border-border"
-    : "bg-amber-500/10 text-amber-600 border-amber-500/20";
+    : "bg-status-watch/10 text-status-watch border-status-watch/20";
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Avatar className="h-16 w-16 border-2 border-border shadow-elev-sm">
@@ -697,11 +697,11 @@ function ViewProfileContent({ profile, initials }: { profile: Profile; initials:
           <p className="text-lg font-semibold leading-tight">{profile.full_name || "Unnamed"}</p>
           {profile.title && <p className="text-sm text-muted-foreground">{profile.title}</p>}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <Badge variant="outline" className={cn("text-[10px] font-medium", roleBadge.className)}>
+            <Badge variant="outline" className={cn("text-xs font-medium", roleBadge.className)}>
               {roleBadge.label}
             </Badge>
             {profile.status && (
-              <Badge variant="outline" className={cn("text-[10px] font-medium", statusColor)}>
+              <Badge variant="outline" className={cn("text-xs font-medium", statusColor)}>
                 {profile.status}
               </Badge>
             )}
@@ -711,7 +711,7 @@ function ViewProfileContent({ profile, initials }: { profile: Profile; initials:
 
       {/* Status details */}
       {(profile.status === "On leave" && profile.status_until) && (
-        <div className="rounded-lg bg-amber-50 border border-amber-200/50 px-3 py-2 text-sm text-amber-700">
+        <div className="rounded-lg bg-status-watch/10 border border-status-watch/20 px-3 py-2 text-sm text-status-watch">
           On leave until <span className="font-medium">{format(new Date(profile.status_until), "PPP")}</span>
         </div>
       )}
@@ -723,7 +723,7 @@ function ViewProfileContent({ profile, initials }: { profile: Profile; initials:
 
       {/* Contact Info */}
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Contact</p>
+        <p className="text-xs font-medium text-muted-foreground mb-2">Contact</p>
         <div className="grid grid-cols-2 gap-x-6 gap-y-2">
           <DetailRow label="Email" value={profile.email} icon={<Mail className="h-3 w-3" />} />
           <DetailRow label="Phone" value={mask(profile.phone)} icon={<Phone className="h-3 w-3" />} />
@@ -732,7 +732,7 @@ function ViewProfileContent({ profile, initials }: { profile: Profile; initials:
 
       {/* HR Data */}
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">HR Details</p>
+        <p className="text-xs font-medium text-muted-foreground mb-2">HR details</p>
         <div className="grid grid-cols-2 gap-x-6 gap-y-2">
           <DetailRow label="CIN Number" value={mask(profile.cin_number)} />
           <DetailRow label="Passport" value={mask(profile.passport_number)} />
@@ -744,7 +744,7 @@ function ViewProfileContent({ profile, initials }: { profile: Profile; initials:
       {/* Nationalities */}
       {nationalities.length > 0 && (
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Nationalities</p>
+          <p className="text-xs font-medium text-muted-foreground mb-2">Nationalities</p>
           <div className="flex flex-wrap gap-1.5">
             {nationalities.map((n) => (
               <Badge key={n} variant="secondary" className="text-xs gap-1">
@@ -758,7 +758,7 @@ function ViewProfileContent({ profile, initials }: { profile: Profile; initials:
       {/* Tags */}
       {tags.length > 0 && (
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Tags</p>
+          <p className="text-xs font-medium text-muted-foreground mb-2">Tags</p>
           <div className="flex flex-wrap gap-1.5">
             {tags.map((t) => (
               <span key={t} className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium bg-secondary text-muted-foreground">
@@ -772,7 +772,7 @@ function ViewProfileContent({ profile, initials }: { profile: Profile; initials:
       {/* Bio */}
       {profile.description && (
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Bio</p>
+          <p className="text-xs font-medium text-muted-foreground mb-2">Bio</p>
           <p className="text-sm leading-relaxed">{profile.description}</p>
         </div>
       )}
@@ -780,7 +780,7 @@ function ViewProfileContent({ profile, initials }: { profile: Profile; initials:
       {/* Links */}
       {links.length > 0 && (
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">Links</p>
+          <p className="text-xs font-medium text-muted-foreground mb-2">Links</p>
           <div className="space-y-1.5">
             {links.map((l, i) => (
               <a
@@ -805,7 +805,7 @@ function DetailRow({ label, value, icon }: { label: string; value: string | null
   if (!value) return null;
   return (
     <div>
-      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
       <p className="text-sm truncate flex items-center gap-1.5">
         {icon && <span className="text-muted-foreground">{icon}</span>}
         {value}
@@ -856,7 +856,7 @@ function RoleAssignmentBlock({
             onAssignRole(val);
           }}
         >
-          <SelectTrigger className="h-7 text-[11px]">
+          <SelectTrigger className="h-8 text-xs">
             <SelectValue placeholder="Assign role" />
           </SelectTrigger>
           <SelectContent>
@@ -872,7 +872,7 @@ function RoleAssignmentBlock({
 
       {currentRole?.cohort_scoped && (
         <div className="space-y-1">
-          <p className="text-[10px] uppercase tracking-wider text-muted-foreground text-left">Cohort scope</p>
+          <p className="text-xs text-muted-foreground text-left">Cohort scope</p>
           <div className="flex flex-wrap gap-1">
             {cohorts.map((c) => {
               const on = scoped.includes(c.id);
@@ -884,7 +884,7 @@ function RoleAssignmentBlock({
                     onScopeChange(on ? scoped.filter((x) => x !== c.id) : [...scoped, c.id])
                   }
                   className={cn(
-                    "px-2 py-0.5 rounded-md text-[10px] border transition-colors",
+                    "px-2 py-0.5 rounded-md text-xs border transition-colors",
                     on
                       ? "bg-primary text-primary-foreground border-primary"
                       : "bg-secondary text-muted-foreground border-border hover:bg-accent"
@@ -895,7 +895,7 @@ function RoleAssignmentBlock({
               );
             })}
             {cohorts.length === 0 && (
-              <span className="text-[10px] text-muted-foreground">No cohorts</span>
+              <span className="text-xs text-muted-foreground">No cohorts</span>
             )}
           </div>
         </div>
