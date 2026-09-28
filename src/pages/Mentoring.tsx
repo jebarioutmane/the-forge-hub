@@ -1,3 +1,4 @@
+import { QueryErrorState, QueryErrorRow, SkeletonTableRows, SkeletonBlocks } from "@/components/QueryStates";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,7 +56,7 @@ export default function Mentoring() {
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm(f => ({ ...f, [k]: v }));
 
   // Data fetching
-  const { data: sessions = [], isLoading } = useQuery({
+  const { data: sessions = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["mentoring_sessions"],
     queryFn: async () => {
       const { data, error } = await supabase.from("mentoring_sessions").select("*").order("created_at", { ascending: false });
@@ -193,7 +194,9 @@ export default function Mentoring() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
+                <SkeletonTableRows columns={5} rows={8} />
+              ) : isError ? (
+                <QueryErrorRow colSpan={5} message="Mentoring sessions could not be loaded. Check your connection, then try again." onRetry={() => refetch()} />
               ) : sessions.length === 0 ? (
                 <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">No sessions yet</TableCell></TableRow>
               ) : sessions.map(s => {

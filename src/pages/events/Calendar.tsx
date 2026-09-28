@@ -1,3 +1,5 @@
+import { QueryErrorState, QueryErrorRow, SkeletonTableRows, SkeletonBlocks } from "@/components/QueryStates";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
@@ -89,7 +91,7 @@ export default function Calendar() {
   }, []);
 
 
-  const { data: rawEvents = [], isLoading } = useQuery({
+  const { data: rawEvents = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["events", showArchived],
     queryFn: async () => {
       const { data, error } = await supabase.from("events")
@@ -263,7 +265,13 @@ export default function Calendar() {
       )}
 
       {isLoading ? (
-        <Card className="p-12 text-center text-sm text-muted-foreground">Loading…</Card>
+        <Card className="p-4" aria-busy="true">
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: 35 }).map((_, i) => <Skeleton key={i} className="min-h-[110px] w-full" />)}
+          </div>
+        </Card>
+      ) : isError ? (
+        <QueryErrorState className="border-y" message="The events calendar could not be loaded. Check your connection, then try again." onRetry={() => refetch()} />
       ) : !showArchived && view === "month" ? (
         <Card className="p-4 bg-white/70 backdrop-blur-xl border-border/60 shadow-elev-sm">
           <div className="grid grid-cols-7 gap-1 mb-1">

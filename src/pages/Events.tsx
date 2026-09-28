@@ -1,3 +1,4 @@
+import { QueryErrorState, QueryErrorRow, SkeletonTableRows, SkeletonBlocks } from "@/components/QueryStates";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,7 +40,7 @@ export default function Events() {
   const [form, setForm] = useState({ name: "", start_date: "", end_date: "", status: "Planning", needs: [] as string[], tag_ids: [] as string[] });
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
-  const { data: events = [], isLoading } = useQuery({
+  const { data: events = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["events"],
     queryFn: async () => {
       const { data, error } = await supabase.from("events").select("*, profiles!events_created_by_fkey(full_name, avatar_url)").order("start_date");
@@ -189,7 +190,9 @@ export default function Events() {
           <CardHeader><CardTitle className="text-lg">Timeline</CardTitle></CardHeader>
           <CardContent>
             {isLoading ? (
-              <p className="text-muted-foreground text-sm text-center py-8">Loading...</p>
+              <SkeletonBlocks count={6} className="h-6" />
+            ) : isError ? (
+              <QueryErrorState message="The event timeline could not be loaded. Check your connection, then try again." onRetry={() => refetch()} />
             ) : !gantt ? (
               <p className="text-muted-foreground text-sm text-center py-8">No events with dates yet.</p>
             ) : (
