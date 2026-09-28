@@ -58,6 +58,8 @@ import { formatUrl } from "@/lib/formatUrl";
 import { useCohort, ALL_COHORTS } from "@/contexts/CohortContext";
 import type { Tables } from "@/integrations/supabase/types";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AlertCircle } from "lucide-react";
 import { PageContainer } from "@/components/PageContainer";
 import { PageHeader } from "@/components/PageHeader";
 
@@ -73,10 +75,10 @@ const AREAS = [
 ] as const;
 
 const EFFORT_OPTIONS = [
-  { value: "strong", label: "Strong", dot: "bg-emerald-500", badge: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  { value: "steady", label: "Steady", dot: "bg-sky-500", badge: "bg-sky-50 text-sky-700 border-sky-200" },
-  { value: "coasting", label: "Coasting", dot: "bg-amber-500", badge: "bg-amber-50 text-amber-700 border-amber-200" },
-  { value: "at_risk", label: "At Risk", dot: "bg-rose-500", badge: "bg-rose-50 text-rose-700 border-rose-200" },
+  { value: "strong", label: "Strong", dot: "bg-status-ontrack", badge: "bg-status-ontrack/10 text-status-ontrack border-status-ontrack/20" },
+  { value: "steady", label: "Steady", dot: "bg-primary", badge: "bg-primary/10 text-primary border-primary/20" },
+  { value: "coasting", label: "Coasting", dot: "bg-status-watch", badge: "bg-status-watch/10 text-status-watch border-status-watch/20" },
+  { value: "at_risk", label: "At risk", dot: "bg-status-atrisk", badge: "bg-status-atrisk/10 text-status-atrisk border-status-atrisk/20" },
 ] as const;
 
 type LinkItem = { title: string; url: string };
@@ -110,9 +112,9 @@ const emptyCheckin = (): CheckinForm => ({
 
 function effortBadge(value: string | null | undefined) {
   const opt = EFFORT_OPTIONS.find((o) => o.value === value);
-  if (!opt) return <span className="text-[11px] text-muted-foreground">—</span>;
+  if (!opt) return <span className="text-xs text-muted-foreground">—</span>;
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10.5px] font-medium", opt.badge)}>
+    <span className={cn("inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 text-xs font-medium", opt.badge)}>
       <span className={cn("h-1.5 w-1.5 rounded-full", opt.dot)} />
       {opt.label}
     </span>
@@ -145,8 +147,8 @@ function TrendArrow({ latest, previous }: { latest: number | null; previous: num
   const diff = latest - previous;
   if (Math.abs(diff) < 0.15) return <Minus className="h-3.5 w-3.5 text-muted-foreground" />;
   return diff > 0
-    ? <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />
-    : <TrendingDown className="h-3.5 w-3.5 text-rose-600" />;
+    ? <TrendingUp className="h-3.5 w-3.5 text-status-ontrack" />
+    : <TrendingDown className="h-3.5 w-3.5 text-status-atrisk" />;
 }
 
 function LinksEditor({ links, onChange }: { links: LinkItem[]; onChange: (v: LinkItem[]) => void }) {
@@ -169,7 +171,7 @@ function LinksEditor({ links, onChange }: { links: LinkItem[]; onChange: (v: Lin
           <button
             type="button"
             onClick={() => onChange(links.filter((_, j) => j !== i))}
-            className="text-muted-foreground hover:text-destructive"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm text-muted-foreground hover:bg-secondary hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             aria-label="Remove link"
           >
             <X className="h-3.5 w-3.5" />
@@ -201,9 +203,10 @@ export default function Tracking() {
   const [viewingCheckin, setViewingCheckin] = useState<Checkin | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [dateTouched, setDateTouched] = useState(false);
 
   // Founders in selected cohort
-  const { data: founders = [], isLoading: foundersLoading } = useQuery({
+  const { data: founders = [], isLoading: foundersLoading, isError: foundersError, refetch: refetchFounders } = useQuery({
     queryKey: ["tracking-founders", selectedCohortId],
     queryFn: async () => {
       let q = supabase
@@ -286,7 +289,7 @@ export default function Tracking() {
   );
 
   // Full check-in timeline for the selected founder
-  const { data: timeline = [], isLoading: timelineLoading } = useQuery({
+  const { data: timeline = [], isLoading: timelineLoading, isError: timelineError, refetch: refetchTimeline } = useQuery({
     queryKey: ["tracking-timeline", selectedFounderId, showArchived],
     enabled: !!selectedFounderId,
     queryFn: async () => {
@@ -315,6 +318,7 @@ export default function Tracking() {
   useEffect(() => {
     setEditingId(null);
     setForm(emptyCheckin());
+    setDateTouched(false);
     setExpanded(new Set());
   }, [selectedFounderId]);
 
@@ -431,14 +435,14 @@ export default function Tracking() {
       <PageHeader
           title="Progress tracker"
           description={`Weekly and 1:1 check-ins for ${selectedCohortLabel}. Track movement, not absolutes.`}
-          className="mb-6"
+          
         />
 
         {/* Workspace */}
-        <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left: founder list */}
-          <div className="rounded-lg border border-black/5 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-            <div className="border-b border-black/5 p-4">
+          <div className="rounded-lg border border-border bg-card lg:col-span-4 self-start">
+            <div className="border-b border-border p-4">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -448,7 +452,7 @@ export default function Tracking() {
                   className="h-9 pl-8 text-sm"
                 />
               </div>
-              <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+              <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
                 <span>{filteredFounders.length} founders</span>
                 <span className="inline-flex items-center gap-1">
                   <UsersIcon className="h-3 w-3" /> {selectedCohortLabel}
@@ -458,19 +462,37 @@ export default function Tracking() {
 
             <div className="max-h-[calc(100vh-260px)] overflow-y-auto">
               {foundersLoading ? (
-                <div className="p-6 space-y-3">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="h-14 rounded-lg bg-black/[0.03] animate-pulse" />
+                <ul className="divide-y divide-border" aria-busy="true" aria-label="Loading founders">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <li key={i} className="flex items-start gap-3 px-4 py-2">
+                      <Skeleton className="h-9 w-9 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-3 w-2/3" />
+                        <Skeleton className="h-3 w-1/3" />
+                        <Skeleton className="h-4 w-1/4" />
+                      </div>
+                    </li>
                   ))}
+                </ul>
+              ) : foundersError ? (
+                <div className="empty-state" role="alert">
+                  <AlertCircle />
+                  <p>Founders could not be loaded. Check your connection, then try again.</p>
+                  <Button variant="outline" size="sm" onClick={() => refetchFounders()}>Try again</Button>
+                </div>
+              ) : founders.length === 0 ? (
+                <div className="empty-state">
+                  <UsersIcon />
+                  <p>No founders in this cohort. Switch cohorts from the selector in the top bar.</p>
                 </div>
               ) : filteredFounders.length === 0 ? (
-                <div className="p-10 text-center">
-                  <UsersIcon className="mx-auto h-6 w-6 text-muted-foreground/50" />
-                  <p className="mt-3 text-sm font-medium text-[#1D1D1F]">No founders in this cohort</p>
-                  <p className="mt-1 text-xs text-muted-foreground">Switch cohorts from the header selector.</p>
+                <div className="empty-state">
+                  <Search />
+                  <p>No founders match this search.</p>
+                  <Button variant="outline" size="sm" onClick={() => setQuery("")}>Clear search</Button>
                 </div>
               ) : (
-                <ul className="divide-y divide-black/5">
+                <ul className="divide-y divide-border">
                   {filteredFounders.map((f) => {
                     const s = summaries.get(f.id);
                     const latest = s?.latest;
@@ -481,27 +503,27 @@ export default function Tracking() {
                           type="button"
                           onClick={() => setSelectedFounderId(f.id)}
                           className={cn(
-                            "w-full text-left px-4 py-3 transition-colors",
-                            isActive ? "bg-[#0071E3]/[0.06]" : "hover:bg-black/[0.02]",
+                            "w-full text-left px-4 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                            isActive ? "bg-secondary shadow-[inset_2px_0_0_hsl(var(--primary))]" : "interactive-row",
                           )}
                         >
                           <div className="flex items-start gap-3">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1D1D1F] text-[11px] font-medium text-white">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border bg-muted text-xs font-medium text-muted-foreground">
                               {initials(f.founder_name || f.startup_name)}
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center justify-between gap-2">
-                                <p className="truncate text-[13.5px] font-medium text-[#1D1D1F]">
+                                <p className="truncate text-sm font-medium text-foreground">
                                   {f.startup_name || "Untitled startup"}
                                 </p>
                                 <TrendArrow latest={s?.latestOverall ?? null} previous={s?.prevOverall ?? null} />
                               </div>
-                              <p className="truncate text-[12px] text-muted-foreground">
+                              <p className="truncate text-xs text-muted-foreground">
                                 {f.founder_name || "—"}
                               </p>
                               <div className="mt-2 flex items-center justify-between gap-2">
                                 {effortBadge(latest?.effort_signal)}
-                                <span className="text-[11px] text-muted-foreground">
+                                <span className="text-xs text-muted-foreground">
                                   {latest ? format(parseISO(latest.checkin_date), "MMM d") : "No check-ins"}
                                 </span>
                               </div>
@@ -517,37 +539,36 @@ export default function Tracking() {
           </div>
 
           {/* Right: workspace */}
-          <div className="space-y-6">
+          <div className="space-y-6 lg:col-span-8">
             {!selectedFounder ? (
-              <div className="rounded-lg border border-dashed border-black/10 bg-white p-16 text-center">
-                <Activity className="mx-auto h-6 w-6 text-muted-foreground/50" />
-                <p className="mt-3 text-sm font-medium text-[#1D1D1F]">Pick a founder to log a check-in</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Select someone from the list to start.
-                </p>
+              <div className="rounded-lg border bg-card">
+                <div className="empty-state">
+                  <Activity />
+                  <p>Select a founder from the list to log a check-in.</p>
+                </div>
               </div>
             ) : (
               <>
                 {/* Founder header */}
-                <div className="rounded-lg border border-black/5 bg-white p-6 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="rounded-lg border border-border bg-card p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1D1D1F] text-sm font-medium text-white">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full border bg-muted text-sm font-medium text-muted-foreground">
                         {initials(selectedFounder.founder_name || selectedFounder.startup_name)}
                       </div>
                       <div>
-                        <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Founder</p>
-                        <h2 className="text-[20px] font-semibold text-[#1D1D1F] leading-tight">
+                        <p className="text-xs font-medium text-muted-foreground">Founder</p>
+                        <h2 className="text-foreground">
                           {selectedFounder.startup_name || "Untitled startup"}
                         </h2>
                         <p className="text-sm text-muted-foreground">{selectedFounder.founder_name || "—"}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                      <p className="text-xs font-medium text-muted-foreground">
                         Previous overall
                       </p>
-                      <p className="mt-1 text-[22px] font-semibold tabular-nums text-[#1D1D1F]">
+                      <p className="mt-1 stat-figure text-3xl">
                         {previousCheckin && overallOf(previousCheckin) != null
                           ? overallOf(previousCheckin)!.toFixed(1)
                           : "—"}
@@ -558,10 +579,10 @@ export default function Tracking() {
                 </div>
 
                 {/* Check-in form */}
-                <div className="rounded-lg border border-black/5 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-                  <div className="flex items-center justify-between border-b border-black/5 p-6">
+                <div className="rounded-lg border border-border bg-card">
+                  <div className="flex items-center justify-between border-b border-border p-4">
                     <div>
-                      <h3 className="text-[15px] font-semibold text-[#1D1D1F]">
+                      <h3 className="text-foreground">
                         {editingId ? "Edit check-in" : "New check-in"}
                       </h3>
                       <p className="text-xs text-muted-foreground">
@@ -575,11 +596,11 @@ export default function Tracking() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
                     <div>
-                      <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Type</Label>
+                      <Label htmlFor="checkin-type" className="text-xs font-medium text-muted-foreground">Type</Label>
                       <Select value={form.checkin_type} onValueChange={(v) => setForm({ ...form, checkin_type: v as any })}>
-                        <SelectTrigger className="mt-1.5 h-9"><SelectValue /></SelectTrigger>
+                        <SelectTrigger id="checkin-type" className="mt-2 h-9"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="weekly">Weekly</SelectItem>
                           <SelectItem value="one_on_one">1:1</SelectItem>
@@ -587,18 +608,26 @@ export default function Tracking() {
                       </Select>
                     </div>
                     <div>
-                      <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Date</Label>
+                      <Label htmlFor="checkin-date" className="text-xs font-medium text-muted-foreground">Date (required)</Label>
                       <Input
+                        id="checkin-date"
+                        name="checkin_date"
                         type="date"
                         value={form.checkin_date}
+                        onBlur={() => setDateTouched(true)}
+                        aria-invalid={dateTouched && !form.checkin_date}
+                        aria-describedby="checkin-date-error"
                         onChange={(e) => setForm({ ...form, checkin_date: e.target.value })}
-                        className="mt-1.5 h-9"
+                        className="mt-2 h-9"
                       />
+                      {dateTouched && !form.checkin_date && (
+                        <p id="checkin-date-error" className="mt-1 text-xs text-destructive">Choose the date of the check-in.</p>
+                      )}
                     </div>
                     <div>
-                      <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Effort signal</Label>
+                      <Label htmlFor="checkin-effort" className="text-xs font-medium text-muted-foreground">Effort signal</Label>
                       <Select value={form.effort_signal} onValueChange={(v) => setForm({ ...form, effort_signal: v })}>
-                        <SelectTrigger className="mt-1.5 h-9"><SelectValue /></SelectTrigger>
+                        <SelectTrigger id="checkin-effort" className="mt-2 h-9"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {EFFORT_OPTIONS.map((o) => (
                             <SelectItem key={o.value} value={o.value}>
@@ -613,32 +642,33 @@ export default function Tracking() {
                     </div>
                   </div>
 
-                  <div className="border-t border-black/5 p-6 space-y-5">
+                  <div className="border-t border-border p-4 space-y-4">
+                    <h4 className="text-foreground">Ratings</h4>
                     {AREAS.map((a) => {
                       const key = `${a.key}_rating` as keyof CheckinForm;
                       const noteKey = `${a.key}_note` as keyof CheckinForm;
                       const prev = previousCheckin?.[`${a.key}_rating` as keyof Checkin] as number | null | undefined;
                       const value = form[key] as number;
                       return (
-                        <div key={a.key} className="grid grid-cols-1 md:grid-cols-[160px_1fr] gap-4 items-start">
+                        <div key={a.key} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
                           <div>
-                            <div className="text-sm font-medium text-[#1D1D1F]">{a.label}</div>
-                            <div className="mt-0.5 text-[11px] text-muted-foreground">
-                              last: {prev ? `${prev}/5` : "—"}
+                            <div className="text-sm font-medium text-foreground">{a.label}</div>
+                            <div className="mt-1 text-xs tabular-nums text-muted-foreground">
+                              Last: {prev ? `${prev}/5` : "—"}
                             </div>
                           </div>
-                          <div className="space-y-2">
+                          <div className="space-y-2 md:col-span-3">
                             <div className="flex items-center gap-3">
                               <StarRating value={value} onChange={(v) => setForm({ ...form, [key]: v } as any)} size={18} />
-                              <span className="text-[12px] tabular-nums text-muted-foreground">
-                                {value ? `${value}/5` : "unrated"}
+                              <span className="w-14 text-right text-xs tabular-nums text-muted-foreground">
+                                {value ? `${value}/5` : "Unrated"}
                               </span>
                             </div>
                             <Textarea
                               placeholder={`Notes on ${a.label.toLowerCase()}…`}
                               value={form[noteKey] as string}
                               onChange={(e) => setForm({ ...form, [noteKey]: e.target.value } as any)}
-                              className="min-h-[60px] text-sm"
+                              className="min-h-16 text-sm"
                             />
                           </div>
                         </div>
@@ -646,37 +676,40 @@ export default function Tracking() {
                     })}
                   </div>
 
-                  <div className="border-t border-black/5 p-6 space-y-4">
+                  <div className="border-t border-border p-4 space-y-4">
+                    <h4 className="text-foreground">Notes and links</h4>
                     <div>
-                      <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Overall notes</Label>
+                      <Label htmlFor="checkin-notes" className="text-xs font-medium text-muted-foreground">Overall notes</Label>
                       <Textarea
+                        id="checkin-notes"
+                        name="notes"
                         value={form.notes}
                         onChange={(e) => setForm({ ...form, notes: e.target.value })}
                         placeholder="What's the headline this week? What changed?"
-                        className="mt-1.5 min-h-[80px] text-sm"
+                        className="mt-2 min-h-20 text-sm"
                       />
                     </div>
                     <div>
-                      <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Links</Label>
-                      <div className="mt-1.5">
+                      <Label className="text-xs font-medium text-muted-foreground">Links</Label>
+                      <div className="mt-2">
                         <LinksEditor links={form.links} onChange={(v) => setForm({ ...form, links: v })} />
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-end gap-2 border-t border-black/5 p-4">
+                  <div className="flex items-center justify-end gap-2 border-t border-border p-4">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => { setForm(emptyCheckin()); setEditingId(null); }}
                     >
-                      Reset
+                      Clear form
                     </Button>
                     <Button
                       size="sm"
                       onClick={() => saveMutation.mutate()}
-                      disabled={saveMutation.isPending}
-                      className="bg-[#0071E3] hover:bg-[#0071E3]/90 text-white"
+                      disabled={saveMutation.isPending || !form.checkin_date}
+                      
                     >
                       <Plus className="h-3.5 w-3.5 mr-1.5" />
                       {editingId ? "Save changes" : "Log check-in"}
@@ -685,10 +718,10 @@ export default function Tracking() {
                 </div>
 
                 {/* Timeline */}
-                <div className="rounded-lg border border-black/5 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-                  <div className="flex items-center justify-between border-b border-black/5 p-6">
+                <div className="rounded-lg border border-border bg-card">
+                  <div className="flex items-center justify-between border-b border-border p-4">
                     <div>
-                      <h3 className="text-[15px] font-semibold text-[#1D1D1F]">
+                      <h3 className="text-foreground">
                         {showArchived ? "Archived check-ins" : "History"}
                       </h3>
                       <p className="text-xs text-muted-foreground">
@@ -698,10 +731,10 @@ export default function Tracking() {
                       </p>
                     </div>
                     <Button
-                      variant={showArchived ? "default" : "outline"}
+                      variant={showArchived ? "secondary" : "outline"}
                       size="sm"
                       onClick={() => setShowArchived((v) => !v)}
-                      className={cn("h-8 text-xs", showArchived && "bg-[#1D1D1F] hover:bg-[#1D1D1F]/90 text-white")}
+                      className="h-8 text-xs"
                     >
                       <Archive className="h-3.5 w-3.5 mr-1.5" />
                       {showArchived ? "Viewing archived" : "Show archived"}
@@ -710,33 +743,40 @@ export default function Tracking() {
 
 
                   {timelineLoading ? (
-                    <div className="p-6 space-y-3">
-                      {Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} className="h-14 rounded-lg bg-black/[0.03] animate-pulse" />
+                    <ul className="divide-y divide-border" aria-busy="true" aria-label="Loading check-ins">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <li key={i} className="flex h-12 items-center gap-3 px-4">
+                          <Skeleton className="h-3 w-24" />
+                          <Skeleton className="h-4 w-12" />
+                          <Skeleton className="h-4 w-16" />
+                          <Skeleton className="ml-auto h-3 w-8" />
+                        </li>
                       ))}
+                    </ul>
+                  ) : timelineError ? (
+                    <div className="empty-state" role="alert">
+                      <AlertCircle />
+                      <p>Check-in history could not be loaded. Check your connection, then try again.</p>
+                      <Button variant="outline" size="sm" onClick={() => refetchTimeline()}>Try again</Button>
                     </div>
                   ) : timeline.length === 0 ? (
-                    <div className="p-12 text-center">
-                      <FileText className="mx-auto h-6 w-6 text-muted-foreground/50" />
-                      <p className="mt-3 text-sm font-medium text-[#1D1D1F]">
-                        {showArchived ? "No archived check-ins" : "No check-ins yet for this founder"}
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {showArchived ? "Deleted check-ins will appear here." : "Log the first one above."}
-                      </p>
+                    <div className="empty-state">
+                      <FileText />
+                      <p>{showArchived ? "No archived check-ins. Deleted check-ins appear here." : "No check-ins yet for this founder. Log the first one above."}</p>
                     </div>
                   ) : (
-                    <ul className="divide-y divide-black/5">
+                    <ul className="divide-y divide-border">
                       {timeline.map((c) => {
                         const isOpen = expanded.has(c.id);
                         const overall = overallOf(c);
                         return (
                           <li key={c.id}>
-                            <div className="flex items-center gap-3 px-6 py-3">
+                            <div className="interactive-row flex items-center gap-3 px-4 py-1">
                               <button
                                 type="button"
                                 onClick={() => toggleExpanded(c.id)}
-                                className="flex flex-1 items-center gap-3 text-left"
+                                className="flex min-h-10 flex-1 items-center gap-3 rounded-sm text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                aria-expanded={isOpen}
                               >
                                 {isOpen ? (
                                   <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -744,20 +784,20 @@ export default function Tracking() {
                                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                                 )}
                                 <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                                <span className="text-sm font-medium text-[#1D1D1F] tabular-nums">
+                                <span className="text-sm font-medium text-foreground tabular-nums">
                                   {format(parseISO(c.checkin_date), "MMM d, yyyy")}
                                 </span>
-                                <Badge variant="outline" className="text-[10px] font-normal">
+                                <Badge variant="outline" className="text-xs font-normal">
                                   {c.checkin_type === "one_on_one" ? "1:1" : "Weekly"}
                                 </Badge>
                                 {effortBadge(c.effort_signal)}
-                                <span className="ml-auto text-[12px] tabular-nums text-muted-foreground">
+                                <span className="ml-auto w-12 text-right text-xs tabular-nums text-muted-foreground">
                                   {overall != null ? `${overall.toFixed(1)}/5` : "—"}
                                 </span>
                               </button>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Actions for check-in on ${format(parseISO(c.checkin_date), "MMM d, yyyy")}`}>
                                     <MoreHorizontal className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
@@ -786,24 +826,24 @@ export default function Tracking() {
                               </DropdownMenu>
                             </div>
                             {isOpen && (
-                              <div className="bg-black/[0.015] px-6 py-4 border-t border-black/5">
+                              <div className="bg-secondary px-4 py-4 border-t border-border">
                                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                                   {AREAS.map((a) => {
                                     const r = c[`${a.key}_rating` as keyof Checkin] as number | null;
                                     const n = c[`${a.key}_note` as keyof Checkin] as string | null;
                                     return (
-                                      <div key={a.key} className="rounded-lg bg-white p-3 border border-black/5">
-                                        <div className="text-[10.5px] uppercase tracking-wider text-muted-foreground">{a.label}</div>
-                                        <div className="mt-0.5 text-sm font-medium tabular-nums text-[#1D1D1F]">
+                                      <div key={a.key} className="rounded-lg bg-card p-3 border border-border">
+                                        <div className="text-xs font-medium text-muted-foreground">{a.label}</div>
+                                        <div className="mt-0.5 text-sm font-medium tabular-nums text-foreground">
                                           {r ? `${r}/5` : "—"}
                                         </div>
-                                        {n && <div className="mt-1 text-[11.5px] text-muted-foreground leading-relaxed line-clamp-3">{n}</div>}
+                                        {n && <div className="mt-1 text-xs text-muted-foreground leading-relaxed line-clamp-3">{n}</div>}
                                       </div>
                                     );
                                   })}
                                 </div>
                                 {c.notes && (
-                                  <div className="mt-3 rounded-lg border border-black/5 bg-white p-3 text-[13px] text-[#1D1D1F] whitespace-pre-wrap">
+                                  <div className="mt-3 rounded-lg border border-border bg-card p-3 text-sm text-foreground whitespace-pre-wrap">
                                     {c.notes}
                                   </div>
                                 )}
@@ -815,7 +855,7 @@ export default function Tracking() {
                                         href={formatUrl(l.url)}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="inline-flex items-center gap-1.5 rounded-md border border-black/10 bg-white px-2 py-1 text-[11.5px] text-[#0071E3] hover:bg-[#0071E3]/[0.06]"
+                                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-xs text-primary hover:bg-secondary"
                                       >
                                         <ExternalLink className="h-3 w-3" />
                                         {l.title || l.url}
@@ -856,8 +896,8 @@ export default function Tracking() {
                 {AREAS.map((a) => {
                   const r = viewingCheckin[`${a.key}_rating` as keyof Checkin] as number | null;
                   return (
-                    <div key={a.key} className="rounded-lg border border-black/5 p-3">
-                      <div className="text-[10.5px] uppercase tracking-wider text-muted-foreground">{a.label}</div>
+                    <div key={a.key} className="rounded-lg border border-border p-3">
+                      <div className="text-xs font-medium text-muted-foreground">{a.label}</div>
                       <div className="mt-0.5 text-sm font-medium tabular-nums">{r ? `${r}/5` : "—"}</div>
                     </div>
                   );
@@ -868,15 +908,15 @@ export default function Tracking() {
                 if (!n) return null;
                 return (
                   <div key={a.key}>
-                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{a.label} notes</div>
-                    <p className="mt-1 whitespace-pre-wrap text-sm text-[#1D1D1F]">{n}</p>
+                    <div className="text-xs font-medium text-muted-foreground">{a.label} notes</div>
+                    <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{n}</p>
                   </div>
                 );
               })}
               {viewingCheckin.notes && (
                 <div>
-                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Overall</div>
-                  <p className="mt-1 whitespace-pre-wrap text-sm text-[#1D1D1F]">{viewingCheckin.notes}</p>
+                  <div className="text-xs font-medium text-muted-foreground">Overall</div>
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{viewingCheckin.notes}</p>
                 </div>
               )}
               {Array.isArray(viewingCheckin.links) && (viewingCheckin.links as any[]).length > 0 && (
@@ -887,7 +927,7 @@ export default function Tracking() {
                       href={formatUrl(l.url)}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-md border border-black/10 px-2 py-1 text-[11.5px] text-[#0071E3] hover:bg-[#0071E3]/[0.06]"
+                      className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs text-primary hover:bg-secondary"
                     >
                       <ArrowUpRight className="h-3 w-3" /> {l.title || l.url}
                     </a>
