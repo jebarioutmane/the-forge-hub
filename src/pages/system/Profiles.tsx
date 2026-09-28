@@ -311,10 +311,9 @@ export default function SystemProfiles() {
             const tags = (profile.tags as string[]) || [];
 
             return (
-              <Card key={profile.id} className={cn("group relative flex flex-col overflow-hidden border-border/60 shadow-elev-sm hover:shadow-elev-md hover:-translate-y-0.5 transition-all duration-300", highlightId === profile.id && "animate-target-flash")}>
-                {/* Header gradient area */}
+              <Card key={profile.id} className={cn("group relative flex flex-col overflow-hidden border-border shadow-none", highlightId === profile.id && "animate-target-flash")}>
+                {/* Header band */}
                 <div className="relative h-24 bg-secondary flex items-end justify-center">
-                  <div className="absolute top-3 right-3 h-14 w-14 rounded-full bg-primary/[0.04]" />
                   {/* Avatar overlapping */}
                   <div className="absolute -bottom-7 left-1/2 -translate-x-1/2">
                     <Avatar className="h-14 w-14 border-2 border-card">
@@ -328,7 +327,7 @@ export default function SystemProfiles() {
 
                 {/* Content */}
                 <div className="flex flex-col flex-1 px-4 pt-12 pb-4 text-center">
-                  <h3 className="text-card-title font-semibold text-foreground leading-tight truncate">
+                  <h3 className="text-sm font-semibold text-foreground leading-tight truncate">
                     {profile.full_name || "Unnamed"}
                   </h3>
                   {profile.title && (
