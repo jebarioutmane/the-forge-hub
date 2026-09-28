@@ -1,3 +1,4 @@
+import { QueryErrorState, SkeletonBlocks } from "@/components/QueryStates";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,7 +68,7 @@ export default function HistoryLog() {
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
 
-  const { data: logs = [], isLoading } = useQuery({
+  const { data: logs = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["history_logs"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -281,6 +282,22 @@ export default function HistoryLog() {
         </div>
       </div>
 
+      {isLoading ? (
+        <SkeletonBlocks count={12} className="h-10" />
+      ) : isError ? (
+        <QueryErrorState className="border-y" message="The history log could not be loaded. Check your connection, then try again." onRetry={() => refetch()} />
+      ) : filtered.length === 0 && logs.length > 0 ? (
+        <div className="empty-state border-y">
+          <HistoryIcon aria-hidden="true" />
+          <p className="text-sm text-muted-foreground">No entries match these filters.</p>
+          <Button variant="outline" size="sm" onClick={clearFilters}>Clear filters</Button>
+        </div>
+      ) : logs.length === 0 ? (
+        <div className="empty-state border-y">
+          <HistoryIcon aria-hidden="true" />
+          <p className="text-sm text-muted-foreground">No history yet. Changes to records will be logged here.</p>
+        </div>
+      ) : (
       <DataTable
         data={filtered}
         columns={columns}
@@ -299,6 +316,7 @@ export default function HistoryLog() {
           </div>
         )}
       />
+      )}
 
       {/* View Detail Dialog (read-only) */}
       <Dialog open={!!viewLog} onOpenChange={(open) => !open && setViewLog(null)}>

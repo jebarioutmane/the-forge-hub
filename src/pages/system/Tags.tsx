@@ -1,3 +1,4 @@
+import { QueryErrorState, SkeletonBlocks } from "@/components/QueryStates";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,7 +35,7 @@ export default function Tags() {
   const [deleting, setDeleting] = useState<TagRow | null>(null);
   const [form, setForm] = useState<{ name: string; color: string }>({ name: "", color: PRESET_COLORS[0] });
 
-  const { data: tags = [], isLoading } = useQuery({
+  const { data: tags = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["tags"],
     queryFn: async () => {
       const { data, error } = await supabase.from("tags").select("*").order("name");
@@ -156,16 +157,19 @@ export default function Tags() {
 
       <div className="rounded-lg border bg-card">
         {isLoading ? (
-          <div className="flex items-center justify-center py-16 text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin mr-2" /> Loading tags…
+          <SkeletonBlocks count={8} className="h-12" wrapperClassName="space-y-2 p-4" />
+        ) : isError ? (
+          <QueryErrorState message="Tags could not be loaded. Check your connection, then try again." onRetry={() => refetch()} />
+        ) : filtered.length === 0 && search ? (
+          <div className="empty-state">
+            <TagIcon aria-hidden="true" />
+            <p className="text-sm text-muted-foreground">No tags match this search.</p>
+            <Button variant="outline" size="sm" onClick={() => setSearch("")}>Clear search</Button>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <TagIcon className="h-8 w-8 text-muted-foreground/50 mb-3" />
-            <p className="text-sm font-medium">No tags {search ? "match your search" : "yet"}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {search ? "Try a different term." : "Create your first tag to get started."}
-            </p>
+          <div className="empty-state">
+            <TagIcon aria-hidden="true" />
+            <p className="text-sm text-muted-foreground">No tags yet. Create your first tag to get started.</p>
           </div>
         ) : (
           <ul className="divide-y">

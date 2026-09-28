@@ -1,3 +1,4 @@
+import { QueryErrorState, QueryErrorRow, SkeletonTableRows, SkeletonBlocks } from "@/components/QueryStates";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -110,7 +111,7 @@ export default function OperationsTasks() {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   // Queries
-  const { data: tasks = [], isLoading } = useQuery({
+  const { data: tasks = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["tasks", showArchived],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -398,9 +399,11 @@ export default function OperationsTasks() {
 
       {/* Content */}
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading...</p>
+        <SkeletonBlocks count={8} className="h-14" />
+      ) : isError ? (
+        <QueryErrorState className="border-y" message="Tasks could not be loaded. Check your connection, then try again." onRetry={() => refetch()} />
       ) : filtered.length === 0 ? (
-        <EmptyState onAdd={openAdd} archived={showArchived} filtered={hasActiveFilters} />
+        <EmptyState onAdd={openAdd} archived={showArchived} filtered={hasActiveFilters} onClear={clearFilters} />
       ) : view === "kanban" ? (
         <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
           <div className="grid gap-4 md:grid-cols-3">
@@ -629,7 +632,7 @@ function FilterSelect({
   );
 }
 
-function EmptyState({ onAdd, archived, filtered }: { onAdd: () => void; archived: boolean; filtered: boolean }) {
+function EmptyState({ onAdd, archived, filtered, onClear }: { onAdd: () => void; archived: boolean; filtered: boolean; onClear: () => void }) {
   return (
     <Card>
       <CardContent className="flex flex-col items-center justify-center py-16 text-center">
@@ -641,6 +644,9 @@ function EmptyState({ onAdd, archived, filtered }: { onAdd: () => void; archived
               ? "No tasks match these filters."
               : "No tasks yet. Create the first one to get started."}
         </p>
+        {!archived && filtered && (
+          <Button size="sm" variant="outline" onClick={onClear}>Clear filters</Button>
+        )}
         {!archived && !filtered && (
           <Button size="sm" variant="outline" onClick={onAdd}>
             <Plus className="h-4 w-4 mr-2" />New Task

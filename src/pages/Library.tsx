@@ -1,3 +1,5 @@
+import { QueryErrorState, QueryErrorRow, SkeletonTableRows, SkeletonBlocks } from "@/components/QueryStates";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,7 +81,7 @@ export default function Library({ moduleName = "All" }: LibraryProps) {
   const [newCategory, setNewCategory] = useState("");
   const [customCategories, setCustomCategories] = useState<string[]>([]);
 
-  const { data: resources = [], isLoading } = useQuery({
+  const { data: resources = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["resource_library", "all"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -280,7 +282,17 @@ export default function Library({ moduleName = "All" }: LibraryProps) {
 
       {/* Content */}
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading...</p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-busy="true">
+          {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+        </div>
+      ) : isError ? (
+        <QueryErrorState message="The resource library could not be loaded. Check your connection, then try again." onRetry={() => refetch()} />
+      ) : Object.keys(grouped).length === 0 && resources.length > 0 && (search.trim() !== "" || activeCategory !== "All") ? (
+        <div className="empty-state">
+          <BookOpen aria-hidden="true" />
+          <p className="text-sm text-muted-foreground">No resources match these filters.</p>
+          <Button size="sm" variant="outline" onClick={() => { setSearch(""); setActiveCategory("All"); }}>Clear filters</Button>
+        </div>
       ) : Object.keys(grouped).length === 0 ? (
         <EmptyState
           category={activeCategory}

@@ -1,3 +1,4 @@
+import { QueryErrorState, QueryErrorRow, SkeletonTableRows, SkeletonBlocks } from "@/components/QueryStates";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -195,7 +196,7 @@ export default function Expenses() {
     },
   });
 
-  const { data: expenses = [], isLoading } = useQuery({
+  const { data: expenses = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["expenses", isAllCohorts ? "all" : selectedCohortId, showArchived],
     queryFn: async () => {
       let q = supabase.from("expenses").select("*").order("created_at", { ascending: false });
@@ -430,15 +431,22 @@ export default function Expenses() {
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-12 flex items-center justify-center text-muted-foreground">
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading expenses...
+            <Table><TableBody><SkeletonTableRows columns={11} rows={10} /></TableBody></Table>
+          ) : isError ? (
+            <QueryErrorState message="Expenses could not be loaded. Check your connection, then try again." onRetry={() => refetch()} />
+          ) : filtered.length === 0 && expenses.length > 0 ? (
+            <div className="empty-state">
+              <Receipt aria-hidden="true" />
+              <p className="text-sm text-muted-foreground">No expenses match these filters.</p>
+              <Button variant="outline" size="sm" onClick={clearAllFilters}>Clear filters</Button>
             </div>
           ) : filtered.length === 0 ? (
-            <div className="p-12">
-              <EmptyState
-                title={expenses.length === 0 ? (showArchived ? "No archived expenses" : "No expenses yet") : "No expenses match your filters"}
-                hint={expenses.length === 0 && !showArchived ? "Add your first expense to start tracking spend." : "Try clearing some filters."}
-              />
+            <div className="empty-state">
+              <Receipt aria-hidden="true" />
+              <p className="text-sm text-muted-foreground">{showArchived ? "No archived expenses." : "No expenses yet."}</p>
+              {!showArchived && !isAllCohorts && (
+                <Button size="sm" onClick={openCreate}>Add expense</Button>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">

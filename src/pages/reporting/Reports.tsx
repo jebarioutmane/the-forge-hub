@@ -1,3 +1,4 @@
+import { QueryErrorState, SkeletonBlocks } from "@/components/QueryStates";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
@@ -75,7 +76,7 @@ export default function Reports() {
     period_end: q.end,
   });
 
-  const { data: instances = [], isLoading } = useQuery({
+  const { data: instances = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["report_instances", showArchived],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -224,9 +225,9 @@ export default function Reports() {
       />
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-24 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" />
-        </div>
+        <SkeletonBlocks count={4} className="h-20" wrapperClassName="grid gap-3" />
+      ) : isError ? (
+        <QueryErrorState className="border-y" message="Reports could not be loaded. Check your connection, then try again." onRetry={() => refetch()} />
       ) : instances.length === 0 ? (
         <div className="border border-dashed rounded-lg py-20 text-center">
           <FileSpreadsheet className="h-8 w-8 text-muted-foreground/50 mx-auto mb-3" />
