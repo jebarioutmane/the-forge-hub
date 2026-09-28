@@ -70,6 +70,14 @@ export default {
           watch: "hsl(var(--status-watch))",
           atrisk: "hsl(var(--status-atrisk))",
         },
+        cat: {
+          1: "hsl(var(--cat-1) / <alpha-value>)",
+          2: "hsl(var(--cat-2) / <alpha-value>)",
+          3: "hsl(var(--cat-3) / <alpha-value>)",
+          4: "hsl(var(--cat-4) / <alpha-value>)",
+          5: "hsl(var(--cat-5) / <alpha-value>)",
+          6: "hsl(var(--cat-6) / <alpha-value>)",
+        },
       },
       fontFamily: {
         serif: ["Georgia", "'Times New Roman'", "'Iowan Old Style'", "serif"],

@@ -1107,7 +1107,7 @@ export default function Stipends() {
             if (!rib) return "—";
             return (
               <div className="flex items-center gap-2">
-                <span className="text-sm tabular">{maskRib(rib)}</span>
+                <span className="text-sm font-mono tabular">{maskRib(rib)}</span>
                 <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Copy full RIB" onClick={() => { navigator.clipboard.writeText(rib); toast.success("Full RIB copied"); }}>
                   <Copy className="h-3 w-3" />
                 </Button>
@@ -1152,7 +1152,7 @@ function RibDisplay({ rib, allowed = true }: { rib: string; allowed?: boolean })
   }
   return (
     <div className="flex items-center gap-1">
-      <span className="text-xs tabular truncate max-w-40">{maskRib(rib)}</span>
+      <span className="text-xs font-mono tabular truncate max-w-40">{maskRib(rib)}</span>
       <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" aria-label="Copy full RIB" onClick={() => { navigator.clipboard.writeText(rib); toast.success("Full RIB copied"); }}>
         <Copy className="h-3 w-3" />
       </Button>

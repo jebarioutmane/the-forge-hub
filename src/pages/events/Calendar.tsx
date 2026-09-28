@@ -30,12 +30,12 @@ export type CalendarEvent = Tables<"events"> & { _start: string; _end: string };
 
 const EVENT_TYPES = ["Masterclass", "Mentorship", "Pitch Session", "Networking", "Social", "General"] as const;
 const TYPE_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
-  Masterclass:     { bg: "bg-primary/10", text: "text-primary",    dot: "bg-primary" },
-  Mentorship:      { bg: "bg-primary/10", text: "text-primary",    dot: "bg-primary/75" },
-  "Pitch Session": { bg: "bg-primary/10", text: "text-primary",    dot: "bg-primary/50" },
-  Networking:      { bg: "bg-primary/10", text: "text-primary",    dot: "bg-primary/25" },
-  Social:          { bg: "bg-secondary",  text: "text-foreground", dot: "bg-muted-foreground" },
-  General:         { bg: "bg-secondary",  text: "text-foreground", dot: "bg-muted-foreground/50" },
+  Masterclass:     { bg: "bg-cat-1/10", text: "text-cat-1", dot: "bg-cat-1" },
+  Mentorship:      { bg: "bg-cat-2/10", text: "text-cat-2", dot: "bg-cat-2" },
+  "Pitch Session": { bg: "bg-cat-3/10", text: "text-cat-3", dot: "bg-cat-3" },
+  Networking:      { bg: "bg-cat-4/10", text: "text-cat-4", dot: "bg-cat-4" },
+  Social:          { bg: "bg-cat-5/10", text: "text-cat-5", dot: "bg-cat-5" },
+  General:         { bg: "bg-cat-6/10", text: "text-cat-6", dot: "bg-cat-6" },
 };
 function typeStyle(t?: string | null) { return TYPE_STYLES[t || "General"] || TYPE_STYLES.General; }
 
@@ -175,7 +175,7 @@ export default function Calendar() {
         key={ev.id}
         onClick={() => openEvent(ev.id)}
         className={cn(
-          "w-full text-left rounded px-1 py-1 flex items-center gap-1 text-xs transition-colors hover:bg-primary/20 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          "w-full text-left rounded px-1 py-1 flex items-center gap-1 text-xs transition-colors hover:ring-1 hover:ring-current active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           s.bg, s.text
         )}
       >
