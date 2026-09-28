@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { QueryErrorState, QueryErrorRow, SkeletonTableRows, SkeletonBlocks } from "@/components/QueryStates";
 import { useState, useMemo, useCallback } from "react";
@@ -634,9 +635,9 @@ export default function Stipends() {
 
   const statusBadge = (status: string) => {
     const styles: Record<string, string> = {
-      pending: "bg-orange-100 text-orange-700 border-0",
-      approved: "bg-blue-100 text-blue-700 border-0",
-      paid: "bg-emerald-100 text-emerald-700 border-0",
+      pending: "rounded border-0 px-1.5 py-0 text-xs font-medium bg-status-watch/10 text-status-watch hover:bg-status-watch/20",
+      approved: "rounded border-0 px-1.5 py-0 text-xs font-medium bg-primary/10 text-primary hover:bg-primary/20",
+      paid: "rounded border-0 px-1.5 py-0 text-xs font-medium bg-status-ontrack/10 text-status-ontrack hover:bg-status-ontrack/20",
     };
     return styles[status] || styles.pending;
   };
@@ -664,7 +665,7 @@ export default function Stipends() {
               }}
               disabled={records.filter((r) => !r.is_archived).length === 0}
             >
-              <SelectTrigger className="h-9 w-[150px]"><SelectValue placeholder="Set all to…" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-40"><SelectValue placeholder="Set all to…" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="approved">Approved</SelectItem>
@@ -688,10 +689,10 @@ export default function Stipends() {
       )}
 
       {!cohortLoading && isAllCohorts && (
-        <Card className="border-amber-200 bg-amber-50/50">
+        <Card className="border-status-watch/30 bg-status-watch/10">
           <CardContent className="p-4 flex items-center gap-3">
-            <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
-            <p className="text-sm text-amber-900">
+            <AlertTriangle className="h-4 w-4 text-status-watch shrink-0" />
+            <p className="text-sm text-foreground">
               Stipends are managed per cohort. Pick a specific cohort in the header to view or edit records.
             </p>
           </CardContent>
@@ -768,69 +769,67 @@ export default function Stipends() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <DollarSign className="h-5 w-5 text-primary" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Total Disbursement</p>
-              <p className="text-lg font-bold">{totalDisbursement.toLocaleString()} MAD</p>
+              <p className="text-lg font-bold tabular">{totalDisbursement.toLocaleString()} MAD</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-              <CheckCircle className="h-5 w-5 text-emerald-600" />
+            <div className="h-10 w-10 rounded-lg bg-status-ontrack/10 flex items-center justify-center">
+              <CheckCircle className="h-5 w-5 text-status-ontrack" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Paid</p>
-              <p className="text-lg font-bold">{paidCount}</p>
+              <p className="text-lg font-bold tabular">{paidCount}</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center">
-              <Users className="h-5 w-5 text-blue-600" />
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Users className="h-5 w-5 text-primary" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Approved</p>
-              <p className="text-lg font-bold">{approvedCount}</p>
+              <p className="text-lg font-bold tabular">{approvedCount}</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-orange-100 flex items-center justify-center">
-              <Clock className="h-5 w-5 text-orange-600" />
+            <div className="h-10 w-10 rounded-lg bg-status-watch/10 flex items-center justify-center">
+              <Clock className="h-5 w-5 text-status-watch" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Pending</p>
-              <p className="text-lg font-bold">{pendingCount}</p>
+              <p className="text-lg font-bold tabular">{pendingCount}</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Ledger Table */}
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
+      <div className="border-y border-border overflow-x-auto">
+            <Table className="[&_td]:px-3 [&_td]:py-2 [&_th]:h-9 [&_th]:px-3 [&_th]:text-xs">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[160px]">Founder</TableHead>
-                  <TableHead className="min-w-[180px]">RIB</TableHead>
-                  <TableHead className="text-right min-w-[100px]">Base (MAD)</TableHead>
-                  <TableHead className="text-right min-w-[70px]">Ded %</TableHead>
-                  <TableHead className="text-right min-w-[90px]">Ded Fixed</TableHead>
-                  <TableHead className="text-right min-w-[70px]">Add %</TableHead>
-                  <TableHead className="text-right min-w-[90px]">Add Fixed</TableHead>
-                  <TableHead className="text-right min-w-[90px]">Reimb.</TableHead>
-                  <TableHead className="text-right min-w-[100px] font-bold">Net Total</TableHead>
-                  <TableHead className="min-w-[90px]">Status</TableHead>
-                  <TableHead className="min-w-[120px]">Evidence</TableHead>
-                  <TableHead className="text-right min-w-[60px]">Actions</TableHead>
+                  <TableHead className="min-w-40">Founder</TableHead>
+                  <TableHead className="min-w-48">RIB</TableHead>
+                  <TableHead className="text-right w-24">Base (MAD)</TableHead>
+                  <TableHead className="text-right w-24">Deduction %</TableHead>
+                  <TableHead className="text-right w-24">Deduction fixed</TableHead>
+                  <TableHead className="text-right w-24">Addition %</TableHead>
+                  <TableHead className="text-right w-24">Addition fixed</TableHead>
+                  <TableHead className="text-right w-24">Reimbursement</TableHead>
+                  <TableHead className="text-right w-28 font-semibold">Net total</TableHead>
+                  <TableHead className="w-24">Status</TableHead>
+                  <TableHead className="w-32">Evidence</TableHead>
+                  <TableHead className="text-right w-16"><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -850,7 +849,7 @@ export default function Stipends() {
                     const rib = sensitiveMap?.get(founder.id)?.rib_number || "";
                     if (!rec) {
                       return (
-                        <TableRow key={founder.id} className="bg-muted/30">
+                        <TableRow key={founder.id} className="interactive-row">
                           <TableCell>
                             <div>
                               <p className="font-medium text-sm flex items-center gap-1.5">
@@ -887,12 +886,12 @@ export default function Stipends() {
                     const links = parseLinks(rec.stipend_links);
 
                     return (
-                      <TableRow key={rec.id} className={rec.is_archived ? "opacity-60" : ""}>
+                      <TableRow key={rec.id} className={cn("interactive-row", rec.is_archived && "opacity-60")}>
                         <TableCell>
                           <div>
                             <p className="font-medium text-sm flex items-center gap-1.5">
                               {founder.founder_name}
-                              {rec.is_archived && <Badge variant="outline" className="text-[10px] px-1 py-0">Archived</Badge>}
+                              {rec.is_archived && <Badge variant="outline" className="rounded px-1 py-0 text-xs font-normal">Archived</Badge>}
                               {showRisk && <RiskBadge info={engagementByFounder.get(founder.id)} />}
                             </p>
                             <p className="text-xs text-muted-foreground">{founder.startup_name}</p>
@@ -939,12 +938,16 @@ export default function Stipends() {
                           />
                         </TableCell>
                         <TableCell className="text-right">
-                          <span className="font-bold text-sm">{liveNet.toLocaleString()}</span>
+                          <span className="font-semibold text-sm tabular">{liveNet.toLocaleString()}</span>
                         </TableCell>
                         <TableCell>
                           <Badge
                             className={`cursor-pointer select-none ${statusBadge(rec.status || "pending")}`}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`Change status for ${founder.founder_name}`}
                             onClick={() => toggleStatus(rec)}
+                            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleStatus(rec); } }}
                           >
                             {(rec.status || "pending").charAt(0).toUpperCase() + (rec.status || "pending").slice(1)}
                           </Badge>
@@ -958,7 +961,7 @@ export default function Stipends() {
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button size="icon" variant="ghost" className="h-8 w-8">
+                              <Button size="icon" variant="ghost" className="h-8 w-8" aria-label={`Actions for ${founder.founder_name}`}>
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -985,9 +988,7 @@ export default function Stipends() {
                 )}
               </TableBody>
             </Table>
-          </div>
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={(o) => { if (!o) { setEditOpen(false); setEditRecord(null); } }}>
@@ -1073,7 +1074,7 @@ export default function Stipends() {
               selectedBudgetLineId ? (
                 <p>They will be stamped as Paid now and drawn against budget line <span className="font-medium text-foreground">{budgetLines.find((b: any) => b.id === selectedBudgetLineId)?.name}</span>.</p>
               ) : (
-                <p className="text-orange-600">No budget line selected — records will be marked Paid but won't count against any budget line.</p>
+                <p className="text-status-watch">No budget line selected — records will be marked Paid but won't count against any budget line.</p>
               )
             )}
             {bulkStatusTarget && bulkStatusTarget !== "paid" && (
@@ -1106,8 +1107,8 @@ export default function Stipends() {
             if (!rib) return "—";
             return (
               <div className="flex items-center gap-2">
-                <span className="font-mono text-sm">{maskRib(rib)}</span>
-                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { navigator.clipboard.writeText(rib); toast.success("Full RIB copied"); }}>
+                <span className="text-sm tabular">{maskRib(rib)}</span>
+                <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Copy full RIB" onClick={() => { navigator.clipboard.writeText(rib); toast.success("Full RIB copied"); }}>
                   <Copy className="h-3 w-3" />
                 </Button>
               </div>
@@ -1151,8 +1152,8 @@ function RibDisplay({ rib, allowed = true }: { rib: string; allowed?: boolean })
   }
   return (
     <div className="flex items-center gap-1">
-      <span className="text-xs font-mono truncate max-w-[150px]">{maskRib(rib)}</span>
-      <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0" onClick={() => { navigator.clipboard.writeText(rib); toast.success("Full RIB copied"); }}>
+      <span className="text-xs tabular truncate max-w-40">{maskRib(rib)}</span>
+      <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" aria-label="Copy full RIB" onClick={() => { navigator.clipboard.writeText(rib); toast.success("Full RIB copied"); }}>
         <Copy className="h-3 w-3" />
       </Button>
     </div>
@@ -1189,7 +1190,7 @@ function LinksCell({ links, onUpdate }: { links: StipendLink[]; onUpdate: (links
         <PopoverContent className="w-64 p-3 space-y-2" align="start">
           <Input placeholder="Title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="h-7 text-xs" />
           <Input placeholder="URL" value={newUrl} onChange={(e) => setNewUrl(e.target.value)} className="h-7 text-xs" />
-          <Button size="sm" className="w-full h-7 text-xs" onClick={addLink}>Add Link</Button>
+          <Button size="sm" className="w-full h-7 text-xs" onClick={addLink}>Add link</Button>
         </PopoverContent>
       </Popover>
     );
@@ -1200,24 +1201,24 @@ function LinksCell({ links, onUpdate }: { links: StipendLink[]; onUpdate: (links
       <div className="space-y-1">
         {links.map((l, i) => (
           <div key={i} className="flex items-center gap-1">
-            <a href={formatUrl(l.url)} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate max-w-[80px]">
+            <a href={formatUrl(l.url)} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate max-w-20">
               {l.title || l.url}
             </a>
-            <Button size="icon" variant="ghost" className="h-5 w-5 shrink-0" onClick={() => removeLink(i)}>
-              <Trash2 className="h-2.5 w-2.5 text-destructive" />
+            <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" onClick={() => removeLink(i)} aria-label={`Remove link ${l.title || l.url}`}>
+              <Trash2 className="h-4 w-4 text-destructive" />
             </Button>
           </div>
         ))}
         <Popover open={popOpen} onOpenChange={setPopOpen}>
           <PopoverTrigger asChild>
-            <Button size="sm" variant="ghost" className="h-5 px-1 text-[10px] gap-0.5">
-              <Plus className="h-2.5 w-2.5" />
+            <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Add evidence link">
+              <Plus className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-64 p-3 space-y-2" align="start">
             <Input placeholder="Title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="h-7 text-xs" />
             <Input placeholder="URL" value={newUrl} onChange={(e) => setNewUrl(e.target.value)} className="h-7 text-xs" />
-            <Button size="sm" className="w-full h-7 text-xs" onClick={addLink}>Add Link</Button>
+            <Button size="sm" className="w-full h-7 text-xs" onClick={addLink}>Add link</Button>
           </PopoverContent>
         </Popover>
       </div>
@@ -1233,21 +1234,21 @@ function LinksCell({ links, onUpdate }: { links: StipendLink[]; onUpdate: (links
         </Badge>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-3 space-y-2" align="start">
-        <p className="text-xs font-medium text-muted-foreground mb-1">Evidence Links</p>
+        <p className="text-xs font-medium text-muted-foreground mb-1">Evidence links</p>
         {links.map((l, i) => (
           <div key={i} className="flex items-center gap-2">
             <a href={formatUrl(l.url)} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate flex-1">
               {l.title || l.url}
             </a>
-            <Button size="icon" variant="ghost" className="h-5 w-5 shrink-0" onClick={() => removeLink(i)}>
-              <Trash2 className="h-3 w-3 text-destructive" />
+            <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" onClick={() => removeLink(i)} aria-label={`Remove link ${l.title || l.url}`}>
+              <Trash2 className="h-4 w-4 text-destructive" />
             </Button>
           </div>
         ))}
         <div className="border-t pt-2 space-y-1.5">
           <Input placeholder="Title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} className="h-7 text-xs" />
           <Input placeholder="URL" value={newUrl} onChange={(e) => setNewUrl(e.target.value)} className="h-7 text-xs" />
-          <Button size="sm" className="w-full h-7 text-xs" onClick={addLink}>Add Link</Button>
+          <Button size="sm" className="w-full h-7 text-xs" onClick={addLink}>Add link</Button>
         </div>
       </PopoverContent>
     </Popover>
@@ -1277,19 +1278,19 @@ function InlineInput({ value, onCommit }: { value: number | null; onCommit: (v: 
 /* ── Founder Risk badge (informational only — never auto-applies a deduction) ── */
 function RiskBadge({ info }: { info?: { risk_status: string | null; attendance_rate: number | null } }) {
   if (!info || !info.risk_status) {
-    return <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">no signal</Badge>;
+    return <Badge variant="outline" className="rounded px-1.5 py-0 text-xs font-normal text-muted-foreground">No signal</Badge>;
   }
   const risk = (info.risk_status || "").toLowerCase();
   const style =
     risk === "high" || risk === "at_risk" || risk === "at risk"
-      ? "bg-red-100 text-red-700 border-0"
+      ? "bg-status-atrisk/10 text-status-atrisk hover:bg-status-atrisk/10"
       : risk === "medium" || risk === "watch"
-      ? "bg-orange-100 text-orange-700 border-0"
-      : "bg-emerald-100 text-emerald-700 border-0";
+      ? "bg-status-watch/10 text-status-watch hover:bg-status-watch/10"
+      : "bg-status-ontrack/10 text-status-ontrack hover:bg-status-ontrack/10";
   const rate = info.attendance_rate != null ? ` · ${Math.round(Number(info.attendance_rate))}%` : "";
   return (
-    <Badge className={`text-[10px] px-1.5 py-0 font-normal gap-0.5 ${style}`}>
-      <AlertTriangle className="h-2.5 w-2.5" />
+    <Badge className={`rounded border-0 px-1.5 py-0 text-xs font-normal gap-1 ${style}`}>
+      <AlertTriangle className="h-3 w-3" />
       {info.risk_status}{rate}
     </Badge>
   );
