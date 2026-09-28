@@ -605,7 +605,7 @@ function CohortSettingsCard() {
             Archived cohorts ({archivedCohorts.length})
           </button>
           {showArchived && (
-            <div className="mt-3 rounded-lg border divide-y bg-muted/20">
+            <div className="mt-3 rounded-lg border border-border divide-y divide-border bg-secondary">
               {archivedCohorts.length === 0 && (
                 <p className="px-4 py-3 text-xs text-muted-foreground">No archived cohorts.</p>
               )}
@@ -621,7 +621,7 @@ function CohortSettingsCard() {
                       {total === 0 ? "No records" : `${total} linked record${total === 1 ? "" : "s"}`}
                     </span>
                     {mayManage && (
-                      <Button size="sm" variant="outline" className="h-7 text-xs"
+                      <Button size="sm" variant="outline" className="h-8 text-xs"
                         onClick={() => restoreMutation.mutate(c.id)} disabled={restoreMutation.isPending}>
                         <ArchiveRestore className="mr-1 h-3 w-3" /> Restore
                       </Button>
@@ -718,7 +718,7 @@ function CohortSettingsCard() {
                 <AlertTriangle className="h-3.5 w-3.5" /> {(rolloverCheck as any).warning}
               </p>
             )}
-            <div className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground space-y-1">
+            <div className="rounded border border-border bg-secondary p-3 text-xs text-muted-foreground space-y-1">
               <p className="font-medium text-foreground">What happens</p>
               <p>1. Cohort {rollover.label ? formatCohortLabel(rollover.label) : "—"} is created.</p>
               <p>2. It becomes the active cohort.</p>
@@ -755,7 +755,7 @@ function CohortSettingsCard() {
                   <strong> all linked data is preserved</strong> and can be restored anytime.
                 </p>
                 {archiveTotal > 0 ? (
-                  <div className="rounded-md border bg-muted/40 p-3 text-xs space-y-1">
+                  <div className="rounded border border-border bg-secondary p-3 text-xs space-y-1">
                     <p className="font-medium text-foreground">
                       {archiveTotal} linked record{archiveTotal === 1 ? "" : "s"}:
                     </p>
