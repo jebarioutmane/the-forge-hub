@@ -1,3 +1,4 @@
+import { QueryErrorState, QueryErrorRow, SkeletonTableRows, SkeletonBlocks } from "@/components/QueryStates";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,7 +65,7 @@ export default function BudgetLines() {
   const [copyOpen, setCopyOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
-  const { data: lines = [], isLoading } = useQuery({
+  const { data: lines = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["budget_lines", "manager", selectedCohortId, showArchived],
     queryFn: async () => {
       let q = supabase.from("budget_lines").select("*").order("sort_order").order("code");
@@ -235,13 +236,19 @@ export default function BudgetLines() {
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>
+            <SkeletonBlocks count={10} className="h-10" wrapperClassName="space-y-2 p-4" />
+          ) : isError ? (
+            <QueryErrorState message="Budget lines could not be loaded. Check your connection, then try again." onRetry={() => refetch()} />
+          ) : filtered.length === 0 && lines.length > 0 ? (
+            <div className="empty-state">
+              <Layers aria-hidden="true" />
+              <p className="text-sm text-muted-foreground">No budget lines match this search.</p>
+              <Button variant="outline" size="sm" onClick={() => setSearch("")}>Clear search</Button>
+            </div>
           ) : filtered.length === 0 ? (
-            <div className="p-10 text-center">
-              <Layers className="h-8 w-8 mx-auto text-muted-foreground/50" />
-              <p className="mt-3 text-sm text-muted-foreground">
-                {lines.length === 0 ? "No budget lines yet. Add one, bulk-paste, or copy from another cohort." : "No lines match your search."}
-              </p>
+            <div className="empty-state">
+              <Layers aria-hidden="true" />
+              <p className="text-sm text-muted-foreground">No budget lines yet. Add one, bulk-paste, or copy from another cohort.</p>
             </div>
           ) : (
             <div className="divide-y">

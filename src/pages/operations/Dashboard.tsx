@@ -1,3 +1,4 @@
+import { QueryErrorState, QueryErrorRow, SkeletonTableRows, SkeletonBlocks } from "@/components/QueryStates";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,7 +41,7 @@ export default function OperationsDashboard() {
   const cohortScoped = selectedCohortId && selectedCohortId !== ALL_COHORTS;
   const cohortLabel = cohortScoped ? selectedCohort?.label ?? null : null;
 
-  const { data: lines = [], isLoading: linesLoading } = useQuery({
+  const { data: lines = [], isLoading: linesLoading, isError: linesError, refetch: refetchLines } = useQuery({
     queryKey: ["ops-dashboard", "lines", selectedCohortId],
     queryFn: async () => {
       let q = supabase.from("budget_lines").select("*").eq("is_archived", false);
@@ -381,7 +382,9 @@ export default function OperationsDashboard() {
         </CardHeader>
         <CardContent className="p-0">
           {linesLoading ? (
-            <div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>
+            <SkeletonBlocks count={8} className="h-10" wrapperClassName="space-y-2 p-4" />
+          ) : linesError ? (
+            <QueryErrorState message="Budget lines for this cohort could not be loaded. Check your connection, then try again." onRetry={() => refetchLines()} />
           ) : lines.length === 0 ? (
             <div className="p-10 text-center text-sm text-muted-foreground">
               No budget lines for this cohort yet. Add them from the Budget Lines manager (System).

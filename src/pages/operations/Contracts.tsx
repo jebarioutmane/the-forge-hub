@@ -1,3 +1,4 @@
+import { QueryErrorState, QueryErrorRow, SkeletonTableRows, SkeletonBlocks } from "@/components/QueryStates";
 import { useState, useMemo } from "react";
 import { useCohort, ALL_COHORTS } from "@/contexts/CohortContext";
 import { useVendors } from "@/hooks/useRelationalData";
@@ -117,7 +118,7 @@ function FilterMultiSelect({
 export default function OperationsContracts() {
   const { selectedCohortId, selectedCohortLabel } = useCohort();
   const [showArchived, setShowArchived] = useState(false);
-  const { data: allContracts = [], isLoading } = useContracts({ includeArchived: showArchived });
+  const { data: allContracts = [], isLoading, isError, refetch } = useContracts({ includeArchived: showArchived });
   const { data: vendors = [] } = useVendors();
   const { data: allBudgetLines = [] } = useAllBudgetLines();
   const { data: allPayments = [] } = useAllContractPayments();
@@ -256,15 +257,20 @@ export default function OperationsContracts() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={9} className="text-center py-16 text-muted-foreground">
-                  <Loader2 className="inline h-4 w-4 animate-spin mr-2" /> Loading contracts...
-                </TableCell></TableRow>
+                <SkeletonTableRows columns={9} rows={10} />
+              ) : isError ? (
+                <QueryErrorRow colSpan={9} message="Contracts could not be loaded. Check your connection, then try again." onRetry={() => refetch()} />
               ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={9} className="text-center py-16">
-                  <FileText className="mx-auto h-8 w-8 text-muted-foreground/50 mb-2" />
-                  <p className="text-sm text-muted-foreground">
-                    {activeFilterCount > 0 ? "No contracts match these filters" : "No contracts yet"}
-                  </p>
+                <TableRow className="hover:bg-transparent"><TableCell colSpan={9} className="p-0">
+                  <div className="empty-state">
+                    <FileText aria-hidden="true" />
+                    <p className="text-sm text-muted-foreground">
+                      {activeFilterCount > 0 ? "No contracts match these filters." : "No contracts yet."}
+                    </p>
+                    {activeFilterCount > 0 && (
+                      <Button variant="outline" size="sm" onClick={clearFilters}>Clear filters</Button>
+                    )}
+                  </div>
                 </TableCell></TableRow>
               ) : (
                 filtered.map((c) => {
