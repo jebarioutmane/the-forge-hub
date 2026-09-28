@@ -63,6 +63,9 @@
     --ease-standard: cubic-bezier(0.2, 0, 0, 1);
     --duration-fast: 150ms;
     --duration-base: 180ms;
+    /* Overlay enter/exit only (dialog, sheet, drawer, popover, menus, select, tooltip), max 300ms */
+    --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+    --duration-overlay: 300ms;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 214 18% 43%;
@@ -114,7 +117,11 @@
   /* Instant press feedback — responds on pointer-down, transform only so it
      never affects layout in flex/grid contexts. */
   button:active:not(:disabled):not([aria-disabled="true"]),
-  [role="button"]:active:not([aria-disabled="true"]) {
+  [role="button"]:active:not([aria-disabled="true"]):not([data-disabled]),
+  [role="menuitem"]:active:not([data-disabled]):not([aria-disabled="true"]),
+  [role="menuitemcheckbox"]:active:not([data-disabled]):not([aria-disabled="true"]),
+  [role="menuitemradio"]:active:not([data-disabled]):not([aria-disabled="true"]),
+  [role="option"]:active:not([data-disabled]):not([aria-disabled="true"]) {
     transform: scale(0.98);
     transition: transform 100ms ease-out;
   }
@@ -314,6 +321,18 @@
   .shadow-elev-sm { box-shadow: var(--shadow-sm); }
   .shadow-elev-md { box-shadow: var(--shadow-md); }
   .shadow-elev-lg { box-shadow: var(--shadow-lg); }
+}
+
+/* Overlay motion — spring curve, enter and exit on the same path.
+   Unlayered so it wins over tailwindcss-animate duration utilities. */
+[data-radix-popper-content-wrapper] > [data-state],
+[role="dialog"][data-state],
+[role="alertdialog"][data-state],
+[data-vaul-drawer],
+[data-radix-dialog-overlay], .fixed.inset-0[data-state] {
+  animation-duration: var(--duration-overlay);
+  animation-timing-function: var(--ease-spring);
+  transition-timing-function: var(--ease-spring);
 }
 
 /* Target flash — compositor friendly: animates opacity of an overlay layer
