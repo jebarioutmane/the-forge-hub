@@ -550,8 +550,8 @@ export default function Evaluations() {
                           type="button"
                           onClick={() => setSelectedFounderId(f.id)}
                           className={cn(
-                            "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors",
-                            isSelected ? "bg-secondary" : "hover:bg-secondary",
+                            "interactive-row flex w-full items-center gap-3 px-4 py-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                            isSelected && "bg-secondary",
                           )}
                         >
                           <div
@@ -978,7 +978,7 @@ export default function Evaluations() {
                             </div>
 
                             {isOpen && (
-                              <div className="ml-7 mt-3 space-y-3 rounded-lg bg-secondary p-3">
+                              <div className="ml-12 mt-3 space-y-3 rounded-lg bg-secondary p-3">
                                 <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 md:grid-cols-3">
                                   {ALL_DIMS.map((d) => (
                                     <div key={d.key} className="flex items-center justify-between text-xs">
