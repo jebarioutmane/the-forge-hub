@@ -81,6 +81,14 @@
     --status-watch: 38 88% 48%;
     --status-atrisk: 0 72% 45%;
 
+    /* Categorical scale — category charts and event types only */
+    --cat-1: 212 68% 33%;
+    --cat-2: 190 55% 34%;
+    --cat-3: 260 35% 45%;
+    --cat-4: 28 55% 42%;
+    --cat-5: 340 35% 45%;
+    --cat-6: 215 16% 43%;
+
     /* Module accents — restrained, in-family */
     --module-operations: 152 55% 38%;
     --module-events: 212 70% 33%;
@@ -229,6 +237,13 @@
 
 
   .serif { font-family: var(--font-serif); }
+  .text-card-title {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.4;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
   .stat-figure {
     font-family: var(--font-serif);
     font-weight: 700;

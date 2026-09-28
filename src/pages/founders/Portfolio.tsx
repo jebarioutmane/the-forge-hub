@@ -34,16 +34,7 @@ const DECISION_COLORS: Record<string, string> = {
   Exit: "hsl(var(--status-atrisk))",
 };
 
-const PALETTE = [
-  "hsl(var(--primary))",
-  "hsl(var(--primary) / 0.75)",
-  "hsl(var(--primary) / 0.55)",
-  "hsl(var(--primary) / 0.4)",
-  "hsl(var(--primary) / 0.25)",
-  "hsl(var(--muted-foreground))",
-  "hsl(var(--muted-foreground) / 0.6)",
-  "hsl(var(--muted-foreground) / 0.35)",
-];
+const PALETTE = [1, 2, 3, 4, 5, 6].map(i => `hsl(var(--cat-${i}))`);
 
 const RISK_BADGE: Record<string, string> = {
   on_track: "bg-status-ontrack/10 text-status-ontrack",
@@ -284,7 +275,12 @@ export default function PortfolioDashboard() {
     return Object.entries(counts).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 10);
   }, [founders]);
 
-  const bySector = useMemo(() => groupBy("sector"), [founders]);
+  const bySector = useMemo(() => {
+    const all = groupBy("sector");
+    if (all.length <= 6) return all;
+    const other = all.slice(5).reduce((sum, d) => sum + d.value, 0);
+    return [...all.slice(0, 5), { name: "Other", value: other }];
+  }, [founders]);
   const byStage = useMemo(() => groupBy("stage"), [founders]);
 
   const fundingBySector = useMemo(() => {
