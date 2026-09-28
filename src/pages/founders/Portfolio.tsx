@@ -364,7 +364,7 @@ export default function PortfolioDashboard() {
             <SectionTitle>Engagement & risk</SectionTitle>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <Card className="border-border shadow-none">
-                <CardHeader><CardTitle className="text-card-t font-semibold">Risk breakdown</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm font-semibold">Risk breakdown</CardTitle></CardHeader>
                 <CardContent>
                   {riskPie.length === 0 ? (
                     <EmptyState icon={ShieldCheck} message="No engagement data yet." />
@@ -383,7 +383,7 @@ export default function PortfolioDashboard() {
               </Card>
 
               <Card className="border-border shadow-none lg:col-span-2">
-                <CardHeader><CardTitle className="text-card-t font-semibold">Needs attention</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm font-semibold">Needs attention</CardTitle></CardHeader>
                 <CardContent className="p-0">
                   {needsAttention.length === 0 ? (
                     <div className="p-4"><EmptyState icon={ShieldCheck} message="Everyone's on track." /></div>
@@ -445,7 +445,7 @@ export default function PortfolioDashboard() {
             <SectionTitle>Progress trends</SectionTitle>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card className="border-border shadow-none">
-                <CardHeader><CardTitle className="text-card-t font-semibold">Average score by dimension</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm font-semibold">Average score by dimension</CardTitle></CardHeader>
                 <CardContent>
                   {checkins.length === 0 ? (
                     <EmptyState icon={TrendingUp} message="No check-ins recorded yet." />
@@ -464,7 +464,7 @@ export default function PortfolioDashboard() {
               </Card>
 
               <Card className="border-border shadow-none">
-                <CardHeader><CardTitle className="text-card-t font-semibold">Overall score trend</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm font-semibold">Overall score trend</CardTitle></CardHeader>
                 <CardContent>
                   {scoreTrend.length === 0 ? (
                     <EmptyState icon={TrendingUp} message="Not enough check-ins for a trend." />
@@ -489,7 +489,7 @@ export default function PortfolioDashboard() {
             <SectionTitle>Evaluation outcomes</SectionTitle>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card className="border-border shadow-none">
-                <CardHeader><CardTitle className="text-card-t font-semibold">Decision distribution</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm font-semibold">Decision distribution</CardTitle></CardHeader>
                 <CardContent>
                   {decisionDist.length === 0 ? (
                     <EmptyState icon={ClipboardCheck} message="No evaluations recorded yet." />
@@ -510,7 +510,7 @@ export default function PortfolioDashboard() {
               </Card>
 
               <Card className="border-border shadow-none">
-                <CardHeader><CardTitle className="text-card-t font-semibold">Average score by block</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm font-semibold">Average score by block</CardTitle></CardHeader>
                 <CardContent>
                   {scoresByBlock.length === 0 ? (
                     <EmptyState icon={ClipboardCheck} message="No evaluation scores yet." />
@@ -535,7 +535,7 @@ export default function PortfolioDashboard() {
             <SectionTitle>Composition</SectionTitle>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card className="border-border shadow-none">
-                <CardHeader><CardTitle className="text-card-t font-semibold flex items-center gap-2"><Globe2 className="h-4 w-4 text-muted-foreground" />Founders by country</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm font-semibold flex items-center gap-2"><Globe2 className="h-4 w-4 text-muted-foreground" />Founders by country</CardTitle></CardHeader>
                 <CardContent>
                   {byCountry.length === 0 ? (
                     <EmptyState icon={Globe2} message="No nationality data yet — add it in the Directory." />
@@ -554,7 +554,7 @@ export default function PortfolioDashboard() {
               </Card>
 
               <Card className="border-border shadow-none">
-                <CardHeader><CardTitle className="text-card-t font-semibold flex items-center gap-2"><Building2 className="h-4 w-4 text-muted-foreground" />Founders by sector</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm font-semibold flex items-center gap-2"><Building2 className="h-4 w-4 text-muted-foreground" />Founders by sector</CardTitle></CardHeader>
                 <CardContent>
                   {bySector.length === 0 ? (
                     <EmptyState icon={Building2} message="No sector data yet — add it in the Directory." />
@@ -573,7 +573,7 @@ export default function PortfolioDashboard() {
               </Card>
 
               <Card className="border-border shadow-none">
-                <CardHeader><CardTitle className="text-card-t font-semibold flex items-center gap-2"><Layers className="h-4 w-4 text-muted-foreground" />Founders by stage</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm font-semibold flex items-center gap-2"><Layers className="h-4 w-4 text-muted-foreground" />Founders by stage</CardTitle></CardHeader>
                 <CardContent>
                   {byStage.length === 0 ? (
                     <EmptyState icon={Layers} message="No stage data yet — add it in the Directory." />
@@ -592,7 +592,7 @@ export default function PortfolioDashboard() {
               </Card>
 
               <Card className="border-border shadow-none">
-                <CardHeader><CardTitle className="text-card-t font-semibold flex items-center gap-2"><DollarSign className="h-4 w-4 text-muted-foreground" />Total funding by sector</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm font-semibold flex items-center gap-2"><DollarSign className="h-4 w-4 text-muted-foreground" />Total funding by sector</CardTitle></CardHeader>
                 <CardContent>
                   {fundingBySector.length === 0 ? (
                     <EmptyState icon={DollarSign} message="No funding data yet — add it in the Directory." />
