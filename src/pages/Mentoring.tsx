@@ -170,7 +170,7 @@ export default function Mentoring() {
   const viewLinks = viewing ? (Array.isArray(viewing.links) ? (viewing.links as unknown as LinkItem[]) : []) : [];
 
   return (
-    <div className="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto">
+    <div className="p-4 space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Mentoring Sessions</h1>
@@ -217,7 +217,7 @@ export default function Mentoring() {
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild><Button size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                        <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Session actions"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => setViewing(s)}><Eye className="mr-2 h-3 w-3" /> View</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openEdit(s)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
@@ -237,7 +237,7 @@ export default function Mentoring() {
       <Dialog open={dialogOpen} onOpenChange={o => { if (!o) { setDialogOpen(false); setEditing(null); } }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{editing ? "Edit Session" : "New Mentoring Session"}</DialogTitle></DialogHeader>
-          <div className="space-y-5 py-2">
+          <div className="space-y-4 py-2">
             {/* Title */}
             <div className="space-y-2">
               <Label>Title</Label>
@@ -257,7 +257,7 @@ export default function Mentoring() {
                 <PopoverContent className="w-full p-0 pointer-events-auto" align="start">
                   <Command>
                     <CommandInput placeholder="Search stakeholders..." />
-                    <CommandList className="max-h-[200px]">
+                    <CommandList className="max-h-48">
                       <CommandEmpty>No stakeholders found.</CommandEmpty>
                       <CommandGroup>
                         {stakeholders.map(st => (
@@ -290,7 +290,7 @@ export default function Mentoring() {
                 <div key={i} className="flex gap-2 items-center">
                   <Input placeholder="Title" value={l.title} onChange={e => updateLink(i, "title", e.target.value)} className="flex-1" />
                   <Input placeholder="URL" value={l.url} onChange={e => updateLink(i, "url", e.target.value)} className="flex-1" />
-                  <Button size="icon" variant="ghost" onClick={() => removeLink(i)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Remove link" onClick={() => removeLink(i)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                 </div>
               ))}
               <Button variant="outline" size="sm" onClick={addLink}><Plus className="mr-1 h-3 w-3" /> Add Link</Button>
@@ -335,7 +335,7 @@ export default function Mentoring() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{viewing?.title || "Session Details"}</DialogTitle></DialogHeader>
           {viewing && (
-            <div className="space-y-5 py-2">
+            <div className="space-y-4 py-2">
               <div className="grid grid-cols-3 gap-2">
                 <span className="text-sm font-medium text-muted-foreground">Mentor</span>
                 <span className="text-sm col-span-2">{viewing.mentor_name}</span>
@@ -414,7 +414,7 @@ function SlotRow({ slot, index, founders, onUpdate, onRemove }: {
     <div className="p-3 border rounded-lg space-y-3 bg-muted/20">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">Slot #{index + 1}</span>
-        <Button size="icon" variant="ghost" onClick={() => onRemove(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+        <Button size="icon" variant="ghost" className="h-8 w-8" aria-label="Remove item" onClick={() => onRemove(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Founder Combobox */}
@@ -430,7 +430,7 @@ function SlotRow({ slot, index, founders, onUpdate, onRemove }: {
             <PopoverContent className="w-full p-0 pointer-events-auto" align="start">
               <Command>
                 <CommandInput placeholder="Search founders..." />
-                <CommandList className="max-h-[200px]">
+                <CommandList className="max-h-48">
                   <CommandEmpty>No founders found.</CommandEmpty>
                   <CommandGroup>
                     {founders.map(f => (

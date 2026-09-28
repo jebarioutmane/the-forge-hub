@@ -220,7 +220,7 @@ export default function BudgetLines() {
 
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[240px]">
+        <div className="relative flex-1 min-w-60">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input value={search} onChange={(e) => setSearch(e.target.value)}
                  placeholder="Search by code or title…" className="pl-9" />
@@ -253,7 +253,7 @@ export default function BudgetLines() {
             </div>
           ) : (
             <div className="divide-y">
-              <div className="grid grid-cols-12 gap-2 px-4 py-2 text-xs uppercase tracking-wider text-muted-foreground bg-muted/30">
+              <div className="grid grid-cols-12 gap-2 px-4 py-2 text-xs text-muted-foreground bg-muted/30">
                 <div className="col-span-5">Code / Title</div>
                 <div className="col-span-2 text-right">Allocated</div>
                 <div className="col-span-2 text-right">Committed</div>
@@ -320,7 +320,7 @@ function Kpi({ label, value, warning }: { label: string; value: string; warning?
   return (
     <Card className={warning ? "border-destructive/40" : ""}>
       <CardContent className="p-4">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
+        <p className="text-xs text-muted-foreground">{label}</p>
         <p className={`text-xl font-semibold mt-1 ${warning ? "text-destructive" : ""}`}
            style={{ fontFamily: "var(--font-display)" }}>{value}</p>
       </CardContent>
@@ -365,10 +365,10 @@ function TreeRows({
                   </button>
                 ) : <span className="h-5 w-5 inline-block" />}
                 {l.code && (
-                  <Badge variant="outline" className="font-mono text-[11px] shrink-0">{l.code}</Badge>
+                  <Badge variant="outline" className="font-mono text-xs shrink-0">{l.code}</Badge>
                 )}
                 <span className="truncate font-medium text-sm">{l.name}</span>
-                {l.is_archived && <Badge variant="secondary" className="text-[10px]">Archived</Badge>}
+                {l.is_archived && <Badge variant="secondary" className="text-xs">Archived</Badge>}
               </div>
               <div className="col-span-2 text-right text-sm tabular-nums">
                 {allocated > 0 ? fmt(allocated, ccy) : <span className="text-muted-foreground">—</span>}
@@ -383,15 +383,15 @@ function TreeRows({
                 )}
               </div>
               <div className="col-span-1 flex items-center justify-end gap-0.5">
-                <Button size="icon" variant="ghost" className="h-7 w-7" title="Add sub-line"
+                <Button size="icon" variant="ghost" className="h-8 w-8" title="Add sub-line" aria-label={`Add sub-line to ${l.name}`}
                         onClick={() => onAddChild(l.id)}>
                   <Plus className="h-3.5 w-3.5" />
                 </Button>
-                <Button size="icon" variant="ghost" className="h-7 w-7" title="Edit"
+                <Button size="icon" variant="ghost" className="h-8 w-8" title="Edit" aria-label={`Edit ${l.name}`}
                         onClick={() => onEdit(l)}>
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
-                <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive"
+                <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:text-destructive" aria-label={`Delete ${l.name}`}
                         title={l.is_archived ? "Restore" : "Archive"}
                         onClick={() => onArchiveToggle(l)}>
                   {l.is_archived ? <ArchiveRestore className="h-3.5 w-3.5" /> : <Trash2 className="h-3.5 w-3.5" />}

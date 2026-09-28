@@ -147,13 +147,13 @@ export default function Events() {
   }, [events]);
 
   const statusColor = (s: string) => {
-    if (s === "Active") return "bg-green-500/20 text-green-400 border-green-500/30";
+    if (s === "Active") return "bg-status-ontrack/10 text-status-ontrack border-transparent";
     if (s === "Completed") return "bg-muted text-muted-foreground";
-    return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+    return "bg-primary/10 text-primary border-transparent";
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Events</h1>
         <div className="flex items-center gap-3">
@@ -175,7 +175,7 @@ export default function Events() {
           actionColumn={(ev: EventWithProfile) => (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost" className="h-7 w-7"><MoreHorizontal className="h-3.5 w-3.5" /></Button>
+                <Button size="icon" variant="ghost" className="h-8 w-8" aria-label={`Actions for ${ev.name}`}><MoreHorizontal className="h-4 w-4" /></Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => openEdit(ev)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>
@@ -201,7 +201,7 @@ export default function Events() {
                 <div className="grid gap-px mb-1" style={{ gridTemplateColumns: `160px repeat(${gantt.cols}, minmax(28px, 1fr))` }}>
                   <div className="text-xs text-muted-foreground px-1">Event</div>
                   {Array.from({ length: gantt.cols }).map((_, i) => (
-                    <div key={i} className="text-[10px] text-muted-foreground text-center truncate">
+                    <div key={i} className="text-xs text-muted-foreground text-center truncate">
                       {i % Math.max(1, Math.floor(gantt.cols / 10)) === 0 ? format(addDays(gantt.ganttStart, i), "MMM d") : ""}
                     </div>
                   ))}
@@ -211,7 +211,7 @@ export default function Events() {
                   const startOff = differenceInDays(parseISO(ev.start_date!), gantt.ganttStart) + 1;
                   const span = differenceInDays(parseISO(ev.end_date!), parseISO(ev.start_date!)) + 1;
                   return (
-                    <div key={ev.id} className="grid gap-px items-center min-h-[32px]" style={{ gridTemplateColumns: `160px repeat(${gantt.cols}, minmax(28px, 1fr))` }}>
+                    <div key={ev.id} className="grid gap-px items-center min-h-8 interactive-row" style={{ gridTemplateColumns: `160px repeat(${gantt.cols}, minmax(28px, 1fr))` }}>
                       <div className="text-sm font-medium truncate px-1 flex items-center gap-2">
                         {ev.profiles && (
                           <TooltipProvider>
@@ -219,7 +219,7 @@ export default function Events() {
                               <TooltipTrigger asChild>
                                 <Avatar className="h-6 w-6 shrink-0">
                                   <AvatarImage src={ev.profiles.avatar_url ? `${ev.profiles.avatar_url}?t=${Date.now()}` : undefined} />
-                                  <AvatarFallback className="text-[10px] bg-muted">{ev.profiles.full_name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "?"}</AvatarFallback>
+                                  <AvatarFallback className="text-xs bg-muted">{ev.profiles.full_name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "?"}</AvatarFallback>
                                 </Avatar>
                               </TooltipTrigger>
                               <TooltipContent>Created by {ev.profiles.full_name || "Unknown"}</TooltipContent>
@@ -230,7 +230,7 @@ export default function Events() {
                         <TagBadges tagIds={ev.tag_ids as string[] | null} />
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0"><MoreHorizontal className="h-3 w-3" /></Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" aria-label={`Actions for ${ev.name}`}><MoreHorizontal className="h-4 w-4" /></Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="start">
                             <DropdownMenuItem onClick={() => openEdit(ev)}><Pencil className="mr-2 h-3 w-3" /> Edit</DropdownMenuItem>

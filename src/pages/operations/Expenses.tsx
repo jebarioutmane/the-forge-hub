@@ -49,9 +49,9 @@ function formatMoney(amount: number, currency: string | null) {
 
 function statusTone(s: string | null) {
   switch (s) {
-    case "Paid": return "bg-emerald-50 text-emerald-700 border-emerald-200";
-    case "Approved": return "bg-blue-50 text-blue-700 border-blue-200";
-    case "Pending": return "bg-amber-50 text-amber-700 border-amber-200";
+    case "Paid": return "bg-status-ontrack/10 text-status-ontrack border-transparent";
+    case "Approved": return "bg-primary/10 text-primary border-transparent";
+    case "Pending": return "bg-status-watch/10 text-status-watch border-transparent";
     default: return "bg-muted text-muted-foreground border-border";
   }
 }
@@ -372,7 +372,7 @@ export default function Expenses() {
       <Card>
         <CardContent className="p-3 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="relative flex-1 min-w-[220px]">
+            <div className="relative flex-1 min-w-56">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
                 placeholder="Search description or beneficiary..."
@@ -472,7 +472,7 @@ export default function Expenses() {
                     const c = e.category_id ? categoryMap.get(e.category_id) : null;
                     return (
                       <TableRow key={e.id} className="cursor-pointer" onClick={() => setViewing(e)}>
-                        <TableCell className="font-medium max-w-[280px] truncate">{e.description}</TableCell>
+                        <TableCell className="font-medium max-w-72 truncate">{e.description}</TableCell>
                         <TableCell className="text-right tabular-nums">{formatMoney(Number(e.amount), e.currency)}</TableCell>
                         <TableCell className="text-muted-foreground">{e.type || "—"}</TableCell>
                         <TableCell>
@@ -480,17 +480,17 @@ export default function Expenses() {
                             <Badge variant="outline" className={cn("font-normal", statusTone(e.status))}>{e.status}</Badge>
                           ) : "—"}
                         </TableCell>
-                        <TableCell className="text-muted-foreground max-w-[160px] truncate">{e.beneficiary_name || "—"}</TableCell>
+                        <TableCell className="text-muted-foreground max-w-40 truncate">{e.beneficiary_name || "—"}</TableCell>
                         <TableCell className="text-muted-foreground">{e.due_date || "—"}</TableCell>
-                        <TableCell className="text-muted-foreground max-w-[180px] truncate">
+                        <TableCell className="text-muted-foreground max-w-44 truncate">
                           {bl ? (bl.code ? `${bl.code} — ${bl.name}` : bl.name) : "—"}
                         </TableCell>
-                        <TableCell className="text-muted-foreground max-w-[140px] truncate">{v?.name || "—"}</TableCell>
-                        <TableCell className="text-muted-foreground max-w-[140px] truncate">{c?.name || "—"}</TableCell>
+                        <TableCell className="text-muted-foreground max-w-36 truncate">{v?.name || "—"}</TableCell>
+                        <TableCell className="text-muted-foreground max-w-36 truncate">{c?.name || "—"}</TableCell>
                         <TableCell onClick={(ev) => ev.stopPropagation()}>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Actions for ${e.description}`}>
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -628,7 +628,7 @@ export default function Expenses() {
                     </SelectContent>
                   </Select>
                   {budgetLines.length === 0 && (
-                    <p className="text-xs text-muted-foreground mt-1">No budget lines in this cohort yet — add them in Operations · Source.</p>
+                    <p className="text-xs text-muted-foreground mt-1">No budget lines in this cohort yet — add them in Operations, Source.</p>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -676,7 +676,7 @@ export default function Expenses() {
                     placeholder="https://..."
                   />
                   {form.proof_document_url && (
-                    <Button type="button" variant="outline" size="icon" asChild>
+                    <Button type="button" variant="outline" size="icon" asChild aria-label="Open proof document">
                       <a href={form.proof_document_url} target="_blank" rel="noreferrer">
                         <ExternalLink className="h-4 w-4" />
                       </a>
@@ -807,15 +807,15 @@ function StatCard({
 }) {
   const tones: Record<string, string> = {
     default: "text-foreground",
-    emerald: "text-emerald-600",
-    blue: "text-blue-600",
-    amber: "text-amber-600",
+    emerald: "text-status-ontrack",
+    blue: "text-primary",
+    amber: "text-status-watch",
   };
   return (
     <Card>
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+          <p className="text-xs text-muted-foreground">{label}</p>
           <Icon className={cn("h-4 w-4", tones[tone])} />
         </div>
         <p className={cn("mt-2 text-xl font-semibold tabular-nums", tones[tone])}>{value}</p>
@@ -839,7 +839,7 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
 function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">{title}</h3>
+      <h3 className="text-xs font-medium text-muted-foreground mb-2">{title}</h3>
       {children}
     </div>
   );
