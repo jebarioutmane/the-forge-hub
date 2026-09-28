@@ -1,3 +1,4 @@
+import { QueryErrorState, SkeletonBlocks } from "@/components/QueryStates";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -128,7 +129,7 @@ function CohortSettingsCard() {
   const startMonth = settings?.cohort_start_month ?? 9;
   const endMonth = settings?.cohort_end_month ?? 5;
 
-  const { data: cohorts = [] } = useQuery({
+  const { data: cohorts = [], isLoading: cohortsLoading, isError: cohortsError, refetch: refetchCohorts } = useQuery({
     queryKey: ["cohorts-all"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -413,10 +414,14 @@ function CohortSettingsCard() {
         <div className="space-y-2">
           <Label className="text-sm font-medium">Cohorts</Label>
           <div className="rounded-lg border divide-y overflow-hidden">
-            {liveCohorts.length === 0 && (
-              <p className="px-4 py-6 text-center text-sm text-muted-foreground">
-                No cohorts yet. Create one to get started.
-              </p>
+            {cohortsLoading && <SkeletonBlocks count={4} className="h-14 rounded-none" wrapperClassName="divide-y" />}
+            {cohortsError && (
+              <QueryErrorState message="Cohorts could not be loaded. Check your connection, then try again." onRetry={() => refetchCohorts()} />
+            )}
+            {!cohortsLoading && !cohortsError && liveCohorts.length === 0 && (
+              <div className="empty-state">
+                <p className="text-sm text-muted-foreground">No cohorts yet. Create one to get started.</p>
+              </div>
             )}
             {liveCohorts.map((c: any) => {
               const s = statusOf(c);
