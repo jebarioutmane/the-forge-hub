@@ -502,9 +502,10 @@ export default function Tracking() {
                         <button
                           type="button"
                           onClick={() => setSelectedFounderId(f.id)}
+                          aria-current={isActive ? "true" : undefined}
                           className={cn(
                             "w-full text-left px-4 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
-                            isActive ? "bg-secondary shadow-[inset_2px_0_0_hsl(var(--primary))]" : "interactive-row",
+                            isActive ? "bg-secondary" : "interactive-row",
                           )}
                         >
                           <div className="flex items-start gap-3">
