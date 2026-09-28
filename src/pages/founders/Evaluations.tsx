@@ -1,3 +1,5 @@
+import { Skeleton } from "@/components/ui/skeleton";
+import { QueryErrorState, QueryErrorRow, SkeletonTableRows, SkeletonBlocks } from "@/components/QueryStates";
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -192,7 +194,7 @@ export default function Evaluations() {
   const [newTargetLabel, setNewTargetLabel] = useState("");
 
   // Founders in selected cohort
-  const { data: founders = [], isLoading: foundersLoading } = useQuery({
+  const { data: founders = [], isLoading: foundersLoading, isError: foundersError, refetch: refetchFounders } = useQuery({
     queryKey: ["eval-founders", selectedCohortId],
     queryFn: async () => {
       let q = supabase
@@ -303,7 +305,7 @@ export default function Evaluations() {
   }, [checkins]);
 
   // Timeline of evaluations for the selected founder
-  const { data: timeline = [], isLoading: timelineLoading } = useQuery({
+  const { data: timeline = [], isLoading: timelineLoading, isError: timelineError, refetch: refetchTimeline } = useQuery({
     queryKey: ["eval-timeline", selectedFounderId, showArchived],
     enabled: !!selectedFounderId,
     queryFn: async () => {
@@ -514,8 +516,16 @@ export default function Evaluations() {
               {foundersLoading ? (
                 <div className="p-6 space-y-3">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="h-14 rounded-lg bg-black/[0.03] animate-pulse" />
+                    <Skeleton key={i} className="h-14 w-full" />
                   ))}
+                </div>
+              ) : foundersError ? (
+                <QueryErrorState message="Founders could not be loaded. Check your connection, then try again." onRetry={() => refetchFounders()} />
+              ) : filteredFounders.length === 0 && founders.length > 0 ? (
+                <div className="empty-state">
+                  <UsersIcon aria-hidden="true" />
+                  <p className="text-sm text-muted-foreground">No founders match this search.</p>
+                  <Button variant="outline" size="sm" onClick={() => setQuery("")}>Clear search</Button>
                 </div>
               ) : filteredFounders.length === 0 ? (
                 <div className="p-10 text-center">
@@ -890,9 +900,11 @@ export default function Evaluations() {
                   {timelineLoading ? (
                     <div className="space-y-2">
                       {Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} className="h-14 animate-pulse rounded-lg bg-black/[0.03]" />
+                        <Skeleton key={i} className="h-14 w-full" />
                       ))}
                     </div>
+                  ) : timelineError ? (
+                    <QueryErrorState message="This founder's evaluations could not be loaded. Check your connection, then try again." onRetry={() => refetchTimeline()} />
                   ) : timeline.length === 0 ? (
                     <div className="py-8 text-center text-sm text-muted-foreground">
                       {showArchived

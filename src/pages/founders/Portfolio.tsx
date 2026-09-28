@@ -1,3 +1,5 @@
+import { Skeleton } from "@/components/ui/skeleton";
+import { QueryErrorState, QueryErrorRow, SkeletonTableRows, SkeletonBlocks } from "@/components/QueryStates";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -89,7 +91,7 @@ export default function PortfolioDashboard() {
   const { selectedCohortId, selectedCohortLabel, isLoading: cohortLoading } = useCohort();
   const isAll = selectedCohortId === ALL_COHORTS;
 
-  const { data: founders = [], isLoading: fL } = useQuery({
+  const { data: founders = [], isLoading: fL, isError: fErr, refetch: refetchFounders } = useQuery({
     queryKey: ["portfolio-founders", selectedCohortId],
     enabled: !!selectedCohortId,
     queryFn: async () => {
@@ -289,7 +291,16 @@ export default function PortfolioDashboard() {
       />
 
       {loading && founders.length === 0 ? (
-        <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">Loading portfolio…</div>
+        <div className="space-y-6" aria-busy="true">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+          </div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-72 w-full" />)}
+          </div>
+        </div>
+      ) : fErr ? (
+        <QueryErrorState className="border-y" message="Portfolio data could not be loaded. Check your connection, then try again." onRetry={() => refetchFounders()} />
       ) : founders.length === 0 ? (
         <Card><CardContent className="p-12">
           <EmptyState icon={Users} message="No active founders in this cohort yet." />

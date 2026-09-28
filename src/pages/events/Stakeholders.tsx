@@ -1,3 +1,5 @@
+import { Skeleton } from "@/components/ui/skeleton";
+import { QueryErrorState, QueryErrorRow, SkeletonTableRows, SkeletonBlocks } from "@/components/QueryStates";
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -239,7 +241,7 @@ export default function StakeholdersDirectory() {
   const [filterCountries, setFilterCountries] = useState<string[]>([]);
   const [filterStatuses, setFilterStatuses] = useState<string[]>([]);
 
-  const { data: stakeholders = [], isLoading } = useQuery({
+  const { data: stakeholders = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["stakeholders", "directory"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -604,12 +606,32 @@ export default function StakeholdersDirectory() {
 
       {/* Table */}
       {isLoading ? (
-        <p className="text-muted-foreground text-center py-16">Loading stakeholders…</p>
+        <div className="rounded-xl border bg-card overflow-hidden" aria-busy="true">
+          <div className="h-10 border-b bg-muted/40" />
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-4 border-b px-4 py-3 last:border-b-0">
+              <Skeleton className="h-4 w-1/5" />
+              <Skeleton className="h-4 w-1/12" />
+              <Skeleton className="h-4 w-1/6" />
+              <Skeleton className="h-4 w-1/12" />
+              <Skeleton className="h-4 w-1/12" />
+              <Skeleton className="h-4 w-1/12" />
+            </div>
+          ))}
+        </div>
+      ) : isError ? (
+        <QueryErrorState className="border-y" message="Stakeholders could not be loaded. Check your connection, then try again." onRetry={() => refetch()} />
+      ) : filtered.length === 0 && activeFilterCount > 0 ? (
+        <div className="empty-state border-y">
+          <Users2 aria-hidden="true" />
+          <p className="text-sm text-muted-foreground">No stakeholders match these filters.</p>
+          <Button variant="outline" size="sm" onClick={clearAllFilters}>Clear filters</Button>
+        </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-20 border rounded-xl bg-card">
-          <Users2 className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
+        <div className="empty-state border-y">
+          <Users2 aria-hidden="true" />
           <p className="text-sm text-muted-foreground">
-            {showArchived ? "No archived stakeholders." : "No stakeholders match your filters."}
+            {showArchived ? "No archived stakeholders." : "No stakeholders yet."}
           </p>
         </div>
       ) : (
