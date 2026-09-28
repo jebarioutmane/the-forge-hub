@@ -30,12 +30,12 @@ export type CalendarEvent = Tables<"events"> & { _start: string; _end: string };
 
 const EVENT_TYPES = ["Masterclass", "Mentorship", "Pitch Session", "Networking", "Social", "General"] as const;
 const TYPE_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
-  Masterclass:     { bg: "bg-sky-50",     text: "text-sky-700",     dot: "bg-sky-500" },
-  Mentorship:      { bg: "bg-emerald-50", text: "text-emerald-700", dot: "bg-emerald-500" },
-  "Pitch Session": { bg: "bg-amber-50",   text: "text-amber-800",   dot: "bg-amber-600" },
-  Networking:      { bg: "bg-violet-50",  text: "text-violet-700",  dot: "bg-violet-500" },
-  Social:          { bg: "bg-rose-50",    text: "text-rose-700",    dot: "bg-rose-500" },
-  General:         { bg: "bg-muted",                              text: "text-foreground",                        dot: "bg-muted-foreground" },
+  Masterclass:     { bg: "bg-primary/10", text: "text-primary",    dot: "bg-primary" },
+  Mentorship:      { bg: "bg-primary/10", text: "text-primary",    dot: "bg-primary/75" },
+  "Pitch Session": { bg: "bg-primary/10", text: "text-primary",    dot: "bg-primary/50" },
+  Networking:      { bg: "bg-primary/10", text: "text-primary",    dot: "bg-primary/25" },
+  Social:          { bg: "bg-secondary",  text: "text-foreground", dot: "bg-muted-foreground" },
+  General:         { bg: "bg-secondary",  text: "text-foreground", dot: "bg-muted-foreground/50" },
 };
 function typeStyle(t?: string | null) { return TYPE_STYLES[t || "General"] || TYPE_STYLES.General; }
 
@@ -175,14 +175,14 @@ export default function Calendar() {
         key={ev.id}
         onClick={() => openEvent(ev.id)}
         className={cn(
-          "w-full text-left rounded-md px-1.5 py-1 flex items-center gap-1 transition-transform hover:scale-[1.02]",
-          s.bg, s.text, size === "sm" ? "text-[10px]" : "text-xs"
+          "w-full text-left rounded px-1 py-1 flex items-center gap-1 text-xs transition-colors hover:bg-primary/20 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          s.bg, s.text
         )}
       >
         <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", s.dot)} />
         <span className="truncate flex-1">{ev.name}</span>
-        {attn && <Users className="h-2.5 w-2.5 opacity-70 shrink-0" />}
-        {log && <ClipboardList className="h-2.5 w-2.5 opacity-70 shrink-0" />}
+        {attn && <Users className="h-3 w-3 opacity-70 shrink-0" />}
+        {log && <ClipboardList className="h-3 w-3 opacity-70 shrink-0" />}
       </button>
     );
   };
@@ -199,31 +199,33 @@ export default function Calendar() {
         }
       />
 
-      <Card className="p-3 flex flex-wrap items-center gap-2 bg-white/70 backdrop-blur-xl border-border/60 shadow-elev-sm">
-        <div className="inline-flex items-center rounded-full border bg-muted/50 p-0.5 gap-0.5">
+      <div className="py-2 flex flex-wrap items-center gap-2 border-y border-border">
+        <div className="inline-flex items-center rounded border border-border bg-secondary p-0.5 gap-0.5">
           {(["month", "week"] as View[]).map(v => (
             <Button key={v} size="sm" variant="ghost"
-              className={cn("h-7 rounded-full px-3 text-xs capitalize", view === v && "bg-background shadow-elev-sm")}
+              className={cn("h-8 rounded-sm px-3 text-xs capitalize", view === v && "bg-card text-foreground border border-border")}
               onClick={() => setView(v)}>{v}</Button>
           ))}
         </div>
 
         <div className="flex items-center gap-1 ml-2">
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"
+          <Button variant="ghost" size="icon" className="h-8 w-8"
+            aria-label={view === "week" ? "Previous week" : "Previous month"}
             onClick={() => setCursor(d => view === "week" ? subWeeks(d, 1) : subMonths(d, 1))}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-8 rounded-full" onClick={() => setCursor(new Date())}>Today</Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"
+          <Button variant="ghost" size="sm" className="h-8" onClick={() => setCursor(new Date())}>Today</Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8"
+            aria-label={view === "week" ? "Next week" : "Next month"}
             onClick={() => setCursor(d => view === "week" ? addWeeks(d, 1) : addMonths(d, 1))}>
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <span className="text-sm font-medium ml-2 font-mono tabular-nums">{headerLabel}</span>
+          <span className="text-sm font-medium ml-2 tabular-nums">{headerLabel}</span>
         </div>
 
         <div className="ml-auto flex items-center gap-3">
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="h-8 w-[150px] rounded-full text-xs"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-8 w-40 text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All types</SelectItem>
               {EVENT_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
@@ -234,7 +236,7 @@ export default function Calendar() {
             <Switch checked={showArchived} onCheckedChange={setShowArchived} />
           </div>
         </div>
-      </Card>
+      </div>
 
       <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
         {EVENT_TYPES.map(t => (
@@ -247,15 +249,15 @@ export default function Calendar() {
       </div>
 
       {showArchived && filtered.length > 0 && (
-        <Card className="p-4 bg-amber-50/50 border-amber-200/60">
-          <div className="text-xs text-amber-900 mb-2">Viewing archived events. Click restore to bring one back.</div>
+        <Card className="p-4 bg-status-watch/10 border-status-watch/30 shadow-none">
+          <div className="text-xs text-foreground mb-2">Viewing archived events. Click restore to bring one back.</div>
           <div className="space-y-1">
             {filtered.map(ev => (
               <div key={ev.id} className="flex items-center justify-between gap-2 text-sm">
                 <button onClick={() => openEvent(ev.id)} className="text-left hover:underline flex-1 truncate">
                   {ev.name} <span className="text-muted-foreground text-xs">· {ev.start_date}</span>
                 </button>
-                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => restore.mutate(ev.id)}>
+                <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => restore.mutate(ev.id)}>
                   <ArchiveRestore className="h-3.5 w-3.5 mr-1" /> Restore
                 </Button>
               </div>
@@ -267,73 +269,77 @@ export default function Calendar() {
       {isLoading ? (
         <Card className="p-4" aria-busy="true">
           <div className="grid grid-cols-7 gap-1">
-            {Array.from({ length: 35 }).map((_, i) => <Skeleton key={i} className="min-h-[110px] w-full" />)}
+            {Array.from({ length: 35 }).map((_, i) => <Skeleton key={i} className="min-h-28 w-full" />)}
           </div>
         </Card>
       ) : isError ? (
         <QueryErrorState className="border-y" message="The events calendar could not be loaded. Check your connection, then try again." onRetry={() => refetch()} />
       ) : !showArchived && view === "month" ? (
-        <Card className="p-4 bg-white/70 backdrop-blur-xl border-border/60 shadow-elev-sm">
-          <div className="grid grid-cols-7 gap-1 mb-1">
+        <div className="rounded-lg border border-border overflow-hidden">
+          <div className="grid grid-cols-7 gap-px bg-border border-b border-border">
             {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => (
-              <div key={d} className="text-[10px] font-medium tracking-wider text-muted-foreground text-center py-1 uppercase">{d}</div>
+              <div key={d} className="bg-secondary text-xs font-medium text-muted-foreground text-center py-2">{d}</div>
             ))}
           </div>
-          <div className="grid grid-cols-7 gap-1">
-            {Array.from({ length: startPad }).map((_, i) => <div key={`p${i}`} className="min-h-[110px]" />)}
+          <div className="grid grid-cols-7 gap-px bg-border">
+            {Array.from({ length: startPad }).map((_, i) => <div key={`p${i}`} className="min-h-28 bg-secondary" />)}
             {monthDays.map(day => {
               const dayEvents = eventsOnDay(day);
               const isToday = isSameDay(day, new Date());
               return (
                 <div key={day.toISOString()} className={cn(
-                  "min-h-[110px] rounded-xl p-1.5 border border-transparent transition-colors",
-                  isToday ? "bg-primary/5 border-primary/30" : "hover:bg-muted/40"
+                  "min-h-28 bg-card p-1 transition-colors hover:bg-secondary"
                 )}>
-                  <div className={cn("text-[11px] font-mono tabular-nums mb-1 px-1", isToday ? "text-primary font-semibold" : "text-muted-foreground")}>
-                    {format(day, "d")}
+                  <div className="mb-1 px-1">
+                    <span
+                      className={cn("inline-flex h-6 min-w-6 items-center justify-center rounded text-xs tabular-nums", isToday ? "border border-primary text-primary font-semibold" : "text-muted-foreground")}
+                      aria-current={isToday ? "date" : undefined}
+                    >
+                      {format(day, "d")}
+                    </span>
                   </div>
                   <div className="space-y-0.5">
                     {dayEvents.slice(0, 3).map(ev => renderEventChip(ev, "sm"))}
                     {dayEvents.length > 3 && (
-                      <div className="text-[10px] text-muted-foreground px-1">+{dayEvents.length - 3} more</div>
+                      <div className="text-xs text-muted-foreground px-1 tabular-nums">+{dayEvents.length - 3} more</div>
                     )}
                   </div>
                 </div>
               );
             })}
           </div>
-        </Card>
+        </div>
       ) : !showArchived ? (
-        <Card className="p-4 bg-white/70 backdrop-blur-xl border-border/60 shadow-elev-sm">
-          <div className="grid grid-cols-7 gap-2">
+        <div className="rounded-lg border border-border overflow-hidden">
+          <div className="grid grid-cols-7 gap-px bg-border">
             {weekDays.map(day => {
               const dayEvents = eventsOnDay(day);
               const isToday = isSameDay(day, new Date());
               return (
                 <div key={day.toISOString()} className={cn(
-                  "rounded-xl p-2 min-h-[380px] border",
-                  isToday ? "bg-primary/5 border-primary/30" : "border-border/60"
+                  "min-h-96 bg-card p-2",
+                  isToday && "bg-secondary"
                 )}>
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{format(day, "EEE")}</div>
-                  <div className={cn("text-lg font-mono tabular-nums mb-2", isToday && "text-primary font-semibold")}>{format(day, "d")}</div>
+                  <div className="text-xs font-medium text-muted-foreground">{format(day, "EEE")}</div>
+                  <div aria-current={isToday ? "date" : undefined} className={cn("text-lg tabular-nums mb-2", isToday ? "text-primary font-semibold" : "text-foreground")}>{format(day, "d")}</div>
                   <div className="space-y-1">
                     {dayEvents.map(ev => (
                       <div key={ev.id}>
                         {renderEventChip(ev, "md")}
-                        <div className="text-[10px] text-muted-foreground font-mono tabular-nums px-1.5 mt-0.5">
+                        <div className="text-xs text-muted-foreground tabular-nums px-1 mt-0.5">
                           {format(parseISO(ev._start), "HH:mm")} – {format(parseISO(ev._end), "HH:mm")}
                         </div>
                       </div>
                     ))}
                     {dayEvents.length === 0 && (
-                      <div className="text-[10px] text-muted-foreground/60 italic px-1">—</div>
+                      <div className="text-xs text-muted-foreground px-1">—</div>
                     )}
                   </div>
                 </div>
               );
             })}
           </div>
-        </Card>
+        </div>
       ) : null}
 
       <EventWorkspace open={wsOpen} onOpenChange={setWsOpen} eventId={wsEventId} initialIsMultipart={wsInitialMultipart} />
@@ -360,7 +366,7 @@ function EventTypeChooser({
         <div className="grid grid-cols-2 gap-3 pt-2">
           <button
             onClick={() => onPick(false)}
-            className="text-left rounded-xl border p-4 hover:bg-muted/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+            className="text-left rounded-lg border border-border p-4 hover:bg-secondary hover:border-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <CalendarDays className="h-5 w-5 mb-2 text-primary" />
             <div className="font-medium text-sm">Simple event</div>
@@ -370,7 +376,7 @@ function EventTypeChooser({
           </button>
           <button
             onClick={() => onPick(true)}
-            className="text-left rounded-xl border p-4 hover:bg-muted/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+            className="text-left rounded-lg border border-border p-4 hover:bg-secondary hover:border-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Layers className="h-5 w-5 mb-2 text-primary" />
             <div className="font-medium text-sm">Multi-part event</div>
