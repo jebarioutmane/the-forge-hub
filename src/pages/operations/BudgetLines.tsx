@@ -1,3 +1,4 @@
+import { Skeleton } from "@/components/ui/skeleton";
 import { QueryErrorState, QueryErrorRow, SkeletonTableRows, SkeletonBlocks } from "@/components/QueryStates";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -196,7 +197,7 @@ export default function BudgetLines() {
 
       {cohortLoading && (
         <Card className="border-dashed">
-          <CardContent className="py-6 text-center text-sm text-muted-foreground">Loading cohort…</CardContent>
+          <CardContent className="py-6"><Skeleton className="h-4 w-1/3" aria-hidden="true" /></CardContent>
         </Card>
       )}
 

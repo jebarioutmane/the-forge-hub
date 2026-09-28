@@ -1,3 +1,4 @@
+import { Skeleton } from "@/components/ui/skeleton";
 import { QueryErrorState, SkeletonBlocks } from "@/components/QueryStates";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -266,7 +267,7 @@ export default function HistoryLog() {
         <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
           <span>
             {isLoading
-              ? "Loading…"
+              ? <Skeleton className="inline-block h-3 w-24 align-middle" />
               : `${filtered.length} of ${logs.length} entries`}
           </span>
           {hasFilters && (

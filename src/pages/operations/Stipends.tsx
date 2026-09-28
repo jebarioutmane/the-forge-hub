@@ -1,3 +1,4 @@
+import { Skeleton } from "@/components/ui/skeleton";
 import { QueryErrorState, QueryErrorRow, SkeletonTableRows, SkeletonBlocks } from "@/components/QueryStates";
 import { useState, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -683,7 +684,7 @@ export default function Stipends() {
       </div>
 
       {cohortLoading && (
-        <Card><CardContent className="p-4 text-sm text-muted-foreground">Loading cohort…</CardContent></Card>
+        <Skeleton className="h-14 w-full" aria-hidden="true" />
       )}
 
       {!cohortLoading && isAllCohorts && (
