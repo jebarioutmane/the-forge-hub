@@ -99,9 +99,9 @@ type AbsoluteTarget = { id: string; label: string; met: boolean };
 type Decision = "stay" | "at_risk" | "exit";
 
 const DECISIONS: { value: Decision; label: string; icon: typeof ShieldCheck; tone: string; ring: string; dot: string }[] = [
-  { value: "stay", label: "Stay", icon: ShieldCheck, tone: "text-emerald-700", ring: "ring-emerald-500/50 bg-emerald-50 border-emerald-300", dot: "bg-emerald-500" },
-  { value: "at_risk", label: "At Risk", icon: AlertTriangle, tone: "text-amber-700", ring: "ring-amber-500/50 bg-amber-50 border-amber-300", dot: "bg-amber-500" },
-  { value: "exit", label: "Exit", icon: XCircle, tone: "text-rose-700", ring: "ring-rose-500/50 bg-rose-50 border-rose-300", dot: "bg-rose-500" },
+  { value: "stay", label: "Stay", icon: ShieldCheck, tone: "text-status-ontrack", ring: "ring-status-ontrack/40 bg-status-ontrack/10 border-status-ontrack/40", dot: "bg-status-ontrack" },
+  { value: "at_risk", label: "At Risk", icon: AlertTriangle, tone: "text-status-watch", ring: "ring-status-watch/40 bg-status-watch/10 border-status-watch/40", dot: "bg-status-watch" },
+  { value: "exit", label: "Exit", icon: XCircle, tone: "text-status-atrisk", ring: "ring-status-atrisk/40 bg-status-atrisk/10 border-status-atrisk/40", dot: "bg-status-atrisk" },
 ];
 
 const EFFORT_LABEL: Record<string, string> = {
@@ -475,7 +475,7 @@ export default function Evaluations() {
             <>
               <Label className="text-xs text-muted-foreground">Block</Label>
               <Select value={String(blockNumber)} onValueChange={(v) => setBlockNumber(Number(v))}>
-                <SelectTrigger className="h-9 w-[220px]">
+                <SelectTrigger className="h-9 w-56">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -493,8 +493,8 @@ export default function Evaluations() {
         {/* Workspace */}
         <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
           {/* Left: founder list */}
-          <div className="rounded-lg border border-black/5 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-            <div className="border-b border-black/5 p-4">
+          <div className="rounded-lg border border-border bg-background">
+            <div className="border-b border-border p-4">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -504,7 +504,7 @@ export default function Evaluations() {
                   className="h-9 pl-8 text-sm"
                 />
               </div>
-              <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground">
+              <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
                 <span>{filteredFounders.length} founders</span>
                 <span className="inline-flex items-center gap-1">
                   <UsersIcon className="h-3 w-3" /> {selectedCohortLabel}
@@ -514,7 +514,7 @@ export default function Evaluations() {
 
             <div className="max-h-[calc(100vh-280px)] overflow-y-auto">
               {foundersLoading ? (
-                <div className="p-6 space-y-3">
+                <div className="p-4 space-y-3">
                   {Array.from({ length: 6 }).map((_, i) => (
                     <Skeleton key={i} className="h-14 w-full" />
                   ))}
@@ -528,9 +528,9 @@ export default function Evaluations() {
                   <Button variant="outline" size="sm" onClick={() => setQuery("")}>Clear search</Button>
                 </div>
               ) : filteredFounders.length === 0 ? (
-                <div className="p-10 text-center">
-                  <UsersIcon className="mx-auto h-6 w-6 text-muted-foreground/50" />
-                  <p className="mt-3 text-sm font-medium text-[#1D1D1F]">
+                <div className="p-8 text-center">
+                  <UsersIcon className="mx-auto h-6 w-6 text-muted-foreground" />
+                  <p className="mt-3 text-sm font-medium text-foreground">
                     No founders in this cohort
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
@@ -538,7 +538,7 @@ export default function Evaluations() {
                   </p>
                 </div>
               ) : (
-                <ul className="divide-y divide-black/5">
+                <ul className="divide-y divide-border">
                   {filteredFounders.map((f) => {
                     const latest = latestByFounder.get(f.id);
                     const isSelected = f.id === selectedFounderId;
@@ -551,39 +551,39 @@ export default function Evaluations() {
                           onClick={() => setSelectedFounderId(f.id)}
                           className={cn(
                             "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors",
-                            isSelected ? "bg-[#0071E3]/[0.06]" : "hover:bg-black/[0.02]",
+                            isSelected ? "bg-secondary" : "hover:bg-secondary",
                           )}
                         >
                           <div
                             className={cn(
-                              "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
-                              isSelected ? "bg-[#0071E3] text-white" : "bg-black/[0.05] text-[#1D1D1F]",
+                              "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
+                              isSelected ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground",
                             )}
                           >
                             {initials(f.startup_name || f.founder_name)}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="truncate text-sm font-medium text-[#1D1D1F]">
+                            <div className="truncate text-sm font-medium text-foreground">
                               {f.startup_name || "—"}
                             </div>
-                            <div className="truncate text-[11.5px] text-muted-foreground">
+                            <div className="truncate text-xs text-muted-foreground">
                               {f.founder_name || "—"}
                             </div>
                           </div>
                           <div className="flex flex-col items-end gap-1">
                             {latest ? (
-                              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">
+                              <span className="inline-flex items-center gap-1 rounded-full border border-status-ontrack/30 bg-status-ontrack/10 px-1.5 py-0.5 text-xs font-medium text-status-ontrack">
                                 <CheckCircle2 className="h-2.5 w-2.5" />
                                 Done
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                              <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
                                 <Circle className="h-2.5 w-2.5" />
                                 Pending
                               </span>
                             )}
                             {decMeta && (
-                              <span className={cn("inline-flex items-center gap-1 text-[10px] font-medium", decMeta.tone)}>
+                              <span className={cn("inline-flex items-center gap-1 text-xs font-medium", decMeta.tone)}>
                                 <span className={cn("h-1.5 w-1.5 rounded-full", decMeta.dot)} />
                                 {decMeta.label}
                               </span>
@@ -601,9 +601,9 @@ export default function Evaluations() {
           {/* Right: workspace */}
           <div className="space-y-6">
             {!selectedFounder ? (
-              <div className="rounded-lg border border-black/5 bg-white p-10 text-center shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-                <ClipboardCheck className="mx-auto h-6 w-6 text-muted-foreground/50" />
-                <p className="mt-3 text-sm font-medium text-[#1D1D1F]">
+              <div className="rounded-lg border border-border bg-background p-8 text-center">
+                <ClipboardCheck className="mx-auto h-6 w-6 text-muted-foreground" />
+                <p className="mt-3 text-sm font-medium text-foreground">
                   Select a founder to begin
                 </p>
               </div>
@@ -612,29 +612,29 @@ export default function Evaluations() {
                 {/* Founder header */}
                 <div className="flex items-end justify-between">
                   <div>
-                    <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+                    <div className="text-xs text-muted-foreground">
                       {activeBlock.name} · {activeBlock.label}
                     </div>
-                    <h2 className="mt-1 text-[22px] font-semibold text-[#1D1D1F] tracking-tight">
+                    <h2 className="mt-1 text-lg font-semibold text-foreground tracking-tight">
                       {selectedFounder.startup_name || "—"}
                     </h2>
                     <p className="text-sm text-muted-foreground">{selectedFounder.founder_name}</p>
                   </div>
                   {editingId && (
-                    <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-700">
+                    <Badge variant="outline" className="border-status-watch/30 bg-status-watch/10 text-status-watch">
                       Editing existing evaluation
                     </Badge>
                   )}
                 </div>
 
                 {/* Evidence summary */}
-                <div className="rounded-lg border border-black/5 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="rounded-lg border border-border bg-background p-4">
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Activity className="h-4 w-4 text-[#0071E3]" />
-                      <h3 className="text-sm font-semibold text-[#1D1D1F]">Evidence summary</h3>
+                      <Activity className="h-4 w-4 text-primary" />
+                      <h3 className="text-sm font-semibold text-foreground">Evidence summary</h3>
                     </div>
-                    <div className="text-[11px] text-muted-foreground">
+                    <div className="text-xs text-muted-foreground">
                       From check-ins · read-only
                     </div>
                   </div>
@@ -646,22 +646,22 @@ export default function Evaluations() {
                   ) : (
                     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                       <div className="col-span-2 lg:col-span-1">
-                        <div className="text-[11px] uppercase tracking-widest text-muted-foreground">Check-ins</div>
-                        <div className="mt-1 text-2xl font-semibold text-[#1D1D1F]">{evidence.count}</div>
-                        <div className="text-[11px] text-muted-foreground">
+                        <div className="text-xs text-muted-foreground">Check-ins</div>
+                        <div className="mt-1 text-2xl font-semibold text-foreground">{evidence.count}</div>
+                        <div className="text-xs text-muted-foreground">
                           Latest {evidence.latestDate ? format(parseISO(evidence.latestDate), "MMM d, yyyy") : "—"}
                         </div>
                       </div>
                       <div>
-                        <div className="text-[11px] uppercase tracking-widest text-muted-foreground">Latest effort</div>
-                        <div className="mt-1 text-sm font-medium text-[#1D1D1F]">
+                        <div className="text-xs text-muted-foreground">Latest effort</div>
+                        <div className="mt-1 text-sm font-medium text-foreground">
                           {evidence.latestSignal ? EFFORT_LABEL[evidence.latestSignal] ?? "—" : "—"}
                         </div>
-                        <div className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <div className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground">
                           <TrendingUp className={cn(
                             "h-3 w-3",
-                            evidence.trend === "up" && "text-emerald-600",
-                            evidence.trend === "down" && "rotate-180 text-rose-600",
+                            evidence.trend === "up" && "text-status-ontrack",
+                            evidence.trend === "down" && "rotate-180 text-status-atrisk",
                             evidence.trend === "flat" && "text-muted-foreground",
                           )} />
                           Trend {evidence.trend}
@@ -670,14 +670,14 @@ export default function Evaluations() {
                       <div className="col-span-2 space-y-1">
                         {evidence.avgs.map((a) => (
                           <div key={a.key} className="flex items-center gap-2">
-                            <div className="w-16 text-[11px] text-muted-foreground">{a.label}</div>
-                            <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-black/[0.06]">
+                            <div className="w-16 text-xs text-muted-foreground">{a.label}</div>
+                            <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-secondary">
                               <div
-                                className="absolute inset-y-0 left-0 rounded-full bg-[#0071E3]"
+                                className="absolute inset-y-0 left-0 rounded-full bg-primary"
                                 style={{ width: `${((a.avg ?? 0) / 5) * 100}%` }}
                               />
                             </div>
-                            <div className="w-10 text-right text-[11px] font-medium text-[#1D1D1F]">
+                            <div className="w-10 text-right text-xs font-medium text-foreground">
                               {a.avg != null ? a.avg.toFixed(1) : "—"}
                             </div>
                           </div>
@@ -688,13 +688,13 @@ export default function Evaluations() {
                 </div>
 
                 {/* Scoring workspace */}
-                <div className="rounded-lg border border-black/5 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="rounded-lg border border-border bg-background p-4">
                   <div className="mb-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-[#0071E3]" />
-                      <h3 className="text-sm font-semibold text-[#1D1D1F]">Nine-dimension score</h3>
+                      <Sparkles className="h-4 w-4 text-primary" />
+                      <h3 className="text-sm font-semibold text-foreground">Nine-dimension score</h3>
                     </div>
-                    <div className="text-[11px] text-muted-foreground">
+                    <div className="text-xs text-muted-foreground">
                       Overall {overall != null ? overall.toFixed(2) : "—"} / 5
                     </div>
                   </div>
@@ -716,10 +716,10 @@ export default function Evaluations() {
                 </div>
 
                 {/* Absolute targets */}
-                <div className="rounded-lg border border-black/5 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="rounded-lg border border-border bg-background p-4">
                   <div className="mb-3 flex items-center gap-2">
-                    <Target className="h-4 w-4 text-[#0071E3]" />
-                    <h3 className="text-sm font-semibold text-[#1D1D1F]">Absolute targets</h3>
+                    <Target className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm font-semibold text-foreground">Absolute targets</h3>
                   </div>
 
                   {form.absolute_targets.length === 0 ? (
@@ -729,7 +729,7 @@ export default function Evaluations() {
                   ) : (
                     <ul className="space-y-2">
                       {form.absolute_targets.map((t) => (
-                        <li key={t.id} className="flex items-center gap-3 rounded-lg border border-black/[0.06] bg-black/[0.015] px-3 py-2">
+                        <li key={t.id} className="flex items-center gap-3 rounded-lg border border-border bg-secondary px-3 py-2">
                           <Checkbox
                             checked={t.met}
                             onCheckedChange={() => toggleTarget(t.id)}
@@ -739,14 +739,14 @@ export default function Evaluations() {
                             htmlFor={`target-${t.id}`}
                             className={cn(
                               "flex-1 text-sm cursor-pointer",
-                              t.met ? "text-muted-foreground line-through" : "text-[#1D1D1F]",
+                              t.met ? "text-muted-foreground line-through" : "text-foreground",
                             )}
                           >
                             {t.label}
                           </label>
                           <span className={cn(
-                            "text-[10.5px] font-medium",
-                            t.met ? "text-emerald-700" : "text-muted-foreground",
+                            "text-xs font-medium",
+                            t.met ? "text-status-ontrack" : "text-muted-foreground",
                           )}>
                             {t.met ? "Met" : "Not met"}
                           </span>
@@ -784,10 +784,10 @@ export default function Evaluations() {
                 </div>
 
                 {/* Decision */}
-                <div className="rounded-lg border border-black/5 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="rounded-lg border border-border bg-background p-4">
                   <div className="mb-4 flex items-center gap-2">
-                    <ShieldCheck className="h-4 w-4 text-[#0071E3]" />
-                    <h3 className="text-sm font-semibold text-[#1D1D1F]">Decision</h3>
+                    <ShieldCheck className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm font-semibold text-foreground">Decision</h3>
                   </div>
 
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -803,16 +803,16 @@ export default function Evaluations() {
                             "group relative rounded-xl border-2 px-4 py-4 text-left transition-all",
                             selected
                               ? `${d.ring} ring-2 shadow-elev-sm`
-                              : "border-black/[0.08] bg-white hover:border-black/20",
+                              : "border-border bg-background hover:border-muted-foreground",
                           )}
                         >
                           <div className="flex items-start justify-between">
                             <div>
-                              <div className={cn("flex items-center gap-2 text-sm font-semibold", selected ? d.tone : "text-[#1D1D1F]")}>
+                              <div className={cn("flex items-center gap-2 text-sm font-semibold", selected ? d.tone : "text-foreground")}>
                                 <Icon className="h-4 w-4" />
                                 {d.label}
                               </div>
-                              <div className="mt-1 text-[11.5px] text-muted-foreground">
+                              <div className="mt-1 text-xs text-muted-foreground">
                                 {d.value === "stay" && "Continue in program"}
                                 {d.value === "at_risk" && "Continue with concerns"}
                                 {d.value === "exit" && "Recommend removal"}
@@ -827,7 +827,7 @@ export default function Evaluations() {
 
                   <div className="mt-4 grid gap-4 md:grid-cols-[180px_1fr]">
                     <div>
-                      <Label className="text-[11px] uppercase tracking-widest text-muted-foreground">Date</Label>
+                      <Label className="text-xs text-muted-foreground">Date</Label>
                       <Input
                         type="date"
                         value={form.evaluation_date}
@@ -836,7 +836,7 @@ export default function Evaluations() {
                       />
                     </div>
                     <div>
-                      <Label className="text-[11px] uppercase tracking-widest text-muted-foreground">Summary note</Label>
+                      <Label className="text-xs text-muted-foreground">Summary note</Label>
                       <Textarea
                         value={form.summary_note}
                         onChange={(e) => setForm((f) => ({ ...f, summary_note: e.target.value }))}
@@ -856,7 +856,7 @@ export default function Evaluations() {
                       type="button"
                       onClick={() => saveMutation.mutate()}
                       disabled={saveMutation.isPending || !form.decision}
-                      className="h-9 bg-[#0071E3] hover:bg-[#0060c0]"
+                      className="h-9 bg-primary hover:bg-primary/90"
                     >
                       {saveMutation.isPending
                         ? "Saving…"
@@ -868,11 +868,11 @@ export default function Evaluations() {
                 </div>
 
                 {/* Timeline */}
-                <div className="rounded-lg border border-black/5 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="rounded-lg border border-border bg-background p-4">
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <ClipboardCheck className="h-4 w-4 text-[#0071E3]" />
-                      <h3 className="text-sm font-semibold text-[#1D1D1F]">
+                      <ClipboardCheck className="h-4 w-4 text-primary" />
+                      <h3 className="text-sm font-semibold text-foreground">
                         {showArchived ? "Archived evaluations" : "Evaluation history"}
                       </h3>
                     </div>
@@ -912,7 +912,7 @@ export default function Evaluations() {
                         : "No evaluations yet for this founder."}
                     </div>
                   ) : (
-                    <ul className="divide-y divide-black/5">
+                    <ul className="divide-y divide-border">
                       {timeline.map((e) => {
                         const dec = DECISIONS.find((d) => d.value === e.decision);
                         const isOpen = expanded.has(e.id);
@@ -924,24 +924,24 @@ export default function Evaluations() {
                               <button
                                 type="button"
                                 onClick={() => toggleExpanded(e.id)}
-                                className="text-muted-foreground hover:text-[#1D1D1F]"
+                                className="text-muted-foreground hover:text-foreground"
                                 aria-label="Toggle"
                               >
                                 {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                               </button>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium text-[#1D1D1F]">
+                                  <span className="text-sm font-medium text-foreground">
                                     {e.block_name || `Block ${e.block_number ?? "—"}`}
                                   </span>
                                   {dec && (
-                                    <span className={cn("inline-flex items-center gap-1 text-[11px] font-medium", dec.tone)}>
+                                    <span className={cn("inline-flex items-center gap-1 text-xs font-medium", dec.tone)}>
                                       <span className={cn("h-1.5 w-1.5 rounded-full", dec.dot)} />
                                       {dec.label}
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-[11.5px] text-muted-foreground">
+                                <div className="text-xs text-muted-foreground">
                                   {e.evaluation_date ? format(parseISO(e.evaluation_date), "MMM d, yyyy") : "—"} · Score {e.total_score ?? "—"}
                                 </div>
                               </div>
@@ -977,31 +977,31 @@ export default function Evaluations() {
                             </div>
 
                             {isOpen && (
-                              <div className="ml-7 mt-3 space-y-3 rounded-lg bg-black/[0.02] p-3">
+                              <div className="ml-7 mt-3 space-y-3 rounded-lg bg-secondary p-3">
                                 <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 md:grid-cols-3">
                                   {ALL_DIMS.map((d) => (
-                                    <div key={d.key} className="flex items-center justify-between text-[12px]">
+                                    <div key={d.key} className="flex items-center justify-between text-xs">
                                       <span className="text-muted-foreground">{d.label}</span>
-                                      <span className="font-medium text-[#1D1D1F]">
+                                      <span className="font-medium text-foreground">
                                         {dims[d.key]?.rating || "—"}/5
                                       </span>
                                     </div>
                                   ))}
                                 </div>
                                 {targets.length > 0 && (
-                                  <div className="border-t border-black/5 pt-2">
-                                    <div className="mb-1 text-[10.5px] uppercase tracking-widest text-muted-foreground">
+                                  <div className="border-t border-border pt-2">
+                                    <div className="mb-1 text-xs text-muted-foreground">
                                       Targets
                                     </div>
                                     <ul className="space-y-0.5">
                                       {targets.map((t) => (
-                                        <li key={t.id} className="flex items-center gap-2 text-[12px]">
+                                        <li key={t.id} className="flex items-center gap-2 text-xs">
                                           {t.met ? (
-                                            <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                                            <CheckCircle2 className="h-3 w-3 text-status-ontrack" />
                                           ) : (
                                             <Circle className="h-3 w-3 text-muted-foreground" />
                                           )}
-                                          <span className={cn(t.met ? "text-muted-foreground line-through" : "text-[#1D1D1F]")}>
+                                          <span className={cn(t.met ? "text-muted-foreground line-through" : "text-foreground")}>
                                             {t.label}
                                           </span>
                                         </li>
@@ -1010,7 +1010,7 @@ export default function Evaluations() {
                                   </div>
                                 )}
                                 {e.summary_note && (
-                                  <div className="border-t border-black/5 pt-2 text-[12px] text-[#1D1D1F] whitespace-pre-wrap">
+                                  <div className="border-t border-border pt-2 text-xs text-foreground whitespace-pre-wrap">
                                     {e.summary_note}
                                   </div>
                                 )}
@@ -1073,11 +1073,11 @@ export default function Evaluations() {
 
               {toTargets(viewing.absolute_targets).length > 0 && (
                 <div>
-                  <div className="mb-1 text-[10.5px] uppercase tracking-widest text-muted-foreground">Targets</div>
+                  <div className="mb-1 text-xs text-muted-foreground">Targets</div>
                   <ul className="space-y-0.5 text-sm">
                     {toTargets(viewing.absolute_targets).map((t) => (
                       <li key={t.id} className="flex items-center gap-2">
-                        {t.met ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> : <Circle className="h-3.5 w-3.5 text-muted-foreground" />}
+                        {t.met ? <CheckCircle2 className="h-3.5 w-3.5 text-status-ontrack" /> : <Circle className="h-3.5 w-3.5 text-muted-foreground" />}
                         <span className={cn(t.met && "text-muted-foreground line-through")}>{t.label}</span>
                       </li>
                     ))}
@@ -1086,7 +1086,7 @@ export default function Evaluations() {
               )}
 
               {viewing.summary_note && (
-                <div className="rounded-lg bg-black/[0.02] p-3 text-sm whitespace-pre-wrap">
+                <div className="rounded-lg bg-secondary p-3 text-sm whitespace-pre-wrap">
                   {viewing.summary_note}
                 </div>
               )}
@@ -1123,23 +1123,23 @@ function DimensionGroup({
 }) {
   return (
     <div>
-      <div className="mb-3 text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">
+      <div className="mb-3 text-xs text-muted-foreground">
         {label}
       </div>
       <div className="space-y-3">
         {dims.map((d) => {
           const s = scores[d.key];
           return (
-            <div key={d.key} className="rounded-lg border border-black/[0.06] bg-black/[0.015] p-3">
+            <div key={d.key} className="rounded-lg border border-border bg-secondary p-3">
               <div className="flex items-center justify-between">
-                <div className="text-sm font-medium text-[#1D1D1F]">{d.label}</div>
+                <div className="text-sm font-medium text-foreground">{d.label}</div>
                 <StarRating value={s.rating} onChange={(v) => onUpdate(d.key, { rating: v })} size={16} />
               </div>
               <Input
                 value={s.note}
                 onChange={(e) => onUpdate(d.key, { note: e.target.value })}
                 placeholder="Optional note…"
-                className="mt-2 h-8 border-transparent bg-white text-xs focus-visible:border-input"
+                className="mt-2 h-8 border-transparent bg-background text-xs focus-visible:border-input"
               />
             </div>
           );
