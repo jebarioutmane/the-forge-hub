@@ -8,7 +8,8 @@ export type PermissionSection =
   | "events" | "stakeholders"
   | "budget" | "expenses" | "stipends" | "contracts" | "tasks"
   | "reporting"
-  | "team" | "history" | "library" | "settings" | "budget_lines";
+  | "team" | "history" | "library" | "settings" | "budget_lines"
+  | "alumni";
 
 type PermRow = {
   section: string;
