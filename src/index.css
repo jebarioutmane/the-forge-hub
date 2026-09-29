@@ -94,6 +94,11 @@
     --module-events: 212 70% 33%;
     --module-founders: 217 92% 57%;
 
+    /* Alumni tracker exit link — mid-dark green */
+    --alumni: 155 52% 28%;
+    --alumni-hover: 155 55% 23%;
+    --alumni-foreground: 0 0% 100%;
+
     --font-serif: Georgia, 'Times New Roman', 'Iowan Old Style', serif;
     --font-display: var(--font-serif);
     --font-body: 'Inter', 'Twemoji Country Flags', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;

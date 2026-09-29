@@ -61,6 +61,11 @@ export default {
         "module-events": "hsl(var(--module-events))",
         "module-founders": "hsl(var(--module-founders))",
         ink: "hsl(var(--ink))",
+        alumni: {
+          DEFAULT: "hsl(var(--alumni))",
+          hover: "hsl(var(--alumni-hover))",
+          foreground: "hsl(var(--alumni-foreground) / <alpha-value>)",
+        },
         signal: {
           DEFAULT: "hsl(var(--signal))",
           foreground: "hsl(var(--signal-foreground))",

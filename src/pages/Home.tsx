@@ -78,14 +78,16 @@ export default function Home() {
               href="https://alumnitracker.maghribusiness.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="card-hover flex items-center gap-3 rounded-lg border border-border bg-card p-4 transition-colors hover:border-muted-foreground/40 hover:bg-secondary active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="group flex items-center gap-3 rounded-lg bg-alumni p-4 text-alumni-foreground shadow-elev-md transition-colors hover:bg-alumni-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
-              <GraduationCap className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-alumni-foreground/15">
+                <GraduationCap className="h-4 w-4" />
+              </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-foreground">Alumni tracker</p>
-                <p className="text-xs text-muted-foreground">Follow-ups and status updates for programme alumni</p>
+                <p className="text-card-title !text-alumni-foreground">Alumni tracker</p>
+                <p className="text-xs text-alumni-foreground/80">Follow-ups and status updates for programme alumni</p>
               </div>
-              <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <ExternalLink className="h-4 w-4 shrink-0 text-alumni-foreground/80 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
               <span className="sr-only">(opens in a new tab)</span>
             </a>
           )}
