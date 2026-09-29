@@ -14,6 +14,153 @@ export type Database = {
   }
   public: {
     Tables: {
+      alumni_startups: {
+        Row: {
+          archived_at: string | null
+          company_status: string | null
+          created_at: string
+          current_stage: string | null
+          doing: string
+          ease_of_engagement: string | null
+          founder_name: string
+          funding_stage: string | null
+          id: string
+          is_archived: boolean
+          last_engaged_date: string | null
+          location: string
+          name: string
+          next_follow_up_date: string | null
+          owner_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          company_status?: string | null
+          created_at?: string
+          current_stage?: string | null
+          doing?: string
+          ease_of_engagement?: string | null
+          founder_name?: string
+          funding_stage?: string | null
+          id?: string
+          is_archived?: boolean
+          last_engaged_date?: string | null
+          location?: string
+          name: string
+          next_follow_up_date?: string | null
+          owner_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          company_status?: string | null
+          created_at?: string
+          current_stage?: string | null
+          doing?: string
+          ease_of_engagement?: string | null
+          founder_name?: string
+          funding_stage?: string | null
+          id?: string
+          is_archived?: boolean
+          last_engaged_date?: string | null
+          location?: string
+          name?: string
+          next_follow_up_date?: string | null
+          owner_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alumni_startups_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "alumni_team_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alumni_status_updates: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          startup_id: string
+          update_date: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          startup_id: string
+          update_date?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          startup_id?: string
+          update_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alumni_status_updates_startup_id_fkey"
+            columns: ["startup_id"]
+            isOneToOne: false
+            referencedRelation: "alumni_startups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alumni_support_items: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          kind: string
+          startup_id: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          kind: string
+          startup_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          startup_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alumni_support_items_startup_id_fkey"
+            columns: ["startup_id"]
+            isOneToOne: false
+            referencedRelation: "alumni_startups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alumni_team_members: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           key: string
