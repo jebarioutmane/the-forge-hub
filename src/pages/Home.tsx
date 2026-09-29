@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { CalendarDays, ChevronDown, ChevronUp, Search, Users } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronUp, ExternalLink, GraduationCap, Search, Users } from "lucide-react";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +20,7 @@ export default function Home() {
   const [showAllFounders, setShowAllFounders] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { selectedCohortId } = useCohort();
+  const { canView } = usePermissions();
   const cohortFilter = selectedCohortId && selectedCohortId !== ALL_COHORTS ? selectedCohortId : null;
 
   const { data: founders = [] } = useQuery({
@@ -71,6 +73,23 @@ export default function Home() {
         </div>
 
         <div className="space-y-6 lg:col-span-4">
+          {canView("alumni") && (
+            <a
+              href="https://alumnitracker.maghribusiness.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="card-hover flex items-center gap-3 rounded-lg border border-border bg-card p-4 transition-colors hover:border-muted-foreground/40 hover:bg-secondary active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            >
+              <GraduationCap className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-foreground">Alumni tracker</p>
+                <p className="text-xs text-muted-foreground">Follow-ups and status updates for programme alumni</p>
+              </div>
+              <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <span className="sr-only">(opens in a new tab)</span>
+            </a>
+          )}
+
           {/* KPI figures */}
           <div className="rounded-lg border border-border bg-card">
             <div className="flex items-center justify-between gap-4 p-4">
