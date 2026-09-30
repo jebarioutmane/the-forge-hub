@@ -16,3 +16,19 @@ export function exportSafeRow<T extends Record<string, unknown>>(row: T): T {
   for (const [k, v] of Object.entries(row)) out[k] = exportSafe(v);
   return out as T;
 }
+
+/**
+ * One CSV cell: formula guard first, then RFC 4180 quoting.
+ * Numbers stay unquoted; null/undefined become an empty cell.
+ */
+export function toCsvCell(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  const s = String(exportSafe(value instanceof Date ? value.toISOString() : String(value)));
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+/** Joins a row of values into one CSV line. */
+export function toCsvRow(values: unknown[]): string {
+  return values.map(toCsvCell).join(",");
+}
