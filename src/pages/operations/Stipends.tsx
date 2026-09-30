@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { exportSafe } from "@/lib/exportSafe";
+import { toCsvRow } from "@/lib/exportSafe";
 import { Skeleton } from "@/components/ui/skeleton";
 import { QueryErrorState, QueryErrorRow, SkeletonTableRows, SkeletonBlocks } from "@/components/QueryStates";
 import { useState, useMemo, useCallback } from "react";
@@ -611,7 +611,7 @@ export default function Stipends() {
 
   function exportCSV() {
     const headers = ["Founder", "Startup", "RIB", "Base", "Ded%", "DedFixed", "Add%", "AddFixed", "Reimb", "Net", "Status"];
-    const rows = records.map((r) => [
+    const rows = records.map((r) => toCsvRow([
       getFounderName(r.founder_id),
       getStartupName(r.founder_id),
       getRib(r.founder_id),
@@ -623,8 +623,8 @@ export default function Stipends() {
       r.reimbursement,
       r.total_net,
       r.status,
-    ].map(exportSafe).join(","));
-    const csv = [headers.join(","), ...rows].join("\n");
+    ]));
+    const csv = [toCsvRow(headers), ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
