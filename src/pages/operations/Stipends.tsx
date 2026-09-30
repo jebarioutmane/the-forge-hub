@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { exportSafe } from "@/lib/exportSafe";
 import { Skeleton } from "@/components/ui/skeleton";
 import { QueryErrorState, QueryErrorRow, SkeletonTableRows, SkeletonBlocks } from "@/components/QueryStates";
 import { useState, useMemo, useCallback } from "react";
@@ -622,7 +623,7 @@ export default function Stipends() {
       r.reimbursement,
       r.total_net,
       r.status,
-    ].join(","));
+    ].map(exportSafe).join(","));
     const csv = [headers.join(","), ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);

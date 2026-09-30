@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { exportSafeRow } from "@/lib/exportSafe";
 import { QueryErrorState, SkeletonBlocks } from "@/components/QueryStates";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
@@ -272,7 +273,7 @@ export default function ReportEditor() {
   async function exportExcel() {
     if (!instance) return;
     const XLSX = await import("xlsx");
-    const rows = answers.map((a) => ({
+    const rows = answers.map((a) => exportSafeRow({
       Category: a.category ?? "",
       Question: a.question_text,
       Type: a.answer_type ?? "",
