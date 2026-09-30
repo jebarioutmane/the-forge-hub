@@ -622,7 +622,7 @@ export default function Stipends() {
       r.reimbursement,
       r.total_net,
       r.status,
-    ].join(","));
+    ].map(exportSafe).join(","));
     const csv = [headers.join(","), ...rows].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
