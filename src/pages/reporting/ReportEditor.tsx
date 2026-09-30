@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { exportSafeRow } from "@/lib/exportSafe";
 import { QueryErrorState, SkeletonBlocks } from "@/components/QueryStates";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
